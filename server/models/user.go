@@ -1,0 +1,21 @@
+package models
+
+import "time"
+
+type User struct {
+	Id            uint      `gorm:"primaryKey" json:"id"`
+	Name          string    `gorm:"size:100;not null" json:"name"`
+	Username      string    `gorm:"size:100;uniqueIndex;not null" json:"username"`
+	Email         string    `gorm:"size:100;uniqueIndex;not null" json:"email"`
+	Password      string    `gorm:"size:255;not null" json:"password"`
+	Birthday      time.Time `gorm:"type:date" json:"birthday"`
+	Gender        string    `gorm:"size:20" json:"gender"`
+	AccountNumber string    `gorm:"size:50" json:"account_number"`
+	Bank          string    `gorm:"size:50" json:"bank"`
+	Address       string    `gorm:"type:text" json:"address"`
+	Role          string    `gorm:"size:20;default:'customer'" json:"role"`
+	Picture       string    `gorm:"size:255" json:"picture"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
