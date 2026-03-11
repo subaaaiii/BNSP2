@@ -1,14 +1,16 @@
 import { useContext } from "react";
 import { Link } from "react-router";
 import { AuthContext } from "../context/AuthContext";
+import { useLogout } from "../hooks/auth/useLogout";
 
 const Navbar = () => {
   const { user, loading } = useContext(AuthContext)!;
+  const logout = useLogout();
 
   return (
     <div className="navbar bg-base-100 border-b border-base-300">
       <div className="navbar-start">
-        <div className="dropdown">
+        <div className="dropdown dropdown end">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -74,21 +76,22 @@ const Navbar = () => {
 
           <li>
             {loading ? null : user ? (
-              <div className="flex dropdown dropdown-end ">
+              <div className="dropdown dropdown-end ">
                 <div tabIndex={0} role="button">
                   <div className="flex items-center gap-2">
                     <span>{user.username}</span>
 
-                  <div className="avatar cursor-pointer">
-                    <div className="w-8 rounded-full">
-                      <img
-                        alt="avatar"
-                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                      />
+                    <div className="avatar cursor-pointer">
+                      <div className="w-8 rounded-full">
+                        <img
+                          alt="avatar"
+                          src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        />
+                      </div>
                     </div>
                   </div>
-                  </div>
-                  <ul
+                </div>
+                <ul
                   tabIndex={0}
                   className="dropdown-content menu bg-base-100 rounded-box mt-3 z-[1] w-40 p-2 shadow"
                 >
@@ -101,12 +104,9 @@ const Navbar = () => {
                   </li>
 
                   <li>
-                    <button>Logout</button>
+                    <button onClick={logout}>Logout</button>
                   </li>
                 </ul>
-                </div>
-
-                
               </div>
             ) : (
               <Link to="/login" className="btn btn-neutral btn-sm">

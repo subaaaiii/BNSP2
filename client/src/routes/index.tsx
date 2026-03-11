@@ -15,6 +15,7 @@ import Register from "../views/auth/register.tsx";
 
 //import view login
 import Login from "../views/auth/login.tsx";
+import Profile from '../views/profile/index.tsx';
 
 export default function AppRoutes() {
 
@@ -38,6 +39,17 @@ export default function AppRoutes() {
             <Route path="/login" element={
                 isAuthenticated ? <Navigate to="/" replace /> : <Login />
             } />
+
+            <Route
+        path="/profile"
+        element={
+          isAuthenticated ? (
+            <Profile />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
         </Routes>
     );
 }
