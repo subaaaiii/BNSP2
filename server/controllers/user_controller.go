@@ -5,7 +5,10 @@ import (
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
 	"bnsp2/server/structs"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,109 +72,113 @@ func FindUserById(c *gin.Context) {
 
 func UpdateUser(c *gin.Context) {
 
-	// Ambil ID user dari parameter URL
 	id := c.Param("id")
 
-	// Inisialisasi user
 	var user models.User
 
-	// Cari user berdasarkan ID
+	// cek user
 	if err := database.DB.First(&user, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, structs.ErrorResponse{
-			Success: false,
-			Message: "User not found",
-			Errors:  helpers.TranslateErrorMessage(err),
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "User not found",
 		})
 		return
 	}
 
-	//struct user request
-	var req = structs.UserUpdateRequest{}
+	// ambil data dari form
+	name := c.PostForm("name")
+	username := c.PostForm("username")
+	email := c.PostForm("email")
+	address := c.PostForm("address")
+	bank := c.PostForm("bank")
+	accountNumber := c.PostForm("account_number")
+	gender := c.PostForm("gender")
+	birthday := c.PostForm("birthday")
 
-	// Bind JSON request ke struct UserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
-			Success: false,
-			Message: "Validation Errors",
-			Errors:  helpers.TranslateErrorMessage(err),
-		})
-		return
-	}
-
-	// Update user dengan data baru
-	if req.Name != nil {
-		user.Name = *req.Name
-	}
-	if req.Username != nil {
-		if *req.Username == "" {
-			c.JSON(400, gin.H{"error": "Username cannot be empty"})
-			return
-		}
-
-		// cek duplicate di database
-		user.Username = *req.Username
+	if name != "" {
+		user.Name = name
 	}
 
-	if req.Email != nil {
-		if *req.Email == "" {
-			c.JSON(400, gin.H{"error": "Email cannot be empty"})
-			return
-		}
+	if username != "" {
+		user.Username = username
+	}
 
-		user.Email = *req.Email
+	if email != "" {
+		user.Email = email
 	}
-	if req.Address != nil {
-		user.Address = *req.Address
+
+	if address != "" {
+		user.Address = address
 	}
-	if req.Picture != nil {
-		user.Picture = *req.Picture
+
+	if bank != "" {
+		user.Bank = bank
 	}
-	if req.Bank != nil {
-		user.Bank = *req.Bank
+
+	if accountNumber != "" {
+		user.AccountNumber = accountNumber
 	}
-	if req.AccountNumber != nil {
-		user.AccountNumber = *req.AccountNumber
+
+	if gender != "" {
+		user.Gender = gender
 	}
-	if req.Birthday != nil {
-		parsedDate, err := time.Parse("2006-01-02", *req.Birthday)
+
+	if birthday != "" {
+		parsedDate, err := time.Parse("2006-01-02", birthday)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Invalid date format. Use YYYY-MM-DD"})
+			c.JSON(400, gin.H{"error": "Invalid date format"})
 			return
 		}
 		user.Birthday = parsedDate
 	}
-	if req.Gender != nil {
-		user.Gender = *req.Gender
+
+	// ======================
+	// HANDLE UPLOAD PICTURE
+	// ======================
+
+	file, err := c.FormFile("picture")
+	if err == nil {
+		if user.Picture != "" && user.Picture != "default.png" {
+
+			oldPath := "images/users/" + user.Picture
+
+			if err := os.Remove(oldPath); err != nil {
+				// optional: hanya log jika gagal hapus
+				fmt.Println("failed delete old image:", err)
+			}
+		}
+
+		// buat nama file unik
+		filename := fmt.Sprintf(
+			"user-%s-%d%s",
+			id,
+			time.Now().Unix(),
+			filepath.Ext(file.Filename),
+		)
+
+		path := "images/users/" + filename
+
+		// simpan file
+		if err := c.SaveUploadedFile(file, path); err != nil {
+			c.JSON(500, gin.H{
+				"error": "Failed to upload picture",
+			})
+			return
+		}
+
+		user.Picture = filename
 	}
 
-	// Simpan perubahan ke database
+	// save database
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
-			Success: false,
-			Message: "Failed to update user",
-			Errors:  helpers.TranslateErrorMessage(err),
+		c.JSON(500, gin.H{
+			"message": "Failed to update user",
 		})
 		return
 	}
 
-	// Kirimkan response sukses
-	c.JSON(http.StatusOK, structs.SuccessResponse{
-		Success: true,
-		Message: "User updated successfully",
-		Data: structs.UserProfileResponse{
-			Id:            user.Id,
-			Name:          user.Name,
-			Username:      user.Username,
-			Email:         user.Email,
-			Birthday:      user.Birthday.Format("2006-01-02"),
-			Gender:        user.Gender,
-			AccountNumber: user.AccountNumber,
-			Bank:          user.Bank,
-			Address:       user.Address,
-			Picture:       user.Picture,
-			CreatedAt:     user.CreatedAt.Format("2006-01-02 15:04:05"),
-			UpdatedAt:     user.UpdatedAt.Format("2006-01-02 15:04:05"),
-		},
+	c.JSON(200, gin.H{
+		"message": "User updated successfully",
+		"data":    user,
 	})
 }
 

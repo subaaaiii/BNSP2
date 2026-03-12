@@ -44,7 +44,9 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
 			Success: false,
 			Message: "Invalid Password",
-			Errors:  helpers.TranslateErrorMessage(err),
+			Errors: map[string]string{
+				"Error": "Wrong username or password",
+			},
 		})
 		return
 	}

@@ -15,12 +15,13 @@ func SetupRouter() *gin.Engine {
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowMethods:  []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders: []string{"Content-Length"},
 	}))
 
 	// route register
+	router.Static("/images", "./images")
 	router.POST("/api/register", controllers.Register)
 	router.GET("/api/me", middlewares.AuthMiddleware(), controllers.Me)
 	router.POST("/api/login", controllers.Login)

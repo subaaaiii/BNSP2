@@ -34,6 +34,7 @@ const Login = () => {
             username: data.data.username,
             email: data.data.email,
             role: data.data.role,
+            picture: data.data.picture,
           };
           setUser(userData);
           setIsAuthenticated(true);
@@ -41,6 +42,7 @@ const Login = () => {
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
+          console.log("errornya nih",errors)
         },
       },
     );

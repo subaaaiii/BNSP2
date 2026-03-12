@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { Link } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { useLogout } from "../hooks/auth/useLogout";
+import Api from "../services/api";
 
 const Navbar = () => {
   const { user, loading } = useContext(AuthContext)!;
@@ -85,7 +86,7 @@ const Navbar = () => {
                       <div className="w-8 rounded-full">
                         <img
                           alt="avatar"
-                          src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                          src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
                         />
                       </div>
                     </div>
