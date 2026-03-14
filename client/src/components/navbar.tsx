@@ -9,8 +9,9 @@ const Navbar = () => {
   const logout = useLogout();
 
   return (
-    <div className="navbar bg-base-100 border-b border-base-300">
-      <div className="navbar-start">
+    <div className="bg-base-100 border-b border-base-300 ">
+      <div className="navbar max-w-7xl mx-auto">
+        <div className="navbar-start">
         <div className="dropdown dropdown end">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
             <svg
@@ -97,11 +98,11 @@ const Navbar = () => {
                   className="dropdown-content menu bg-base-100 rounded-box mt-3 z-[1] w-40 p-2 shadow"
                 >
                   <li>
-                    <Link to="/profile">Profile</Link>
+                    <Link to="/settings">Settings</Link>
                   </li>
 
                   <li>
-                    <Link to="/orders">Pesanan</Link>
+                    <Link to="/">Pesanan</Link>
                   </li>
 
                   <li>
@@ -116,6 +117,7 @@ const Navbar = () => {
             )}
           </li>
         </ul>
+      </div>
       </div>
     </div>
   );

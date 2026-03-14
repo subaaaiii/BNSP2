@@ -9,7 +9,7 @@ import { useNavigate } from "react-router";
 
 // import context
 import { AuthContext } from "../../context/AuthContext";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 // custom hook useLogout
 export const useLogout = (): (() => void) => {

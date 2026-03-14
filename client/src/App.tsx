@@ -3,10 +3,10 @@ import AppRoutes from "./routes";
 
 const App = () => {
   return (
-    <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-base-200">
       <Navbar />
 
-      <div className="container mt-5">
+      <div className="max-w-7xl mx-auto mt-5">
         <AppRoutes />
       </div>
     </div>
