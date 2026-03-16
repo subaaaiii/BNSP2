@@ -30,6 +30,8 @@ func SetupRouter() *gin.Engine {
 	router.GET("/api/users/:id", middlewares.AuthMiddleware(), middlewares.OwnerOrAdmin(), controllers.FindUserById)
 	router.PATCH("/api/users/:id", middlewares.AuthMiddleware(), middlewares.OwnerOrAdmin(), controllers.UpdateUser)
 	router.DELETE("/api/users/:id", middlewares.AuthMiddleware(), middlewares.OwnerOrAdmin(), controllers.DeleteUser)
+	router.POST("/send-otp-change-email", middlewares.AuthMiddleware(), controllers.SendChangeEmailOTP)
+	router.POST("/verify-otp-change-email", middlewares.AuthMiddleware(), controllers.VerifyChangeEmailOTP)
 
 	return router
 }

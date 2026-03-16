@@ -15,6 +15,8 @@ type User struct {
 	Address       string    `gorm:"type:text" json:"address"`
 	Role          string    `gorm:"size:20;default:'customer'" json:"role"`
 	Picture       string    `gorm:"size:255" json:"picture"`
+	EmailOTP      string    `gorm:"size:10" json:"email_otp"`
+	OTPExpiresAt  time.Time `json:"otp_expires_at"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
