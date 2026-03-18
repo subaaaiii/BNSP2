@@ -54,3 +54,11 @@ type UserLoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+type VerifyPasswordRequest struct {
+	Password string `json:"password" binding:"required"`
+}
+
+type ChangePasswordRequest struct {
+	NewPassword string `json:"newPassword" binding:"required,min=8"`
+}

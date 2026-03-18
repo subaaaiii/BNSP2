@@ -3,7 +3,7 @@ import { AuthContext } from "../../../context/AuthContext";
 import { useVerifyChangeEmailOTP } from "../../../hooks/change_email/verify_email";
 import { useSendChangeEmailOTP } from "../../../hooks/change_email/send_email";
 import { useChangePassword } from "../../../hooks/change_password/useChangePassword";
-import { useNavigate } from "react-router";
+import { useVerifyPassword } from "../../../hooks/change_password/useVerifyPassword";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -11,9 +11,11 @@ interface ValidationErrors {
 
 const Security = () => {
   const { user, setUser } = useContext(AuthContext)!;
-  const navigate = useNavigate();
 
   const [step, setStep] = useState<"send" | "verify">("send");
+  const [passwordStep, setPasswordStep] = useState<"verify" | "change">(
+    "verify",
+  );
   const [otp, setOtp] = useState("");
   const [newEmail, setNewEmail] = useState("");
 
@@ -22,6 +24,8 @@ const Security = () => {
   // const changePasswordMutation = useChangePassword();
   const { mutate: changePasswordMutation, isPending: isChangingPassword } =
     useChangePassword();
+  const { mutate: verifyPasswordMutation, isPending: isVerifyingPassword } =
+    useVerifyPassword();
 
   const [password, setPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -57,6 +61,15 @@ const Security = () => {
 
     const modal = document.getElementById(
       "change_email_modal",
+    ) as HTMLDialogElement | null;
+
+    modal?.showModal();
+  };
+  const openPasswordModal = () => {
+    setPasswordStep("verify");
+
+    const modal = document.getElementById(
+      "change_password_modal",
     ) as HTMLDialogElement | null;
 
     modal?.showModal();
@@ -98,6 +111,24 @@ const Security = () => {
     );
   };
 
+  const handleVerifyPassword = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    verifyPasswordMutation(
+      {
+        password,
+      },
+      {
+        onSuccess: () => {
+          setPasswordStep("change");
+        },
+        onError: (error: any) => {
+          setErrors(error.response.data.errors);
+        },
+      },
+    );
+  };
+
   const handlePasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -106,15 +137,11 @@ const Security = () => {
     const rules = validatePassword(newPassword);
 
     if (!Object.values(rules).every(Boolean)) {
-      validationErrors.newPassword = "Password belum memenuhi semua kriteria";
+      validationErrors.NewPassword = "Password belum memenuhi semua kriteria";
     }
 
-    if (password === newPassword) {
-      validationErrors.newPassword =
-        "Password baru tidak boleh sama dengan password lama";
-    }
     if (newPassword !== confirmPassword) {
-      validationErrors.confirmPassword = "Konfirmasi password tidak sama";
+      validationErrors.ConfirmPassword = "Konfirmasi password tidak sama";
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -124,12 +151,11 @@ const Security = () => {
     setErrors({});
     changePasswordMutation(
       {
-        password,
         newPassword,
       },
       {
         onSuccess: () => {
-          navigate("/login");
+          window.location.href = "/settings";
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
@@ -174,12 +200,7 @@ const Security = () => {
 
             <button
               className="shadow-md py-3 px-5 rounded-box cursor-pointer"
-              onClick={() => {
-                const modal = document.getElementById(
-                  "change_password_modal",
-                ) as HTMLDialogElement | null;
-                modal?.showModal();
-              }}
+              onClick={openPasswordModal}
             >
               Edit
             </button>
@@ -256,146 +277,166 @@ const Security = () => {
       <dialog id="change_password_modal" className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg mb-4">Change Password</h3>
-
-          <form className="flex flex-col gap-4" onSubmit={handlePasswordChange}>
-            {/* Current Password */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Current Password</span>
-              </label>
-              <div className="relative">
-                <input
-                  placeholder="Enter current password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`input input-bordered w-full pr-12 ${
-                    errors.password ? "input-error" : ""
-                  }`}
-                />
+          {passwordStep === "verify" && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Insert your password to verify it's you.
+              </p>
+              <form onSubmit={handleVerifyPassword}>
+                <div className="form-control">
+                  <div className="relative">
+                    <input
+                      placeholder="Enter current password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={`input input-bordered w-full pr-12 ${
+                        errors.password ? "input-error" : ""
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
+                {errors.Password && (
+                  <div className="text-error text-sm">
+                    <span>{errors.Password}</span>
+                  </div>
+                )}
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
+                  type="submit"
+                  className="btn btn-neutral w-full mt-2"
+                  disabled={isVerifyingPassword}
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {isVerifyingPassword ? "Verifying..." : "Verify Password"}
+                </button>
+              </form>
+            </div>
+          )}
+          {passwordStep === "change" && (
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handlePasswordChange}
+            >
+              {/* New Password */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">New Password</span>
+                </label>
+                <div className="relative">
+                  <input
+                    placeholder="Enter new password"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
+                    className={` input input-bordered w-full ${
+                      errors.newPassword ? "input-error" : ""
+                    }`}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewPassword(value);
+                      setPasswordRules(validatePassword(value));
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
+                  >
+                    {showNewPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+
+                {isPasswordFocused ? (
+                  <div className="text-sm space-y-1">
+                    {!passwordRules.minLength ? (
+                      <p className="text-gray-400">• Minimal 8 karakter</p>
+                    ) : (
+                      ""
+                    )}
+                    {!passwordRules.hasUpper ? (
+                      <p className="text-gray-400">• Mengandung huruf besar</p>
+                    ) : (
+                      ""
+                    )}
+                    {!passwordRules.hasLower ? (
+                      <p className="text-gray-400">• Mengandung huruf kecil</p>
+                    ) : (
+                      ""
+                    )}
+                    {!passwordRules.hasNumber ? (
+                      <p className="text-gray-400">• Mengandung angka</p>
+                    ) : (
+                      ""
+                    )}
+                    {!passwordRules.hasSymbol ? (
+                      <p className="text-gray-400">• Mengandung simbol</p>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                ) : (
+                  ""
+                )}
+
+                {errors.NewPassword && (
+                  <div className="text-error text-sm">
+                    <span>{errors.NewPassword}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Confirm New Password</span>
+                </label>
+                <div className="relative">
+                  <input
+                    placeholder="Confirm new password"
+                    type={showNewPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={`input input-bordered w-full ${
+                      errors.confirmPassword ? "input-error" : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
+                  >
+                    {showNewPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+                {errors.ConfirmPassword && (
+                  <div className="text-error text-sm">
+                    <span>{errors.ConfirmPassword}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-action">
+                <button className="btn" type="button">
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isChangingPassword}
+                >
+                  {isChangingPassword ? "Changing..." : "Change Password"}
                 </button>
               </div>
-            </div>
-
-            {/* New Password */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">New Password</span>
-              </label>
-              <div className="relative">
-                <input
-                  placeholder="Enter new password"
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onFocus={() => setIsPasswordFocused(true)}
-                  onBlur={() => setIsPasswordFocused(false)}
-                  className={` input input-bordered w-full ${
-                    errors.newPassword ? "input-error" : ""
-                  }`}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNewPassword(value);
-                    setPasswordRules(validatePassword(value));
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
-                >
-                  {showNewPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-
-              {isPasswordFocused ? (
-                <div className="text-sm space-y-1">
-                  {!passwordRules.minLength ? (
-                    <p className="text-gray-400">• Minimal 8 karakter</p>
-                  ) : (
-                    ""
-                  )}
-                  {!passwordRules.hasUpper ? (
-                    <p className="text-gray-400">• Mengandung huruf besar</p>
-                  ) : (
-                    ""
-                  )}
-                  {!passwordRules.hasLower ? (
-                    <p className="text-gray-400">• Mengandung huruf kecil</p>
-                  ) : (
-                    ""
-                  )}
-                  {!passwordRules.hasNumber ? (
-                    <p className="text-gray-400">• Mengandung angka</p>
-                  ) : (
-                    ""
-                  )}
-                  {!passwordRules.hasSymbol ? (
-                    <p className="text-gray-400">• Mengandung simbol</p>
-                  ) : (
-                    ""
-                  )}
-                </div>
-              ) : (
-                ""
-              )}
-
-              {errors.newPassword && (
-                <div className="text-error text-sm">
-                  <span>{errors.newPassword}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Confirm New Password</span>
-              </label>
-              <div className="relative">
-                <input
-                  placeholder="Confirm new password"
-                  type={showNewPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`input input-bordered w-full ${
-                    errors.confirmPassword ? "input-error" : ""
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
-                >
-                  {showNewPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <div className="text-error text-sm">
-                  <span>{errors.confirmPassword}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="modal-action">
-              <button className="btn" type="button">
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isChangingPassword}
-              >
-                {isChangingPassword ? "Changing..." : "Change Password"}
-              </button>
-            </div>
-          </form>
+            </form>
+          )}
         </div>
 
         {/* click outside to close */}

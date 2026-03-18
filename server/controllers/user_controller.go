@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func FindUsers(c *gin.Context) {
@@ -87,7 +88,6 @@ func UpdateUser(c *gin.Context) {
 	// ambil data dari form
 	name := c.PostForm("name")
 	username := c.PostForm("username")
-	email := c.PostForm("email")
 	address := c.PostForm("address")
 	bank := c.PostForm("bank")
 	accountNumber := c.PostForm("account_number")
@@ -100,10 +100,6 @@ func UpdateUser(c *gin.Context) {
 
 	if username != "" {
 		user.Username = username
-	}
-
-	if email != "" {
-		user.Email = email
 	}
 
 	if address != "" {
@@ -245,5 +241,87 @@ func Me(c *gin.Context) {
 			Email:    user.Email,
 			Picture:  user.Picture,
 		},
+	})
+}
+
+func VerifyPassword(c *gin.Context) {
+	var req structs.VerifyPasswordRequest
+
+	// bind request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// ambil user dari context (misalnya dari middleware JWT)
+	userID := c.MustGet("user_id").(uint)
+
+	var user models.User
+
+	// ambil user dari database
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "User tidak ditemukan",
+		})
+		return
+	}
+
+	// compare password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid Password",
+			Errors: map[string]string{
+				"Password": "Wrong password",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Password Verified",
+	})
+}
+
+func ChangePassword(c *gin.Context) {
+	var req structs.ChangePasswordRequest
+
+	// bind request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// ambil user dari context (misalnya dari middleware JWT)
+	userID := c.MustGet("user_id").(uint)
+
+	var user models.User
+
+	// ambil user dari database
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "User tidak ditemukan",
+		})
+		return
+	}
+
+	user.Password = helpers.HashPassword(req.NewPassword)
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Password Updated Successfully",
 	})
 }
