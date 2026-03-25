@@ -127,10 +127,6 @@ func UpdateUser(c *gin.Context) {
 		user.Birthday = parsedDate
 	}
 
-	// ======================
-	// HANDLE UPLOAD PICTURE
-	// ======================
-
 	file, err := c.FormFile("picture")
 	if err == nil {
 		if user.Picture != "" && user.Picture != "default.png" {

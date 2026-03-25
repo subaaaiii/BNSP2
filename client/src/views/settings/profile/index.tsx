@@ -19,14 +19,14 @@ const Profile = () => {
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const [form, setForm] = useState({
-  name: "",
-  email: "",
-  birthday: "",
-  gender: "",
-  address: "",
-});
+    name: "",
+    email: "",
+    birthday: "",
+    gender: "",
+    address: "",
+  });
 
-const [pictureFile, setPictureFile] = useState<File | null>(null);
+  const [pictureFile, setPictureFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (data) {
@@ -55,25 +55,25 @@ const [pictureFile, setPictureFile] = useState<File | null>(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0] || null;
+    const file = e.target.files?.[0] || null;
 
-  setPictureFile(file);
-};
+    setPictureFile(file);
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log(form);
     const formData = new FormData();
 
-  formData.append("name", form.name);
-  formData.append("email", form.email);
-  formData.append("birthday", form.birthday);
-  formData.append("gender", form.gender);
-  formData.append("address", form.address);
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("birthday", form.birthday);
+    formData.append("gender", form.gender);
+    formData.append("address", form.address);
 
-  if (pictureFile) {
-  formData.append("picture", pictureFile);
-}
+    if (pictureFile) {
+      formData.append("picture", pictureFile);
+    }
     mutate(
       {
         id: userId!,
@@ -82,10 +82,10 @@ const [pictureFile, setPictureFile] = useState<File | null>(null);
       {
         onSuccess: (res) => {
           // update AuthContext
-      setUser((prev:any) => ({
-        ...prev,
-        ...res.data
-      }))
+          setUser((prev: any) => ({
+            ...prev,
+            ...res.data,
+          }));
           setIsEditing(false);
           navigate("/profile");
         },
@@ -138,21 +138,26 @@ const [pictureFile, setPictureFile] = useState<File | null>(null);
 
           {/* AVATAR */}
           <div className="text-center mb-8">
-            {data&&(
+            {data && (
               <img
-              src={
-    pictureFile
-      ? URL.createObjectURL(pictureFile)
-      : `${Api.defaults.baseURL}/images/users/${data?.picture}`
-  }
-              alt="Profile"
-              className="rounded-full w-32 h-32 mx-auto border-4 border-indigo-800 mb-4"
-            />
+                src={
+                  pictureFile
+                    ? URL.createObjectURL(pictureFile)
+                    : `${Api.defaults.baseURL}/images/users/${data?.picture}`
+                }
+                alt="Profile"
+                className="rounded-full w-32 h-32 mx-auto border-4 border-indigo-800 mb-4"
+              />
             )}
 
             {isEditing && (
               <>
-                <input type="file" id="upload_profile" hidden onChange={handleFileChange} />
+                <input
+                  type="file"
+                  id="upload_profile"
+                  hidden
+                  onChange={handleFileChange}
+                />
                 <label
                   htmlFor="upload_profile"
                   className="cursor-pointer text-sm text-indigo-700 bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors duration-300 ring ring-gray-300 hover:ring-indigo-300"
