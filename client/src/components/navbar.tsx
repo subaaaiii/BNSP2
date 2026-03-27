@@ -104,6 +104,9 @@ const Navbar = () => {
                     <li>
                       <Link to="/admin/games"> Manage Games</Link>
                     </li>
+                    <li>
+                      <Link to="/product/games"> Add offers</Link>
+                    </li>
 
                     <li>
                       <button onClick={logout}>Logout</button>

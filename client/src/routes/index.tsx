@@ -19,6 +19,8 @@ import Profile from "../views/settings/profile/index.tsx";
 import Settings from "../views/settings/index.tsx";
 import ManageGame from "../views/admin/game/manage.tsx";
 import GameList from "../views/admin/game/index.tsx";
+import CreateProduct from "../views/product/create.tsx";
+import GameBrand from "../views/product/game.tsx";
 
 export default function AppRoutes() {
   // Menggunakan useContext untuk mendapatkan nilai dari AuthContext
@@ -72,6 +74,18 @@ export default function AppRoutes() {
           path="/admin/games/edit/:id"
           element={
             isAuthenticated ? <ManageGame /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/product/games"
+          element={
+            isAuthenticated ? <GameBrand /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/product/create/:id"
+          element={
+            isAuthenticated ? <CreateProduct /> : <Navigate to="/login" replace />
           }
         />
     </Routes>

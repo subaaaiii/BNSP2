@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import ManageGameForm from "./manaGameForm";
+import ManageGameForm from "./manageGameForm";
 import { useGame } from "../../../hooks/game/useGame";
 
 const ManageGame = () => {

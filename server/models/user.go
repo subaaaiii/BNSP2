@@ -17,6 +17,7 @@ type User struct {
 	Picture       string    `gorm:"size:255" json:"picture"`
 	EmailOTP      string    `gorm:"size:10" json:"email_otp"`
 	OTPExpiresAt  time.Time `json:"otp_expires_at"`
+	Products      []Product `json:"products,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

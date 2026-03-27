@@ -7,4 +7,6 @@ type Game struct {
 	Name        string         `json:"name"`
 	Image       string         `json:"image"`
 	FieldSchema datatypes.JSON `json:"field_schema"` // dynamic fields
+
+	Products []Product `json:"products,omitempty"`
 }

@@ -1,20 +1,24 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/datatypes"
+)
 
 type Product struct {
-	Id         uint   `gorm:"primaryKey" json:"id"`
-	Code       string `gorm:"size:50;uniqueIndex;not null" json:"code"`
-	Name       string `gorm:"size:150;not null" json:"name"`
-	Price      int    `gorm:"not null" json:"price"`
-	IsReady    bool   `gorm:"default:true" json:"is_ready"`
-	Picture    string `gorm:"size:255" json:"picture"`
-	CategoryId uint   `gorm:"not null" json:"category_id"`
-	StoreID    uint   `gorm:"not null" json:"store_id"`
+	Id          uint           `gorm:"primaryKey" json:"id"`
+	GameId      uint           `gorm:"not null" json:"game_id"`
+	UserId      uint           `gorm:"not null" json:"user_id"`
+	Price       int            `gorm:"not null" json:"price"`
+	Title       string         `gorm:"size:255" json:"title"`
+	Description string         `gorm:"type:text" json:"description"`
+	Status      string         `gorm:"size:50;not null" json:"status"`
+	Image       string         `gorm:"size:255" json:"image"`
+	FieldValues datatypes.JSON `gorm:"type:json" json:"field_values"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 
-	Category Category `gorm:"foreignKey:CategoryId" json:"category"`
-	Store    Store    `gorm:"foreignKey:StoreID" json:"store"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	User User `gorm:"foreignKey:UserId" json:"user"`
+	Game Game `gorm:"foreignKey:GameId" json:"game"`
 }
