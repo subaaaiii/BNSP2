@@ -35,6 +35,7 @@ const Login = () => {
             email: data.data.email,
             role: data.data.role,
             picture: data.data.picture,
+            email_verified: data.data.email_verified,
           };
           setUser(userData);
           setIsAuthenticated(true);

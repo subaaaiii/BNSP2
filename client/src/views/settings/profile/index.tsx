@@ -87,7 +87,7 @@ const Profile = () => {
             ...res.data,
           }));
           setIsEditing(false);
-          navigate("/profile");
+          navigate("/settings");
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);

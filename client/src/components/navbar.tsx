@@ -63,17 +63,7 @@ const Navbar = () => {
             </li>
 
             <li>
-              <details>
-                <summary>Buka toko</summary>
-                <ul className="p-2 bg-base-100 w-40 z-1">
-                  <li>
-                    <a>Submenu 1</a>
-                  </li>
-                  <li>
-                    <a>Submenu 2</a>
-                  </li>
-                </ul>
-              </details>
+                      <Link to="/become-seller"> Start selling</Link>
             </li>
 
             <li>
@@ -105,7 +95,10 @@ const Navbar = () => {
                       <Link to="/admin/games"> Manage Games</Link>
                     </li>
                     <li>
-                      <Link to="/product/games"> Add offers</Link>
+                      <Link to="/offers/create">Create offers</Link>
+                    </li>
+                    <li>
+                      <Link to="/offers">Manage offers</Link>
                     </li>
 
                     <li>

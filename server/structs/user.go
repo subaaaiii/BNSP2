@@ -26,6 +26,7 @@ type UserProfileResponse struct {
 	Bank          string `json:"bank"`
 	Address       string `json:"address"`
 	Picture       string `json:"picture"`
+	EmailVerified bool   `json:"email_verified"`
 }
 
 // Struct ini digunakan untuk menerima data saat proses create user
@@ -47,6 +48,7 @@ type UserUpdateRequest struct {
 	Bank          *string `json:"bank,omitempty"`
 	Address       *string `json:"address,omitempty"`
 	Picture       *string `json:"picture,omitempty"`
+	EmailVerified *bool   `json:"email_verified,omitempty"`
 }
 
 // Struct ini digunakan saat user melakukan proses login
@@ -61,4 +63,8 @@ type VerifyPasswordRequest struct {
 
 type ChangePasswordRequest struct {
 	NewPassword string `json:"newPassword" binding:"required,min=8"`
+}
+
+type UserVerifyEmailRequest struct {
+	Email string `json:"email" binding:"required,email"`
 }

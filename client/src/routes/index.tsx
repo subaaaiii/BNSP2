@@ -19,8 +19,9 @@ import Profile from "../views/settings/profile/index.tsx";
 import Settings from "../views/settings/index.tsx";
 import ManageGame from "../views/admin/game/manage.tsx";
 import GameList from "../views/admin/game/index.tsx";
-import CreateProduct from "../views/product/create.tsx";
-import GameBrand from "../views/product/game.tsx";
+import CreateOfferFlow from "../views/offers/createFlow.tsx";
+import BecomeSeller from "../views/seller/index.tsx";
+import VerifyEmail from "../views/auth/verify.tsx";
 
 export default function AppRoutes() {
   // Menggunakan useContext untuk mendapatkan nilai dari AuthContext
@@ -44,6 +45,11 @@ export default function AppRoutes() {
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+      />
+
+      <Route
+        path="/verify-email"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <VerifyEmail />}
       />
 
       <Route
@@ -77,15 +83,15 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/product/games"
+          path="/offers/create"
           element={
-            isAuthenticated ? <GameBrand /> : <Navigate to="/login" replace />
+            isAuthenticated ? <CreateOfferFlow /> : <Navigate to="/login" replace />
           }
         />
         <Route
-          path="/product/create/:id"
+          path="/become-seller"
           element={
-            isAuthenticated ? <CreateProduct /> : <Navigate to="/login" replace />
+            isAuthenticated ? <BecomeSeller /> : <Navigate to="/login" replace />
           }
         />
     </Routes>

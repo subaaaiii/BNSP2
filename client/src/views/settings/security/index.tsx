@@ -174,10 +174,23 @@ const Security = () => {
           <div className="flex justify-between w-full items-center py-4">
             <div>
               <div className="font-semibold text-lg">Email</div>
-              <div className="text-gray-600">
+              <div className="flex items-center gap-2">
+                <div className="text-gray-600">
                 Your Email Address is {user?.email}
               </div>
+              {user?.email_verified ? (
+                <div className="badge badge-success badge-outline">
+                  verified
+                </div>
+              ) : (
+                <div className="badge badge-error badge-outline">
+                  unverified
+                </div>
+              )}
+              </div>
             </div>
+
+            
 
             <button
               className="shadow-md py-3 px-5 rounded-box cursor-pointer"
@@ -202,7 +215,7 @@ const Security = () => {
               className="shadow-md py-3 px-5 rounded-box cursor-pointer"
               onClick={openPasswordModal}
             >
-              Edit
+              Change password
             </button>
           </div>
 
