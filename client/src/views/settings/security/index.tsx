@@ -1,16 +1,19 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import { useVerifyChangeEmailOTP } from "../../../hooks/change_email/verify_email";
 import { useSendChangeEmailOTP } from "../../../hooks/change_email/send_email";
 import { useChangePassword } from "../../../hooks/change_password/useChangePassword";
 import { useVerifyPassword } from "../../../hooks/change_password/useVerifyPassword";
+import { useNavigate } from "react-router";
+import { useSendOTP } from "../../../hooks/auth/useSendOTP";
 
 interface ValidationErrors {
   [key: string]: string;
 }
 
 const Security = () => {
-  const { user, setUser } = useContext(AuthContext)!;
+  const navigate = useNavigate();
+  const { user, setUser, loading:isLoading } = useContext(AuthContext)!;
 
   const [step, setStep] = useState<"send" | "verify">("send");
   const [passwordStep, setPasswordStep] = useState<"verify" | "change">(
@@ -26,6 +29,7 @@ const Security = () => {
     useChangePassword();
   const { mutate: verifyPasswordMutation, isPending: isVerifyingPassword } =
     useVerifyPassword();
+  const { mutate: sendOtpMutation2, isPending: isSendingOtp } = useSendOTP();
 
   const [password, setPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -51,8 +55,19 @@ const Security = () => {
       hasSymbol: /[^A-Za-z0-9]/.test(password),
     };
   };
+  useEffect(() => {
+    if (user) {
+      console.log("ini kah data user ", user);
+      console.log("ini kah data user email verified", user.email_verified);
+    }
+  }, [user]);
+
+  useEffect(() => {
+  console.log("USER FROM CONTEXT:", user);
+}, [user]);
 
   const loading = sendOtpMutation.isPending || verifyOtpMutation.isPending;
+  if (isLoading || !user) return <div>Loading...</div>;
 
   const openModal = () => {
     setStep("send");
@@ -164,6 +179,14 @@ const Security = () => {
     );
   };
 
+  const handleVerifyEmail = (email: string) => () => {
+    sendOtpMutation2(email, {
+      onSuccess: () => {
+        navigate("/verify-email?email=" + email);
+      },
+    });
+  };
+
   return (
     <div className="font-std mb-10 w-full rounded-2xl bg-white p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
       <div className="flex flex-row">
@@ -176,28 +199,36 @@ const Security = () => {
               <div className="font-semibold text-lg">Email</div>
               <div className="flex items-center gap-2">
                 <div className="text-gray-600">
-                Your Email Address is {user?.email}
-              </div>
-              {user?.email_verified ? (
-                <div className="badge badge-success badge-outline">
-                  verified
+                  Your Email Address is {user?.email}
                 </div>
-              ) : (
-                <div className="badge badge-error badge-outline">
-                  unverified
-                </div>
-              )}
+                {user && Boolean(user.email_verified) ? (
+                  <div className="badge badge-success badge-outline">
+                    verified
+                  </div>
+                ) : (
+                  <div className="badge badge-error badge-outline">
+                    unverified
+                  </div>
+                )}
               </div>
             </div>
 
-            
-
-            <button
-              className="shadow-md py-3 px-5 rounded-box cursor-pointer"
-              onClick={openModal}
-            >
-              Edit
-            </button>
+            <div>
+              <button
+                className="shadow-md py-3 px-5 rounded-box cursor-pointer"
+                onClick={openModal}
+              >
+                Edit
+              </button>
+              {user && !user.email_verified && (
+                <button
+                  className="shadow-md py-3 px-5 rounded-box cursor-pointer"
+                  onClick={handleVerifyEmail(user.email)}
+                >
+                  verify
+                </button>
+              )}
+            </div>
           </div>
 
           <hr className="w-full border-gray-300" />

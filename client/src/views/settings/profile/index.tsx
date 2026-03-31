@@ -20,7 +20,6 @@ const Profile = () => {
 
   const [form, setForm] = useState({
     name: "",
-    email: "",
     birthday: "",
     gender: "",
     address: "",
@@ -32,13 +31,12 @@ const Profile = () => {
     if (data) {
       setForm({
         name: data.name ?? "",
-        email: data.email ?? "",
         birthday: data.birthday ?? "",
         gender: data.gender ?? "",
         address: data.address ?? "",
       });
     }
-    console.log(data);
+    console.log("ini kah data", data);
   }, [data]);
 
   const handleChange = (
@@ -62,11 +60,10 @@ const Profile = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(form);
+    console.log("ini kah",form);
     const formData = new FormData();
 
     formData.append("name", form.name);
-    formData.append("email", form.email);
     formData.append("birthday", form.birthday);
     formData.append("gender", form.gender);
     formData.append("address", form.address);
@@ -191,27 +188,6 @@ const Profile = () => {
             )}
           </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`${errors.Email ? "input-error" : ""}w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
-            />
-            {errors.Email && (
-              <div className="text-error">
-                <span>{errors.Email}</span>
-              </div>
-            )}
-          </div>
 
           <div>
             <label

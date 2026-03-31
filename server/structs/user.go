@@ -2,31 +2,24 @@ package structs
 
 // Struct ini digunakan untuk menampilkan data user sebagai response API
 type UserResponse struct {
-	Id        uint    `json:"id"`
-	Name      string  `json:"name"`
-	Username  string  `json:"username"`
-	Email     string  `json:"email"`
-	CreatedAt string  `json:"created_at"`
-	UpdatedAt string  `json:"updated_at"`
-	Token     *string `json:"token,omitempty"`
-	Role      string  `json:"role"`
-	Picture   string  `json:"picture"`
+	Id            uint    `json:"id"`
+	Name          string  `json:"name"`
+	Username      string  `json:"username"`
+	Email         string  `json:"email"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
+	Token         *string `json:"token,omitempty"`
+	Role          string  `json:"role"`
+	Picture       string  `json:"picture"`
+	EmailVerified bool    `json:"email_verified"`
 }
 
 type UserProfileResponse struct {
-	Id            uint   `json:"id"`
-	Name          string `json:"name"`
-	Username      string `json:"username"`
-	Email         string `json:"email"`
-	CreatedAt     string `json:"created_at"`
-	UpdatedAt     string `json:"updated_at"`
-	Birthday      string `json:"birthday"`
-	Gender        string `json:"gender"`
-	AccountNumber string `json:"account_number"`
-	Bank          string `json:"bank"`
-	Address       string `json:"address"`
-	Picture       string `json:"picture"`
-	EmailVerified bool   `json:"email_verified"`
+	Name     string `json:"name"`
+	Birthday string `json:"birthday"`
+	Gender   string `json:"gender"`
+	Address  string `json:"address"`
+	Picture  string `json:"picture"`
 }
 
 // Struct ini digunakan untuk menerima data saat proses create user

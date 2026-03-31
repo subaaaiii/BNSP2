@@ -22,6 +22,7 @@ import GameList from "../views/admin/game/index.tsx";
 import CreateOfferFlow from "../views/offers/createFlow.tsx";
 import BecomeSeller from "../views/seller/index.tsx";
 import VerifyEmail from "../views/auth/verify.tsx";
+import SellerApply from "../views/seller/apply.tsx";
 
 export default function AppRoutes() {
   // Menggunakan useContext untuk mendapatkan nilai dari AuthContext
@@ -29,6 +30,7 @@ export default function AppRoutes() {
 
   // Menggunakan optional chaining untuk menghindari error jika auth tidak ada
   const isAuthenticated = auth?.isAuthenticated ?? false;
+  const isVerified = auth?.user?.email_verified ?? false;
 
   return (
     <Routes>
@@ -49,7 +51,7 @@ export default function AppRoutes() {
 
       <Route
         path="/verify-email"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <VerifyEmail />}
+        element={isAuthenticated && isVerified ? <Navigate to="/" replace /> : <VerifyEmail />}
       />
 
       <Route
@@ -92,6 +94,12 @@ export default function AppRoutes() {
           path="/become-seller"
           element={
             isAuthenticated ? <BecomeSeller /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/apply-seller"
+          element={
+            isAuthenticated ? <SellerApply /> : <Navigate to="/login" replace />
           }
         />
     </Routes>

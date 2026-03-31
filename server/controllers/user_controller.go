@@ -54,18 +54,11 @@ func FindUserById(c *gin.Context) {
 		Success: true,
 		Message: "User Found",
 		Data: structs.UserProfileResponse{
-			Id:            user.Id,
-			Name:          user.Name,
-			Username:      user.Username,
-			Email:         user.Email,
-			Birthday:      user.Birthday.Format("2006-01-02"),
-			Gender:        user.Gender,
-			AccountNumber: user.AccountNumber,
-			Bank:          user.Bank,
-			Address:       user.Address,
-			Picture:       user.Picture,
-			CreatedAt:     user.CreatedAt.Format("2006-01-02 15:04:05"),
-			UpdatedAt:     user.UpdatedAt.Format("2006-01-02 15:04:05"),
+			Name:     user.Name,
+			Birthday: user.Birthday.Format("2006-01-02"),
+			Gender:   user.Gender,
+			Address:  user.Address,
+			Picture:  user.Picture,
 		},
 	})
 
@@ -87,37 +80,19 @@ func UpdateUser(c *gin.Context) {
 
 	// ambil data dari form
 	name := c.PostForm("name")
-	username := c.PostForm("username")
 	address := c.PostForm("address")
-	bank := c.PostForm("bank")
-	accountNumber := c.PostForm("account_number")
 	gender := c.PostForm("gender")
 	birthday := c.PostForm("birthday")
 
 	if name != "" {
 		user.Name = name
 	}
-
-	if username != "" {
-		user.Username = username
-	}
-
 	if address != "" {
 		user.Address = address
 	}
-
-	if bank != "" {
-		user.Bank = bank
-	}
-
-	if accountNumber != "" {
-		user.AccountNumber = accountNumber
-	}
-
 	if gender != "" {
 		user.Gender = gender
 	}
-
 	if birthday != "" {
 		parsedDate, err := time.Parse("2006-01-02", birthday)
 		if err != nil {
@@ -134,7 +109,6 @@ func UpdateUser(c *gin.Context) {
 			oldPath := "images/users/" + user.Picture
 
 			if err := os.Remove(oldPath); err != nil {
-				// optional: hanya log jika gagal hapus
 				fmt.Println("failed delete old image:", err)
 			}
 		}
@@ -231,11 +205,15 @@ func Me(c *gin.Context) {
 		Success: true,
 		Message: "Data user",
 		Data: structs.UserResponse{
-			Id:       user.Id,
-			Name:     user.Name,
-			Username: user.Username,
-			Email:    user.Email,
-			Picture:  user.Picture,
+			Id:            user.Id,
+			Name:          user.Name,
+			Username:      user.Username,
+			Email:         user.Email,
+			Picture:       user.Picture,
+			Role:          user.Role,
+			EmailVerified: user.EmailVerified,
+			CreatedAt:     user.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt:     user.UpdatedAt.Format("2006-01-02 15:04:05"),
 		},
 	})
 }

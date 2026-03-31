@@ -36,6 +36,8 @@ func SetupRouter() *gin.Engine {
 	router.POST("/verify-otp-change-email", middlewares.AuthMiddleware(), controllers.VerifyChangeEmailOTP)
 	router.POST("/verify-password", middlewares.AuthMiddleware(), controllers.VerifyPassword)
 	router.POST("/change-password", middlewares.AuthMiddleware(), controllers.ChangePassword)
+	router.POST("/api/sellers/register", middlewares.AuthMiddleware(), controllers.RegisterSeller)
+	router.GET("/api/seller", middlewares.AuthMiddleware(), controllers.GetSellerByUserId)
 	admin := router.Group("/api/admin")
 	{
 		admin.POST("/games", controllers.CreateGame)

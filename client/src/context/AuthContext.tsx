@@ -22,7 +22,7 @@ interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
+  undefined,
 );
 
 interface AuthProviderProps {
@@ -31,7 +31,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!Cookies.get("token")
+    !!Cookies.get("token"),
   );
 
   const [user, setUser] = useState<User | null>(null);
@@ -39,32 +39,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // ambil data user dari endpoint /me
   const fetchMe = async () => {
-  try {
-    const token = Cookies.get("token");
+    try {
+      const token = Cookies.get("token");
 
-    const res = await Api.get("/api/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const res = await Api.get("/api/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    setUser(res.data.data);
-    setIsAuthenticated(true);
-  } catch (error) {
-    setUser(null);
-    setIsAuthenticated(false);
-  } finally {
-    setLoading(false);
-  }
-};
+      setUser(res.data.data);
+      setIsAuthenticated(true);
+    } catch (error) {
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const token = Cookies.get("token");
 
   useEffect(() => {
-    if (Cookies.get("token")) {
+    if (token) {
       fetchMe();
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [token]); //
 
   return (
     <AuthContext.Provider

@@ -47,7 +47,7 @@ const BecomeSeller = () => {
         {/* CTA */}
         <div className="flex justify-end">
           <button
-            onClick={() => navigate("/seller/apply")}
+            onClick={() => navigate("/apply-seller")}
             className="bg-neutral text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition cursor-pointer"
           >
             Ajukan Menjadi Seller
