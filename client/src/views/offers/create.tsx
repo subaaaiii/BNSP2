@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useGame } from "../../hooks/game/useGame";
 import { useCreateProduct } from "../../hooks/product/useCreateProduct";
+import { LiaCloudUploadAltSolid } from "react-icons/lia";
+import { FiInfo } from "react-icons/fi";
 
 interface ValidationErrors {
   [key: string]: string;
 }
 
 const CreateOffer = ({ gameId }: { gameId: string }) => {
-
   const { data } = useGame(gameId);
   const { mutate, isPending } = useCreateProduct();
   const navigate = useNavigate();
@@ -21,9 +22,12 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
     price: "",
     image: "",
     fieldValues: "",
+    stock: 1,
+    guarantee: "",
   });
 
   const [pictureFile, setPictureFile] = useState<File | null>(null);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -37,12 +41,6 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-
-    setPictureFile(file);
-  };
-
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -54,8 +52,31 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
     }));
   };
 
+  const MAX_SIZE = 2 * 1024 * 1024;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+
+    if (file.size > MAX_SIZE) {
+      setErrors((prev) => ({
+        ...prev,
+        IdentityImage: "File maksimal 2MB",
+      }));
+      return;
+    }
+
+    setPictureFile(file);
+
+    setErrors((prev) => ({
+      ...prev,
+      IdentityImage: "",
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     mutate(
       {
         gameId: gameId!,
@@ -64,6 +85,8 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
         price: parseFloat(form.price),
         image: pictureFile,
         fieldValues,
+        // stock: form.stock,
+        // guarantee: form.guarantee,
       },
       {
         onSuccess: () => {
@@ -77,155 +100,291 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
   };
 
   return (
-    <div className="font-std mb-10 w-full rounded-2xl bg-white p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
-      <div className="flex flex-col">
-        <div className="flex flex-col md:flex-row justify-between mb-5 items-start">
-          <form onSubmit={handleSubmit} className="space-y-4 w-full">
-            {data?.fields && (
-              <div className="space-y-4">
-                {data.fields.map((field: any) => (
-                  <div key={field.id}>
-                    <label
-                      htmlFor={field.name}
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      {field.label}
-                    </label>
-                    {field.type === "select" ? (
-                      <select
-                        name={field.name}
-                        value={fieldValues[field.name] || ""}
-                        onChange={handleFieldChange}
-                        className="input select w-full"
-                      >
-                        {field.options?.map((opt: any) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        name={field.name}
-                        value={fieldValues[field.name] || ""}
-                        onChange={handleFieldChange}
-                        className={`${errors[field.name] ? "input-error" : ""} w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
-                      />
-                    )}
+    <form onSubmit={handleSubmit}>
+      <div>
+        <h2 className="text-3xl font-semibold mb-4">Create Offer</h2>
 
-                    {errors[field.name] && (
+        {/* ================= SECTION 1 ================= */}
+        <div className="grid grid-cols-4 gap-6">
+          <div className="col-span-3 font-std mb-10 w-full rounded-2xl bg-white p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
+            <div className="flex flex-col">
+              <div className="flex flex-col justify-between mb-5 items-start">
+                <h6 className="text-2xl font-semibold mb-4">
+                  Offer Details
+                </h6>
+
+                <div className="grid grid-cols-3 w-full space-y-4">
+                  <div className="col-span-1">
+                    <div className="font-medium text-gray-700">
+                      Game Brand
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="font-medium text-gray-700">
+                      {data?.name}
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="w-full border-t border-gray-300 my-10 " />
+
+                {/* 🔥 FORM CONTENT (tetap sama, cuma tidak buka form lagi) */}
+                <div className="space-y-10 w-full">
+                  {data?.fields && (
+                    <div className="space-y-10">
+                      {data.fields.map((field: any) => (
+                        <div key={field.id} className="grid grid-cols-3">
+                          <div className="col-span-1">
+                            <label
+                              htmlFor={field.name}
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              {field.label}
+                            </label>
+                          </div>
+
+                          <div className="col-span-2">
+                            {field.type === "select" ? (
+                              <select
+                                name={field.name}
+                                value={fieldValues[field.name] || ""}
+                                onChange={handleFieldChange}
+                                className="input select rounded-xl"
+                              >
+                                {field.options?.map((opt: any) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type="text"
+                                name={field.name}
+                                value={fieldValues[field.name] || ""}
+                                onChange={handleFieldChange}
+                                className={`${errors[field.name] ? "input-error" : ""} input px-3 py-2 rounded-xl`}
+                              />
+                            )}
+                          </div>
+
+                          {errors[field.name] && (
+                            <div className="text-error">
+                              <span>{errors[field.name]}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <hr className="w-full border-t border-gray-300 my-10 " />
+
+                  {/* IMAGE */}
+                  <div className="grid grid-cols-3">
+                    <label
+                      htmlFor="image"
+                      className="block text-sm font-medium text-gray-700 col-span-1"
+                    >
+                      Image
+                    </label>
+
+                    <label
+                      htmlFor="image"
+                      className="flex gap-6 col-span-2 items-center cursor-pointer"
+                    >
+                      <div className="w-80 aspect-[1.6/1] border rounded-lg flex items-center justify-center overflow-hidden">
+                        {pictureFile ? (
+                          <img
+                            src={URL.createObjectURL(pictureFile)}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <LiaCloudUploadAltSolid className="text-gray-700 text-4xl" />
+                            <p className="text-gray-700 text-sm font-medium">
+                              Upload Cover Image
+                            </p>
+                            <p className="text-gray-700 text-xs">
+                              PNG or JPG (max 2MB)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <input
+                        type="file"
+                        id="image"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+
+                      {pictureFile && (
+                        <button
+                          type="button"
+                          onClick={() => setPictureFile(null)}
+                          className="text-xs text-red-500 hover:underline bg-red-100 px-3 py-2 rounded mt-2"
+                        >
+                          Remove image
+                        </button>
+                      )}
+                    </label>
+
+                    {errors.Title && (
                       <div className="text-error">
-                        <span>{errors[field.name]}</span>
+                        <span>{errors.Title}</span>
                       </div>
                     )}
                   </div>
-                ))}
+
+                  {/* TITLE */}
+                  <div className="grid grid-cols-3">
+                    <label className="text-sm font-medium text-gray-700 col-span-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={form.title}
+                      onChange={handleChange}
+                      className={`${errors.Title ? "input-error" : ""} col-span-2 w-full px-3 py-2 border border-gray-300 rounded-xl input`}
+                    />
+                    {errors.Title && (
+                      <div className="text-error">
+                        <span>{errors.Title}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DESCRIPTION */}
+                  <div className="grid grid-cols-3">
+                    <label className="col-span-1 text-sm font-medium text-gray-700">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      className={`${errors.Description ? "input-error" : ""} col-span-2 w-full textarea textarea-md px-3 py-2 border border-gray-300 rounded-xl`}
+                    />
+                    {errors.Description && (
+                      <div className="text-error">
+                        <span>{errors.Description}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-            <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                className={`${errors.Title ? "input-error" : ""} w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
-              />
-              {errors.Title && (
-                <div className="text-error">
-                  <span>{errors.Title}</span>
-                </div>
-              )}
             </div>
+          </div>
 
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Description
-              </label>
-              <textarea
-                placeholder="description"
-                className={`${errors.Description ? "input-error" : ""} w-full textarea textarea-md`}
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-              ></textarea>
-              {errors.Description && (
-                <div className="text-error">
-                  <span>{errors.Description}</span>
-                </div>
-              )}
-            </div>
+          {/* RIGHT PANEL */}
+          <div className="col-span-1 mt-4">
+            <ul className="list-disc space-y-3 text-gray-700">
+              <li>
+                Buyers must know what they're buying. Provide product
+                specifications accurately and truthfully.
+              </li>
+              <li>
+                Make it easy for buyers to read and understand product
+                descriptions by using bullet points or numbering.
+              </li>
+            </ul>
+          </div>
+        </div>
 
-            <div>
-              <label
-                htmlFor="price"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Price
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={form.price}
-                onChange={handleChange}
-                className={`${errors.Price ? "input-error" : ""}w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
-              />
-              {errors.Price && (
-                <div className="text-error">
-                  <span>{errors.Price}</span>
+        {/* ================= SECTION 2 ================= */}
+        <div className="grid grid-cols-4 gap-6">
+          <div className="col-span-3 font-std mb-10 w-full rounded-2xl bg-white p-10 text-gray-900 shadow-xl">
+            <div className="flex flex-col space-y-10">
+              <h6 className="text-2xl font-semibold mb-4">
+                Sales Information
+              </h6>
+
+              <div className="grid grid-cols-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Price
+                </label>
+                <div className="flex items-center">
+                  <p className="border border-gray-300 bg-gray-100 px-3 py-2 rounded-l-xl font-semibold">
+                    IDR
+                  </p>
+                  <input
+                    type="number"
+                    name="price"
+                    value={form.price}
+                    onChange={handleChange}
+                    className={`${errors.Price ? "input-error" : ""} px-3 py-2 border border-gray-300 rounded-r-xl`}
+                  />
                 </div>
-              )}
-            </div>
-            <div>
-              {pictureFile && (
-                <img
-                  src={URL.createObjectURL(pictureFile)}
-                  alt="Profile"
-                  className="max-w-64 max-h-48 rounded-sm mb-4"
+              </div>
+
+              <div className="grid grid-cols-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  value={form.stock}
+                  onChange={handleChange}
+                  className={`${errors.Stock ? "input-error" : ""} col-span-2 px-3 py-2 border border-gray-300 rounded-xl input`}
                 />
-              )}
-              <input
-                type="file"
-                id="image"
-                hidden
-                onChange={handleFileChange}
-              />
-              <label
-                htmlFor="image"
-                className="cursor-pointer text-sm text-indigo-700 bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors duration-300 ring ring-gray-300 hover:ring-indigo-300"
-              >
-                Add Product Image
-              </label>
-            </div>
+              </div>
 
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-700"
-              >
-                {isPending ? "Loading..." : "Save Changes"}
-              </button>
+              <div className="grid grid-cols-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Guarantee time
+                </label>
+                <select
+                  name="guarantee"
+                  value={form.guarantee}
+                  onChange={handleChange}
+                  className="input select rounded-xl"
+                >
+                  <option value="">Select guarantee time</option>
+                  {[7, 14, 30].map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt} day
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </form>
+          </div>
+
+          <div className="col-span-1 mt-4">
+            <ul className="list-disc space-y-3 text-gray-700">
+              <li>Set a reasonable but competitive price.</li>
+              <li>
+                You can also get more sales by offering a longer
+                Guarantee time.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* ================= ACTION ================= */}
+        <div className="grid grid-cols-4 pb-10">
+          <div className="col-span-3 flex justify-end space-x-4">
+            <button
+              type="button"
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="px-4 py-2 bg-indigo-800 text-white rounded-lg"
+            >
+              {isPending ? "Loading..." : "Save Changes"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </form>
   );
 };
 

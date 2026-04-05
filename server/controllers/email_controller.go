@@ -5,6 +5,7 @@ import (
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
 	"bnsp2/server/structs"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -46,6 +47,8 @@ func SendEmailOTP(c *gin.Context) {
 
 	database.DB.Save(&user)
 
+	fmt.Println("Sebelum kirim email")
+
 	// kirim OTP ke email
 	err := helpers.SendOTPEmail(req.Email, otp)
 	if err != nil {
@@ -54,10 +57,13 @@ func SendEmailOTP(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println("Setelah kirim email")
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "OTP dikirim ke email",
 	})
+
+	fmt.Println("Setelah kirim json")
 }
 
 type VerifyEmailRequest struct {

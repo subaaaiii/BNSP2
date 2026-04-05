@@ -8,3 +8,8 @@ type SellerResponse struct {
 	UserId         uint                `json:"user_id"`
 	User           UserProfileResponse `json:"user"`
 }
+
+type UpdateSellerStatusRequest struct {
+	Ids    []uint `json:"ids" binding:"required"`
+	Status string `json:"status" binding:"required"`
+}

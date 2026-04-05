@@ -192,3 +192,110 @@ func GetSellerByUserId(c *gin.Context) {
 		},
 	})
 }
+
+func GetSellers(c *gin.Context) {
+
+	var sellers []models.Seller
+	if err := database.DB.Preload("User").Find(&sellers).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to create user",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	var result []structs.SellerResponse
+
+	for _, seller := range sellers {
+		result = append(result, structs.SellerResponse{
+			Id:             seller.Id,
+			IdentityNumber: seller.IdentityNumber,
+			IdentityImage:  seller.IdentityImage,
+			UserId:         seller.UserId,
+			Status:         seller.Status,
+			User: structs.UserProfileResponse{
+				Name:     seller.User.Name,
+				Address:  seller.User.Address,
+				Gender:   seller.User.Gender,
+				Birthday: seller.User.Birthday.Format("2006-01-02"),
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Seller found",
+		Data:    result,
+	})
+}
+
+func UpdateSellerStatus(c *gin.Context) {
+	var req structs.UpdateSellerStatusRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid request body",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	tx := database.DB.Begin()
+
+	// 1. Update seller status
+	if err := tx.Model(&models.Seller{}).
+		Where("id IN ?", req.Ids).
+		Update("status", req.Status).Error; err != nil {
+
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to update seller status",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// 2. Kalau approved → update role user
+	if req.Status == "approved" {
+
+		// ambil user_id dari sellers
+		var userIds []uint
+		if err := tx.Model(&models.Seller{}).
+			Where("id IN ?", req.Ids).
+			Pluck("user_id", &userIds).Error; err != nil {
+
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "Failed to get user ids",
+				Errors:  helpers.TranslateErrorMessage(err),
+			})
+			return
+		}
+
+		// update role user jadi seller
+		if err := tx.Model(&models.User{}).
+			Where("id IN ?", userIds).
+			Update("role", "seller").Error; err != nil {
+
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "Failed to update user role",
+				Errors:  helpers.TranslateErrorMessage(err),
+			})
+			return
+		}
+	}
+
+	// commit kalau semua sukses
+	tx.Commit()
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Status updated successfully",
+	})
+}

@@ -194,6 +194,12 @@ const SellerApply = () => {
             <label
               className={`${sellerData?.status === "pending" ? "" : "cursor-pointer"}`}
             >
+              <label
+                htmlFor="identity_number"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Identity Image
+              </label>
               <div className="w-80 aspect-[1.6/1] border rounded-lg flex items-center justify-center overflow-hidden">
                 {preview ? (
                   <img

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useRegister } from "../../hooks/auth/useRegister";
-import { useSendOTP } from "../../hooks/auth/useSendOTP";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -10,7 +9,6 @@ interface ValidationErrors {
 const Register = () => {
   const navigate = useNavigate();
   const { mutate, isPending } = useRegister();
-  const { mutate: sendOtpMutation, isPending: isSendingOtp } = useSendOTP();
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [username, setUsername] = useState<string>("");
@@ -65,14 +63,7 @@ const Register = () => {
       },
       {
         onSuccess: () => {
-          sendOtpMutation(
-            email,
-            {
-              onSuccess: () => {navigate(`/verify-email?email=${email}`)
-            },
-
-            }
-          );
+          navigate("/verify-email");
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
@@ -239,7 +230,7 @@ const Register = () => {
             </div>
           )}
           <button type="submit" className="btn btn-neutral mt-4">
-            {isPending ||isSendingOtp ? "Loading..." : "REGISTER"}
+            {isPending ? "Loading..." : "REGISTER"}
           </button>
         </fieldset>
       </form>

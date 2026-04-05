@@ -23,14 +23,26 @@ import CreateOfferFlow from "../views/offers/createFlow.tsx";
 import BecomeSeller from "../views/seller/index.tsx";
 import VerifyEmail from "../views/auth/verify.tsx";
 import SellerApply from "../views/seller/apply.tsx";
+import ReviewSeller from "../views/admin/seller/review.tsx";
+import RestrictedPage from "../views/restricted/index.tsx";
+import AuthGuard from "./guard.tsx";
 
 export default function AppRoutes() {
-  // Menggunakan useContext untuk mendapatkan nilai dari AuthContext
   const auth = useContext(AuthContext);
 
+  const isLoading = auth?.loading ?? true;
   // Menggunakan optional chaining untuk menghindari error jika auth tidak ada
   const isAuthenticated = auth?.isAuthenticated ?? false;
   const isVerified = auth?.user?.email_verified ?? false;
+  const role = auth?.user?.role;
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-700 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -51,7 +63,15 @@ export default function AppRoutes() {
 
       <Route
         path="/verify-email"
-        element={isAuthenticated && isVerified ? <Navigate to="/" replace /> : <VerifyEmail />}
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : isVerified ? (
+            <Navigate to="/" replace />
+          ) : (
+            <VerifyEmail />
+          )
+        }
       />
 
       <Route
@@ -69,39 +89,102 @@ export default function AppRoutes() {
       <Route
         path="/admin/games"
         element={
-          isAuthenticated ? <GameList /> : <Navigate to="/login" replace />
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["admin"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <GameList />
+          </AuthGuard>
         }
       />
-        <Route
-          path="/admin/games/add"
-          element={
-            isAuthenticated ? <ManageGame /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/admin/games/edit/:id"
-          element={
-            isAuthenticated ? <ManageGame /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/offers/create"
-          element={
-            isAuthenticated ? <CreateOfferFlow /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/become-seller"
-          element={
-            isAuthenticated ? <BecomeSeller /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/apply-seller"
-          element={
-            isAuthenticated ? <SellerApply /> : <Navigate to="/login" replace />
-          }
-        />
+      <Route
+        path="/admin/games/add"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["admin"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <ManageGame />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/admin/games/edit/:id"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["admin"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <ManageGame />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/offers/create"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["seller"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <CreateOfferFlow />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/become-seller"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["customer"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <BecomeSeller />
+          </AuthGuard>
+        }
+      />
+      <Route path="/restricted" element={<RestrictedPage />} />
+      <Route
+        path="/apply-seller"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["customer"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <SellerApply />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/admin/review-sellers"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["admin"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <ReviewSeller />
+          </AuthGuard>
+        }
+      />
     </Routes>
   );
 }

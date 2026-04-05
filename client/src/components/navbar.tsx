@@ -63,7 +63,10 @@ const Navbar = () => {
             </li>
 
             <li>
-                      <Link to="/become-seller"> Start selling</Link>
+              <Link to="/become-seller"> Start selling</Link>
+            </li>
+            <li>
+              <Link to="/admin/review-sellers"> Review Sellers</Link>
             </li>
 
             <li>
