@@ -15,6 +15,8 @@ type Product struct {
 	Description string         `gorm:"type:text" json:"description"`
 	Status      string         `gorm:"size:50;not null" json:"status"`
 	Image       string         `gorm:"size:255" json:"image"`
+	Stock       int            `gorm:"not null" json:"stock"`
+	Guarantee   int            `gorm:"not null" json:"guarantee"`
 	FieldValues datatypes.JSON `gorm:"type:json" json:"field_values"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`

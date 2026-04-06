@@ -16,10 +16,33 @@ func GenerateToken(user_id uint, role string) string {
 	expirationTime := time.Now().Add(60 * time.Minute)
 
 	// Membuat klaim (claims) JWT
-	// Subject berisi username, dan ExpiresAt menentukan waktu expired token
+	// Subject berisi , dan ExpiresAt menentukan waktu expired token
 	claims := &JWTClaims{
 		UserId: user_id,
 		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	// Membuat token baru dengan klaim yang telah dibuat
+	// Menggunakan algoritma HS256 untuk menandatangani token
+	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtKey)
+
+	// Mengembalikan token dalam bentuk string
+	return token
+}
+
+func GenerateResetToken(user_id uint) string {
+
+	// Mengatur waktu kedaluwarsa token, di sini kita set 10 menit dari waktu sekarang
+	expirationTime := time.Now().Add(10 * time.Minute)
+
+	// Membuat klaim (claims) JWT
+	// Subject berisi , dan ExpiresAt menentukan waktu expired token
+	claims := &JWTClaims{
+		UserId: user_id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -26,6 +26,8 @@ import SellerApply from "../views/seller/apply.tsx";
 import ReviewSeller from "../views/admin/seller/review.tsx";
 import RestrictedPage from "../views/restricted/index.tsx";
 import AuthGuard from "./guard.tsx";
+import ForgotPassword from "../views/forgot-password/index.tsx";
+import ResetPassword from "../views/forgot-password/reset.tsx";
 
 export default function AppRoutes() {
   const auth = useContext(AuthContext);
@@ -59,6 +61,18 @@ export default function AppRoutes() {
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+      />
+      <Route
+        path="/forgot-password"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />}
+      />
+      <Route
+        path="/forgot-password"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />}
+      />
+      <Route
+        path="/reset-password"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <ResetPassword />}
       />
 
       <Route

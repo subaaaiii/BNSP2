@@ -49,6 +49,40 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
+	stockStr := c.PostForm("stock")
+	if stockStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "stock is required",
+		})
+		return
+	}
+	stock, err := strconv.Atoi(stockStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "invalid stock format",
+		})
+		return
+	}
+	guaranteeStr := c.PostForm("guarantee")
+	if guaranteeStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "guarantee is required",
+		})
+		return
+	}
+
+	guarantee, err := strconv.Atoi(guaranteeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "invalid guarantee format",
+		})
+		return
+	}
+
 	// ambil game_id
 	gameIdStr := c.PostForm("game_id")
 	gameIdInt, err := strconv.Atoi(gameIdStr)
@@ -106,6 +140,8 @@ func CreateProduct(c *gin.Context) {
 		Description: description,
 		Status:      "available",
 		Image:       filename,
+		Stock:       stock,
+		Guarantee:   guarantee,
 		FieldValues: fieldValuesJSON,
 	}
 	if err := database.DB.Create(&product).Error; err != nil {

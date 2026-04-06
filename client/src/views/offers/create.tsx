@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { useGame } from "../../hooks/game/useGame";
 import { useCreateProduct } from "../../hooks/product/useCreateProduct";
 import { LiaCloudUploadAltSolid } from "react-icons/lia";
-import { FiInfo } from "react-icons/fi";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -22,7 +21,7 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
     price: "",
     image: "",
     fieldValues: "",
-    stock: 1,
+    stock: "1",
     guarantee: "",
   });
 
@@ -82,11 +81,11 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
         gameId: gameId!,
         title: form.title,
         description: form.description,
-        price: parseFloat(form.price),
+        price: form.price,
         image: pictureFile,
         fieldValues,
-        // stock: form.stock,
-        // guarantee: form.guarantee,
+        stock: form.stock,
+        guarantee: form.guarantee,
       },
       {
         onSuccess: () => {
@@ -302,25 +301,26 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
                 Sales Information
               </h6>
 
-              <div className="grid grid-cols-3">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="grid grid-cols-3 items-center">
+                <label className="col-span-1 text-sm font-medium text-gray-700">
                   Price
                 </label>
-                <div className="flex items-center">
-                  <p className="border border-gray-300 bg-gray-100 px-3 py-2 rounded-l-xl font-semibold">
-                    IDR
-                  </p>
-                  <input
+                <div className="col-span-2 w-full items-center">
+                  <p className="border border-gray-300 input flex bg-gray-100 rounded-xl font-semibold pr-0 overflow-hidden ">
+                    <span>IDR</span>
+                    <input
                     type="number"
                     name="price"
                     value={form.price}
                     onChange={handleChange}
-                    className={`${errors.Price ? "input-error" : ""} px-3 py-2 border border-gray-300 rounded-r-xl`}
+                    className={`${errors.Price ? "input-error" : ""} border-l border-gray-300 pl-2 bg-white w-full `}
                   />
+                  </p>
+                  
                 </div>
               </div>
 
-              <div className="grid grid-cols-3">
+              <div className="grid grid-cols-3 items-center">
                 <label className="text-sm font-medium text-gray-700">
                   Stock
                 </label>
@@ -333,20 +333,20 @@ const CreateOffer = ({ gameId }: { gameId: string }) => {
                 />
               </div>
 
-              <div className="grid grid-cols-3">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="grid grid-cols-3 items-center">
+                <label className="col-span-1 text-sm font-medium text-gray-700">
                   Guarantee time
                 </label>
                 <select
                   name="guarantee"
                   value={form.guarantee}
                   onChange={handleChange}
-                  className="input select rounded-xl"
+                  className="col-span-2 input select rounded-xl"
                 >
                   <option value="">Select guarantee time</option>
                   {[7, 14, 30].map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt} day
+                      {opt} days
                     </option>
                   ))}
                 </select>

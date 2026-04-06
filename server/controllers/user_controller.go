@@ -299,3 +299,93 @@ func ChangePassword(c *gin.Context) {
 		Message: "Password Updated Successfully",
 	})
 }
+
+func SendResetPasswordEmail(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	var user models.User
+
+	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Email not registered",
+		})
+		return
+	}
+
+	token := helpers.GenerateResetToken(user.Id)
+	user.ResetToken = token
+	user.ResetTokenExpiresAt = time.Now().Add(10 * time.Minute)
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to generate reset token",
+		})
+		return
+	}
+
+	if err := helpers.SendResetPasswordEmail(user.Email, token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to send reset email",
+		})
+		return
+	}
+}
+
+func ResetPassword(c *gin.Context) {
+	var req struct {
+		Token    string `json:"token" binding:"required"`
+		Password string `json:"password" binding:"required,min=8"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	var user models.User
+
+	if err := database.DB.Where("reset_token = ?", req.Token).First(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Invalid reset token",
+		})
+		return
+	}
+
+	if time.Now().After(user.ResetTokenExpiresAt) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Reset Password token has expired",
+		})
+		return
+	}
+
+	user.Password = helpers.HashPassword(req.Password)
+	user.ResetToken = ""
+	user.ResetTokenExpiresAt = time.Time{}
+
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to reset password",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Password reset successfully",
+	})
+
+}

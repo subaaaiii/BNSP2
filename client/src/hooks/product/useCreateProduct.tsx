@@ -6,7 +6,9 @@ interface CreateProductRequest {
   gameId: string;
   title: string;
   description: string;
-  price: number;
+  price: string;
+  stock: string;
+  guarantee: string;
   image?: File | null;
   fieldValues: Record<string, any>;
 }
@@ -22,7 +24,9 @@ export const useCreateProduct = () => {
       formData.append("game_id", data.gameId);
       formData.append("title", data.title);
       formData.append("description", data.description);
-      formData.append("price", data.price.toString());
+      formData.append("price", data.price);
+      formData.append("stock", data.stock);
+      formData.append("guarantee", data.guarantee);
       formData.append("field_values", JSON.stringify(data.fieldValues));
 
       if (data.image) {

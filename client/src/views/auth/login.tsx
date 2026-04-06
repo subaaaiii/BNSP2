@@ -117,11 +117,14 @@ const Login = () => {
               <span>{errors.Password}</span>
             </div>
           )}
+          <a href="/forgot-password" className="flex w-full justify-end text-sm text-blue-500 hover:underline">
+            Forgot password?
+          </a>
           <button type="submit" className="btn btn-neutral mt-4">
             {isPending ? "Loading..." : "LOGIN"}
           </button>
           <div className="flex justify-center gap-2 "> <span>Don't have account?</span>
-          <a href="/register">register</a></div>
+          <a href="/register" className="text-sm text-blue-500 hover:underline">Register</a></div>
         </fieldset>
       </form>
     </div>
