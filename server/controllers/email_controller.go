@@ -5,7 +5,6 @@ import (
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
 	"bnsp2/server/structs"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -29,8 +28,9 @@ func SendEmailOTP(c *gin.Context) {
 
 	// ambil user dari database
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(404, gin.H{
-			"message": "User tidak ditemukan",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
 		})
 		return
 	}
@@ -47,23 +47,21 @@ func SendEmailOTP(c *gin.Context) {
 
 	database.DB.Save(&user)
 
-	fmt.Println("Sebelum kirim email")
-
 	// kirim OTP ke email
 	err := helpers.SendOTPEmail(req.Email, otp)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "Gagal kirim OTP",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "OTP Failed to send",
 		})
 		return
 	}
-	fmt.Println("Setelah kirim email")
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "OTP dikirim ke email",
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "OTP Sent to email",
 	})
 
-	fmt.Println("Setelah kirim json")
 }
 
 type VerifyEmailRequest struct {
@@ -75,7 +73,11 @@ func VerifyEmailOTP(c *gin.Context) {
 	var req VerifyEmailRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"message": "Request tidak valid"})
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
 		return
 	}
 
@@ -83,24 +85,27 @@ func VerifyEmailOTP(c *gin.Context) {
 
 	// cari user berdasarkan email
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(404, gin.H{
-			"message": "User tidak ditemukan",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
 		})
 		return
 	}
 
 	// cek OTP
 	if user.EmailOTP != req.OTP {
-		c.JSON(400, gin.H{
-			"message": "OTP salah",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Wrong OTP",
 		})
 		return
 	}
 
 	// cek expired
 	if time.Now().After(user.OTPExpiresAt) {
-		c.JSON(400, gin.H{
-			"message": "OTP expired",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "OTP expired",
 		})
 		return
 	}
@@ -111,14 +116,15 @@ func VerifyEmailOTP(c *gin.Context) {
 	user.EmailVerified = true
 
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(500, gin.H{
-			"message": "Gagal update user",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Message: "Failed update user",
 		})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "Email berhasil diverifikasi",
+	c.JSON(http.StatusOK, structs.ErrorResponse{
+		Success: true,
+		Message: "Email Verified",
 	})
 }
 
@@ -130,8 +136,9 @@ func SendChangeEmailOTP(c *gin.Context) {
 
 	// ambil user dari database
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		c.JSON(404, gin.H{
-			"message": "User tidak ditemukan",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
 		})
 		return
 	}
@@ -151,14 +158,16 @@ func SendChangeEmailOTP(c *gin.Context) {
 	// kirim OTP ke email lama
 	err := helpers.SendOTPEmail(user.Email, otp)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "Gagal kirim OTP",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to send OTP",
 		})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "OTP dikirim ke email lama",
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "OTP Sent",
 	})
 }
 
@@ -180,16 +189,18 @@ func VerifyChangeEmailOTP(c *gin.Context) {
 
 	// cek OTP
 	if user.EmailOTP != req.OTP {
-		c.JSON(400, gin.H{
-			"message": "OTP salah",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "wrong OTP",
 		})
 		return
 	}
 
 	// cek expired
 	if time.Now().After(user.OTPExpiresAt) {
-		c.JSON(400, gin.H{
-			"message": "OTP expired",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "OTP expired",
 		})
 		return
 	}
@@ -200,7 +211,8 @@ func VerifyChangeEmailOTP(c *gin.Context) {
 
 	database.DB.Save(&user)
 
-	c.JSON(200, gin.H{
-		"message": "Email berhasil diubah",
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Email successfully changed",
 	})
 }

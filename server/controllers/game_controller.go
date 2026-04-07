@@ -14,6 +14,7 @@ import (
 
 	"bnsp2/server/database"
 	"bnsp2/server/models"
+	"bnsp2/server/structs"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,9 +24,9 @@ func CreateGame(c *gin.Context) {
 	// ambil name
 	name := c.PostForm("name")
 	if name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "name is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "name is required",
 		})
 		return
 	}
@@ -37,9 +38,9 @@ func CreateGame(c *gin.Context) {
 
 	if fieldsStr != "" {
 		if err := json.Unmarshal([]byte(fieldsStr), &fields); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "invalid fields format",
+			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+				Success: false,
+				Message: "invalid fields format",
 			})
 			return
 		}
@@ -70,9 +71,9 @@ func CreateGame(c *gin.Context) {
 
 	file, err := c.FormFile("image")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "image is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "image is required",
 		})
 		return
 	}
@@ -84,17 +85,17 @@ func CreateGame(c *gin.Context) {
 	filepath := path.Join(uploadPath, filename)
 
 	if err := c.SaveUploadedFile(file, filepath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "failed to save image",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to save image",
 		})
 		return
 	}
 	fieldJSON, err := json.Marshal(fields)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "failed to parse fields",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to parse fields",
 		})
 		return
 	}
@@ -106,16 +107,17 @@ func CreateGame(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&game).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "failed to create game",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to create game",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    game,
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Game successfully created",
+		Data:    game,
 	})
 }
 
@@ -123,16 +125,17 @@ func GetGames(c *gin.Context) {
 	var games []models.Game
 
 	if err := database.DB.Find(&games).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "failed to fetch games",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to fetch games",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    games,
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Games successfully fecthed",
+		Data:    games,
 	})
 }
 
@@ -141,9 +144,9 @@ func GetGameByID(c *gin.Context) {
 
 	var game models.Game
 	if err := database.DB.First(&game, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "game not found",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "game not found",
 		})
 		return
 	}
@@ -152,9 +155,9 @@ func GetGameByID(c *gin.Context) {
 	var fields []map[string]interface{}
 	json.Unmarshal(game.FieldSchema, &fields)
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Data: gin.H{
 			"id":     game.ID,
 			"name":   game.Name,
 			"image":  game.Image,
@@ -171,8 +174,9 @@ func UpdateGame(c *gin.Context) {
 
 	// cek game
 	if err := database.DB.First(&game, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Game not found",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Game not found",
 		})
 		return
 	}
@@ -180,9 +184,9 @@ func UpdateGame(c *gin.Context) {
 	// ambil name
 	name := c.PostForm("name")
 	if name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "name is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "name is required",
 		})
 		return
 	}
@@ -195,9 +199,9 @@ func UpdateGame(c *gin.Context) {
 
 	if fieldsStr != "" {
 		if err := json.Unmarshal([]byte(fieldsStr), &fields); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "invalid fields format",
+			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+				Success: false,
+				Message: "invalid fields format",
 			})
 			return
 		}
@@ -237,15 +241,17 @@ func UpdateGame(c *gin.Context) {
 
 	// save database
 	if err := database.DB.Save(&game).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to update game",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to update game",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Game updated successfully",
-		"data":    game,
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Game updated successfully",
+		Data:    game,
 	})
 }
 
@@ -253,9 +259,9 @@ func DeleteGame(c *gin.Context) {
 	id := c.Param("id")
 	var game models.Game
 	if err := database.DB.First(&game, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Game not found",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Game not found",
 		})
 		return
 	}
@@ -264,13 +270,13 @@ func DeleteGame(c *gin.Context) {
 		_ = os.Remove(oldPath)
 	}
 	if err := database.DB.Delete(&game).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to delete game, server error",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to delete game, server error",
 		})
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Game deleted successfully",
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Game deleted successfully",
 	})
 }

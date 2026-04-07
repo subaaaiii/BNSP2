@@ -12,6 +12,7 @@ import (
 
 	"bnsp2/server/database"
 	"bnsp2/server/models"
+	"bnsp2/server/structs"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,9 +22,9 @@ func CreateProduct(c *gin.Context) {
 	// ambil title
 	title := c.PostForm("title")
 	if title == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "title is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "title is required",
 		})
 		return
 	}
@@ -34,51 +35,51 @@ func CreateProduct(c *gin.Context) {
 	// ambil price
 	priceStr := c.PostForm("price")
 	if priceStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "price is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "price is required",
 		})
 		return
 	}
 	price, err := strconv.Atoi(priceStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "invalid price format",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "invalid price format",
 		})
 		return
 	}
 
 	stockStr := c.PostForm("stock")
 	if stockStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "stock is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "stock is required",
 		})
 		return
 	}
 	stock, err := strconv.Atoi(stockStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "invalid stock format",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "invalid stock format",
 		})
 		return
 	}
 	guaranteeStr := c.PostForm("guarantee")
 	if guaranteeStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "guarantee is required",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "guarantee is required",
 		})
 		return
 	}
 
 	guarantee, err := strconv.Atoi(guaranteeStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "invalid guarantee format",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "invalid guarantee format",
 		})
 		return
 	}
@@ -87,9 +88,9 @@ func CreateProduct(c *gin.Context) {
 	gameIdStr := c.PostForm("game_id")
 	gameIdInt, err := strconv.Atoi(gameIdStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "invalid game_id format",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "invalid game_id format",
 		})
 		return
 	}
@@ -105,9 +106,9 @@ func CreateProduct(c *gin.Context) {
 		var fieldValues map[string]interface{}
 
 		if err := json.Unmarshal([]byte(fieldValuesStr), &fieldValues); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "invalid field_values format",
+			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+				Success: false,
+				Message: "invalid field_values format",
 			})
 			return
 		}
@@ -124,9 +125,9 @@ func CreateProduct(c *gin.Context) {
 		filename = fmt.Sprintf("%d%s", time.Now().Unix(), filepath.Ext(file.Filename))
 		filepath := path.Join(uploadPath, filename)
 		if err := c.SaveUploadedFile(file, filepath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"message": "failed to save image",
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "failed to save image",
 			})
 			return
 		}
@@ -145,15 +146,16 @@ func CreateProduct(c *gin.Context) {
 		FieldValues: fieldValuesJSON,
 	}
 	if err := database.DB.Create(&product).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "failed to create product",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to create product",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    product,
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: false,
+		Message: "Product successfully created",
+		Data:    product,
 	})
 }

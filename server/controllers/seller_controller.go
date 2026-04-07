@@ -5,126 +5,114 @@ import (
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
 	"bnsp2/server/structs"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // RegisterSeller menangani proses registrasi seller baru
 func RegisterSeller(c *gin.Context) {
 
-	identityNumber := c.PostForm("identity_number")
-	if identityNumber == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "identity number is required",
+	userId := c.MustGet("user_id").(uint)
+
+	var user models.User
+	if err := database.DB.First(&user, userId).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
 		})
 		return
+	}
+
+	errors := map[string]string{}
+
+	identityNumber := c.PostForm("identity_number")
+	if identityNumber == "" {
+		errors["IdentityNumber"] = "Identity number is required"
 	}
 
 	identityImage, err := c.FormFile("identity_image")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Failed to retrieve identity image",
+	if identityImage == nil {
+		errors["IdentityImage"] = "Identity image is required"
+	} else if err != nil {
+		errors["IdentityImage"] = "Failed to retrieve identity image"
+	}
+
+	name := c.PostForm("name")
+	if name == "" {
+		errors["Name"] = "Name is required"
+	}
+	user.Name = name
+
+	address := c.PostForm("address")
+	if address == "" {
+		errors["Address"] = "Address is required"
+	}
+	user.Address = address
+
+	gender := c.PostForm("gender")
+	if gender == "" {
+		errors["Gender"] = "Gender is required"
+	}
+	user.Gender = gender
+
+	birthday := c.PostForm("birthday")
+	if birthday == "" {
+		errors["Birthday"] = "Birthday is required"
+	}
+	if birthday != "" {
+		parsedDate, err := time.Parse("2006-01-02", birthday)
+		if err != nil {
+			errors["Birthday"] = "Birthday must be in the format YYYY-MM-DD"
+		}
+		user.Birthday = parsedDate
+	}
+
+	if len(errors) > 0 {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation failed",
+			Errors:  errors,
 		})
 		return
 	}
+
 	uploadPath := "images/sellers/identities"
 	if err := os.MkdirAll(uploadPath, os.ModePerm); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to create upload directory",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to create upload directory",
 		})
 		return
 	}
-
 	filename := fmt.Sprintf("seller-%d%s", time.Now().Unix(), filepath.Ext(identityImage.Filename))
-	filepath := path.Join(uploadPath, filename)
+	filepath := filepath.Join(uploadPath, filename)
 
 	if err := c.SaveUploadedFile(identityImage, filepath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to save identity image",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to save identity image",
 		})
 		return
 	}
 
-	userId := c.MustGet("user_id").(uint)
-
-	// Buat data seller baru
 	seller := models.Seller{
 		IdentityNumber: identityNumber,
 		IdentityImage:  filename,
 		UserId:         userId,
 	}
 
-	var user models.User
-	if err := database.DB.First(&user, userId).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "User not found",
-		})
-		return
-	}
-
-	// ambil data dari form
-	name := c.PostForm("name")
-	address := c.PostForm("address")
-	gender := c.PostForm("gender")
-	birthday := c.PostForm("birthday")
-
-	if name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Name is required",
-		})
-		return
-	}
-	if address == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Address is required",
-		})
-		return
-	}
-	if gender == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Gender is required",
-		})
-		return
-	}
-
-	if birthday == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Birthday is required",
-		})
-		return
-	}
-
-	if birthday != "" {
-		parsedDate, err := time.Parse("2006-01-02", birthday)
-		if err != nil {
-			c.JSON(400, gin.H{"error": "Invalid date format"})
-			return
-		}
-		user.Birthday = parsedDate
-	}
-
-	user.Name = name
-	user.Address = address
-	user.Gender = gender
-
 	// save database
 	tx := database.DB.Begin()
 	if err := tx.Model(&user).Updates(user).Error; err != nil {
 		tx.Rollback()
+		os.Remove(filepath)
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "Failed to create user",
@@ -134,6 +122,7 @@ func RegisterSeller(c *gin.Context) {
 	}
 	if err := tx.Create(&seller).Error; err != nil {
 		tx.Rollback()
+		os.Remove(filepath)
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "Failed to create seller",
@@ -168,8 +157,17 @@ func GetSellerByUserId(c *gin.Context) {
 
 	var seller models.Seller
 	if err := database.DB.Preload("User").Where("user_id = ?", userId).First(&seller).Error; err != nil {
-		c.JSON(200, gin.H{
-			"data": nil,
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, structs.ErrorResponse{
+				Success: false,
+				Message: "Seller not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to fetch seller",
 		})
 		return
 	}
@@ -253,7 +251,6 @@ func UpdateSellerStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "Failed to update seller status",
-			Errors:  helpers.TranslateErrorMessage(err),
 		})
 		return
 	}
@@ -271,7 +268,6 @@ func UpdateSellerStatus(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 				Success: false,
 				Message: "Failed to get user ids",
-				Errors:  helpers.TranslateErrorMessage(err),
 			})
 			return
 		}
@@ -285,7 +281,6 @@ func UpdateSellerStatus(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 				Success: false,
 				Message: "Failed to update user role",
-				Errors:  helpers.TranslateErrorMessage(err),
 			})
 			return
 		}

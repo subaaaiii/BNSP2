@@ -14,5 +14,6 @@ export const useCheckSeller = () => {
     });
       return res.data.data;
     },
+    retry: false,
   });
 };

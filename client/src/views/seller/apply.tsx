@@ -60,11 +60,6 @@ const SellerApply = () => {
     }
   }, [data]);
 
-  useEffect(() => {
-    if (sellerData) {
-      console.log("seller data", sellerData);
-    }
-  }, [sellerData]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -104,7 +99,6 @@ const SellerApply = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("form data", form);
     mutate(
       {
         name: form.name,
@@ -157,9 +151,9 @@ const SellerApply = () => {
         </h2>
 
         <p className="mt-2 text-gray-600 leading-relaxed">
-          {sellerData
+          {sellerData?.status === "pending"
             ? "Your application is currently under review. Please wait while our team verifies your information."
-            : "Complete your profile and upload your identification documents to start selling."}
+            : sellerData?.status=="rejected"? "Your seller application has been rejected" : "Complete your profile and upload your identification documents to start selling."}
         </p>
 
         <div
@@ -179,6 +173,14 @@ const SellerApply = () => {
               <p>
                 You will be notified once your application is approved or if
                 additional information is required.
+              </p>
+            </div>
+          ) : sellerData?.status === "rejected" ? (
+            <div className="text-sm text-red-800 space-y-1">
+              <p className="font-semibold">Status: Rejected ❌</p>
+              <p>
+                Your seller application has been rejected. Please contact our
+                support team for more information.
               </p>
             </div>
           ) : (
@@ -204,7 +206,7 @@ const SellerApply = () => {
                 {preview ? (
                   <img
                     src={preview}
-                    className={`object-cover w-full h-full ${sellerData?.status === "pending" ? "grayscale" : ""}`}
+                    className={`object-cover w-full h-full ${sellerData ? "grayscale" : ""}`}
                   />
                 ) : (
                   <div className="flex flex-col items-center">
@@ -224,7 +226,7 @@ const SellerApply = () => {
                 accept="image/*"
                 className="hidden"
                 onChange={handleFileChange}
-                disabled={sellerData?.status === "pending"}
+                disabled={sellerData}
               />
             </label>
             {preview && (
@@ -250,7 +252,7 @@ const SellerApply = () => {
               name="identity_number"
               value={form.identity_number}
               onChange={handleChange}
-              disabled={sellerData?.status === "pending"}
+              disabled={sellerData}
               className={`${errors.IdentityNumber ? "input-error" : ""} w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.IdentityNumber && (
@@ -271,7 +273,7 @@ const SellerApply = () => {
               name="name"
               value={form.name}
               onChange={handleChange}
-              disabled={sellerData?.status === "pending"}
+              disabled={sellerData}
               className={`${errors.Name ? "input-error" : ""} w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Name && (
@@ -292,7 +294,7 @@ const SellerApply = () => {
               name="birthday"
               value={form.birthday}
               onChange={handleChange}
-              disabled={sellerData?.status === "pending"}
+              disabled={sellerData}
               className={`${errors.Birthday ? "input-error" : ""}w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Birthday && (
@@ -316,7 +318,7 @@ const SellerApply = () => {
                   name="gender"
                   value="male"
                   checked={form.gender === "male"}
-                  disabled={sellerData?.status === "pending"}
+                  disabled={sellerData}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
                   className="checkbox checkbox-sm"
                 />
@@ -329,7 +331,7 @@ const SellerApply = () => {
                   name="gender"
                   value="female"
                   checked={form.gender === "female"}
-                  disabled={sellerData?.status === "pending"}
+                  disabled={sellerData}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
                   className="checkbox checkbox-sm"
                 />
@@ -355,7 +357,7 @@ const SellerApply = () => {
               name="address"
               value={form.address}
               onChange={handleChange}
-              disabled={sellerData?.status === "pending"}
+              disabled={sellerData}
             ></textarea>
             {errors.Address && (
               <div className="text-error">
@@ -364,7 +366,7 @@ const SellerApply = () => {
             )}
           </div>
 
-          {sellerData?.status !== "pending" && (
+          {!sellerData && (
             <div className="flex justify-end space-x-4">
               <button
                 type="button"

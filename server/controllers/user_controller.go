@@ -21,7 +21,13 @@ func FindUsers(c *gin.Context) {
 	var users []models.User
 
 	// Ambil data user dari database
-	database.DB.Find(&users)
+	if err := database.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "No User found",
+		})
+		return
+	}
 
 	// Kirimkan response sukses dengan data user
 	c.JSON(http.StatusOK, structs.SuccessResponse{
@@ -44,7 +50,6 @@ func FindUserById(c *gin.Context) {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
 			Message: "User not found",
-			Errors:  helpers.TranslateErrorMessage(err),
 		})
 		return
 	}
@@ -72,8 +77,9 @@ func UpdateUser(c *gin.Context) {
 
 	// cek user
 	if err := database.DB.First(&user, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "User not found",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
 		})
 		return
 	}
@@ -96,7 +102,9 @@ func UpdateUser(c *gin.Context) {
 	if birthday != "" {
 		parsedDate, err := time.Parse("2006-01-02", birthday)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Invalid date format"})
+			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+				Success: false,
+				Message: "Invalid date format"})
 			return
 		}
 		user.Birthday = parsedDate
@@ -125,8 +133,9 @@ func UpdateUser(c *gin.Context) {
 
 		// simpan file
 		if err := c.SaveUploadedFile(file, path); err != nil {
-			c.JSON(500, gin.H{
-				"error": "Failed to upload picture",
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "Failed to upload picture",
 			})
 			return
 		}
@@ -136,15 +145,17 @@ func UpdateUser(c *gin.Context) {
 
 	// save database
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(500, gin.H{
-			"message": "Failed to update user",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to update user",
 		})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "User updated successfully",
-		"data":    user,
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: false,
+		Message: "User updated successfully",
+		Data:    user,
 	})
 }
 
@@ -186,8 +197,9 @@ func DeleteUser(c *gin.Context) {
 func Me(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized",
+		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
+			Success: false,
+			Message: "Unauthorized",
 		})
 		return
 	}
@@ -195,8 +207,9 @@ func Me(c *gin.Context) {
 	var user models.User
 
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "User not found",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
 		})
 		return
 	}
@@ -238,8 +251,9 @@ func VerifyPassword(c *gin.Context) {
 
 	// ambil user dari database
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		c.JSON(404, gin.H{
-			"message": "User tidak ditemukan",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User tidak ditemukan",
 		})
 		return
 	}
@@ -282,15 +296,17 @@ func ChangePassword(c *gin.Context) {
 
 	// ambil user dari database
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		c.JSON(404, gin.H{
-			"message": "User tidak ditemukan",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User tidak ditemukan",
 		})
 		return
 	}
 
 	user.Password = helpers.HashPassword(req.NewPassword)
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update password"})
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false, Message: "Failed to update password"})
 		return
 	}
 
@@ -317,8 +333,9 @@ func SendResetPasswordEmail(c *gin.Context) {
 	var user models.User
 
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Email not registered",
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Email not registered",
 		})
 		return
 	}
@@ -327,18 +344,25 @@ func SendResetPasswordEmail(c *gin.Context) {
 	user.ResetToken = token
 	user.ResetTokenExpiresAt = time.Now().Add(10 * time.Minute)
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to generate reset token",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to generate reset token",
 		})
 		return
 	}
 
 	if err := helpers.SendResetPasswordEmail(user.Email, token); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to send reset email",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to send reset email",
 		})
 		return
 	}
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Email for password sent successfully",
+	})
+
 }
 
 func ResetPassword(c *gin.Context) {
@@ -359,15 +383,17 @@ func ResetPassword(c *gin.Context) {
 	var user models.User
 
 	if err := database.DB.Where("reset_token = ?", req.Token).First(&user).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Invalid reset token",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid reset token",
 		})
 		return
 	}
 
 	if time.Now().After(user.ResetTokenExpiresAt) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Reset Password token has expired",
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Reset Password token has expired",
 		})
 		return
 	}
@@ -377,8 +403,9 @@ func ResetPassword(c *gin.Context) {
 	user.ResetTokenExpiresAt = time.Time{}
 
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to reset password",
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to reset password",
 		})
 		return
 	}
