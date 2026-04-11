@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext } from "react";
 import type { ReactNode } from "react";
 import { useMe } from "../hooks/auth/useMe";
 

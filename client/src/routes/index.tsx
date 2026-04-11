@@ -28,6 +28,7 @@ import RestrictedPage from "../views/restricted/index.tsx";
 import AuthGuard from "./guard.tsx";
 import ForgotPassword from "../views/forgot-password/index.tsx";
 import ResetPassword from "../views/forgot-password/reset.tsx";
+import ManageOffers from "../views/offers/index.tsx";
 
 export default function AppRoutes() {
   const auth = useContext(AuthContext);
@@ -153,6 +154,20 @@ export default function AppRoutes() {
             requireVerified={true}
           >
             <CreateOfferFlow />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/offers"
+        element={
+          <AuthGuard
+            isAuthenticated={isAuthenticated}
+            role={role}
+            allowedRoles={["seller"]}
+            isVerified={isVerified}
+            requireVerified={true}
+          >
+            <ManageOffers />
           </AuthGuard>
         }
       />

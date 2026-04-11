@@ -1,13 +1,18 @@
 import { useSearchParams } from "react-router";
 import SelectGameBrand from "./game";
-import CreateOffer from "./create";
+import ProductForm from "./form";
 
 const CreateOfferFlow = () => {
   const [searchParams] = useSearchParams();
   const gameId = searchParams.get("game");
+  const productId = searchParams.get("id");
 
-  if (!gameId) return <SelectGameBrand />;
-  return <CreateOffer gameId={gameId} />;
+  if (productId) {return <ProductForm/>;}
+
+  if (!gameId){ return <SelectGameBrand />;
+  }
+  return <ProductForm/>;
+
 };
 
 export default CreateOfferFlow;

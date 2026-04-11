@@ -51,5 +51,8 @@ func SetupRouter() *gin.Engine {
 		admin.DELETE("/games/:id", controllers.DeleteGame)
 	}
 	router.POST("/api/products", middlewares.AuthMiddleware(), controllers.CreateProduct)
+	router.GET("/api/products", middlewares.AuthMiddleware(), controllers.GetProducts)
+	router.GET("/api/products/:id", middlewares.AuthMiddleware(), controllers.GetProductByID)
+	router.PUT("/api/products/:id", middlewares.AuthMiddleware(), controllers.UpdateProduct)
 	return router
 }

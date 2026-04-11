@@ -18,6 +18,7 @@ type Product struct {
 	Stock       int            `gorm:"not null" json:"stock"`
 	Guarantee   int            `gorm:"not null" json:"guarantee"`
 	FieldValues datatypes.JSON `gorm:"type:json" json:"field_values"`
+	RemoveImage bool           `gorm:"-" json:"remove_image,omitempty"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 

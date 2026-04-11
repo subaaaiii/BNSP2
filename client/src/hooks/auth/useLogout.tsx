@@ -17,7 +17,7 @@ export const useLogout = (): (() => void) => {
     queryClient.removeQueries({ queryKey: ["me"] });
 
     toast.success("Logout berhasil");
-    navigate("/");
+    navigate("/login");
   };
 
   return logout;
