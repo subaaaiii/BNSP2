@@ -122,7 +122,7 @@ func VerifyEmailOTP(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, structs.ErrorResponse{
+	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Email Verified",
 	})

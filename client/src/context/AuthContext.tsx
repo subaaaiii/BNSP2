@@ -1,7 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import Cookies from "js-cookie";
-import Api from "../services/api";
+import { useMe } from "../hooks/auth/useMe";
 
 interface User {
   id: number;
@@ -15,9 +14,7 @@ interface User {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
 }
 
@@ -30,47 +27,12 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!Cookies.get("token"),
-  );
-
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // ambil data user dari endpoint /me
-  const fetchMe = async () => {
-    try {
-      const token = Cookies.get("token");
-
-      const res = await Api.get("/api/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setUser(res.data.data);
-      setIsAuthenticated(true);
-    } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const token = Cookies.get("token");
-
-  useEffect(() => {
-    if (token) {
-      fetchMe();
-    } else {
-      setLoading(false);
-    }
-  }, [token]); //
+  const { data: user, isLoading } = useMe();
+  const isAuthenticated = !!user;
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, setIsAuthenticated, user, setUser, loading }}
+      value={{ isAuthenticated, user: user || null, loading: isLoading }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,8 +1,6 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLogin } from "../../hooks/auth/useLogin";
-import Cookies from "js-cookie";
-import { AuthContext } from "../../context/AuthContext";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -11,8 +9,6 @@ interface ValidationErrors {
 const Login = () => {
   const navigate = useNavigate();
   const { mutate, isPending } = useLogin();
-  const { setIsAuthenticated, setUser } = useContext(AuthContext)!;
-
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -26,19 +22,7 @@ const Login = () => {
         password,
       },
       {
-        onSuccess: (data: any) => {
-          Cookies.set("token", data.data.token);
-          const userData = {
-            id: data.data.id,
-            name: data.data.name,
-            username: data.data.username,
-            email: data.data.email,
-            role: data.data.role,
-            picture: data.data.picture,
-            email_verified: data.data.email_verified,
-          };
-          setUser(userData);
-          setIsAuthenticated(true);
+        onSuccess: () => {
           navigate("/");
         },
         onError: (error: any) => {

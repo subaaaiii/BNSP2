@@ -13,7 +13,7 @@ interface ValidationErrors {
 
 const Security = () => {
   const navigate = useNavigate();
-  const { user, setUser, loading:isLoading } = useContext(AuthContext)!;
+  const { user, loading:isLoading } = useContext(AuthContext)!;
 
   const [step, setStep] = useState<"send" | "verify">("send");
   const [passwordStep, setPasswordStep] = useState<"verify" | "change">(
@@ -55,16 +55,6 @@ const Security = () => {
       hasSymbol: /[^A-Za-z0-9]/.test(password),
     };
   };
-  useEffect(() => {
-    if (user) {
-      console.log("ini kah data user ", user);
-      console.log("ini kah data user email verified", user.email_verified);
-    }
-  }, [user]);
-
-  useEffect(() => {
-  console.log("USER FROM CONTEXT:", user);
-}, [user]);
 
   const loading = sendOtpMutation.isPending || verifyOtpMutation.isPending;
   if (isLoading || !user) return <div>Loading...</div>;
@@ -106,11 +96,11 @@ const Security = () => {
       },
       {
         onSuccess: () => {
-          // update AuthContext
-          setUser((prev: any) => ({
-            ...prev,
-            email: newEmail,
-          }));
+          // // update AuthContext
+          // setUser((prev: any) => ({
+          //   ...prev,
+          //   email: newEmail,
+          // }));
           alert("Email berhasil diubah");
 
           setOtp("");

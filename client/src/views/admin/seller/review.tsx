@@ -25,9 +25,6 @@ const ReviewSeller = () => {
     ids: number[];
     status: string;
   }) => {
-    console.log("check approve :", ids);
-    console.log("check approve status :", status);
-
     mutate(
       { ids, status },
       {

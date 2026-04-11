@@ -1,27 +1,25 @@
-// import useMutation dari '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import Cookies from "js-cookie";
 
-//import service API
-import Api from '../../services/api';
+import Api from "../../services/api";
 
-//interface LoginRequest
 interface LoginRequest {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
 export const useLogin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: LoginRequest) => {
+      const response = await Api.post("/api/login", data);
 
-    return useMutation({
-
-        // mutation untuk login
-        mutationFn: async (data: LoginRequest) => {
-
-            //menggunakan service API untuk login
-            const response = await Api.post('/api/login', data);
-
-            //mengembalikan response data
-            return response.data;
-        }
-    });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      Cookies.set("token", data.data.token);
+      queryClient.setQueryData(["me"], data.data);
+    },
+  });
 };

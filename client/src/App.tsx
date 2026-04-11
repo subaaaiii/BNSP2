@@ -1,6 +1,8 @@
 import Navbar from "./components/navbar";
 import AppRoutes from "./routes";
 import { Toaster } from "react-hot-toast";
+import 'react-loading-skeleton/dist/skeleton.css'
+import { SkeletonTheme } from "react-loading-skeleton";
 
 const App = () => {
   return (
@@ -9,7 +11,9 @@ const App = () => {
       <Toaster />
 
       <div className="max-w-7xl mx-auto mt-5">
-        <AppRoutes />
+        <SkeletonTheme baseColor="#757373" highlightColor="#a7a3a3">
+          <AppRoutes/>
+        </SkeletonTheme>
       </div>
     </div>
   );

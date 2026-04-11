@@ -21,14 +21,12 @@ import (
 
 func CreateGame(c *gin.Context) {
 
+	errors := map[string]string{}
+
 	// ambil name
 	name := c.PostForm("name")
 	if name == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "name is required",
-		})
-		return
+		errors["Name"] = "Name is required"
 	}
 
 	// ambil fields (optional)
@@ -46,34 +44,41 @@ func CreateGame(c *gin.Context) {
 		}
 	}
 
-	defaultFields := []map[string]interface{}{
-		{"label": "Title", "name": "title", "type": "text", "required": true},
-		{"label": "Description", "name": "description", "type": "text", "required": true},
-		{"label": "Price", "name": "price", "type": "text", "required": true},
-		{"label": "Cover", "name": "cover", "type": "text", "required": false},
-	}
+	// defaultFields := []map[string]interface{}{
+	// 	{"label": "Title", "name": "title", "type": "text", "required": true},
+	// 	{"label": "Description", "name": "description", "type": "text", "required": true},
+	// 	{"label": "Price", "name": "price", "type": "text", "required": true},
+	// 	{"label": "Cover", "name": "cover", "type": "text", "required": false},
+	// }
 
-	// 🔥 cek field yang sudah ada
-	existing := map[string]bool{}
-	for _, f := range fields {
-		if name, ok := f["name"].(string); ok {
-			existing[name] = true
-		}
-	}
+	// // 🔥 cek field yang sudah ada
+	// existing := map[string]bool{}
+	// for _, f := range fields {
+	// 	if name, ok := f["name"].(string); ok {
+	// 		existing[name] = true
+	// 	}
+	// }
 
-	// 🔥 tambahkan default fields di BELAKANG (tanpa duplicate)
-	for _, df := range defaultFields {
-		name := df["name"].(string)
-		if !existing[name] {
-			fields = append(fields, df)
-		}
-	}
+	// // 🔥 tambahkan default fields di BELAKANG (tanpa duplicate)
+	// for _, df := range defaultFields {
+	// 	name := df["name"].(string)
+	// 	if !existing[name] {
+	// 		fields = append(fields, df)
+	// 	}
+	// }
 
 	file, err := c.FormFile("image")
-	if err != nil {
+	if file == nil {
+		errors["Image"] = "Image is required"
+	} else if err != nil {
+		errors["Image"] = "Failed to retrieve image"
+	}
+
+	if len(errors) > 0 {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
-			Message: "image is required",
+			Message: "Validation failed",
+			Errors:  errors,
 		})
 		return
 	}
@@ -97,6 +102,7 @@ func CreateGame(c *gin.Context) {
 			Success: false,
 			Message: "failed to parse fields",
 		})
+		os.Remove(filepath)
 		return
 	}
 
@@ -111,6 +117,7 @@ func CreateGame(c *gin.Context) {
 			Success: false,
 			Message: "failed to create game",
 		})
+		os.Remove(filepath)
 		return
 	}
 

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useCreateUpdateGame } from "../../../hooks/game/useCreateUpdateGame";
 import { useDeleteGame } from "../../../hooks/game/useDeleteGame";
+import { LiaCloudUploadAltSolid } from "react-icons/lia";
+import toast from "react-hot-toast";
 
 type GameFormData = {
   name: string;
@@ -38,9 +40,11 @@ const ManageGameForm = ({ data, id }: Props) => {
   const [preview, setPreview] = useState<string | null>(
     () => data?.preview ?? null,
   );
-  const initialFields = data?.fields ?? [createEmptyField()];
+  const initialFields = data?.fields ?? [];
   const [fields, setFields] = useState<Field[]>(initialFields);
   const [image, setImage] = useState<File | null>(null);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const {
     mutate: createUpdateGameMutation,
     isPending: isCreatingUpdatingGame,
@@ -48,12 +52,14 @@ const ManageGameForm = ({ data, id }: Props) => {
   const { mutate: deleteGameMutation, isPending: isDeletingGame } =
     useDeleteGame();
 
-  const DEFAULT_FIELD_NAMES = ["title", "description", "price", "cover"];
-
-  const handleImageChange = (file: File) => {
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
-  };
+  const DEFAULT_FIELD_NAMES = [
+    "title",
+    "description",
+    "price",
+    "cover",
+    "stock",
+    "guarantee",
+  ];
 
   //  tambah field
   const addField = () => {
@@ -100,16 +106,21 @@ const ManageGameForm = ({ data, id }: Props) => {
   };
 
   const removeOption = (fieldIndex: number, optionIndex: number) => {
-    setFields((prev) =>
-      prev.map((field, i) => {
-        if (i !== fieldIndex) return field;
-        return {
-          ...field,
-          options: (field.options || []).filter((_, i) => i !== optionIndex),
-        };
-      }),
-    );
-  };
+  setFields((prev) =>
+    prev.map((field, i) => {
+      if (i !== fieldIndex) return field;
+
+      if ((field.options || []).length <= 1) {
+        return field;
+      }
+
+      return {
+        ...field,
+        options: (field.options || []).filter((_, i) => i !== optionIndex),
+      };
+    })
+  );
+};
 
   const removeField = (index: number) => {
     setFields((prev) => prev.filter((_, i) => i !== index));
@@ -127,24 +138,27 @@ const ManageGameForm = ({ data, id }: Props) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!data && !image) {
-      alert("Image wajib diupload");
-      return;
+    const newErrors: { [key: string]: string } = {};
+
+  for (const field of fields) {
+    if (!field.label.trim()) {
+      newErrors[field.id] = "Field label is required";
     }
 
-    for (const field of fields) {
-      if (!field.name.trim()) {
-        alert("Field name tidak boleh kosong");
-        return;
-      }
-
-      if (field.type === "select") {
-        if (!field.options || field.options.length === 0) {
-          alert(`Field "${field.name}" harus punya option`);
-          return;
-        }
-      }
+    if (field.type === "select") {
+      if (!field.options || field.options.length === 0) {
+        newErrors[field.id] = `Field "${field.label}" harus punya option`;
+      }else if (field.options.some((opt) => !opt.trim())) {
+    newErrors[field.id] = `Semua option di "${field.label}" wajib diisi`;
+  }
     }
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
     const payloadFields = fields.map(({ id, ...rest }) => rest);
     createUpdateGameMutation(
       {
@@ -154,15 +168,16 @@ const ManageGameForm = ({ data, id }: Props) => {
       },
       {
         onSuccess: () => {
-          alert(id ? "Game updated!" : "Game created!");
+          toast.success(id ? "Game updated!" : "Game created!");
           setName("");
           setImage(null);
           setPreview(null);
           setFields([createEmptyField()]);
           navigate("/admin/games");
         },
-        onError: () => {
-          alert("Failed to update game");
+        onError: (error: any) => {
+          toast.error("Failed to update game");
+          setErrors(error.response.data.errors);
         },
       },
     );
@@ -182,19 +197,44 @@ const ManageGameForm = ({ data, id }: Props) => {
     });
   };
 
+  const MAX_SIZE = 2 * 1024 * 1024;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) {
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setErrors((prev) => ({
+        ...prev,
+        Image: "File maksimal 2MB",
+      }));
+      return;
+    }
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+
+    setErrors((prev) => ({
+      ...prev,
+      Image: "",
+    }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">
-          {/* {isEdit ? "Edit Game" : "Create Game"} */}
+          {data ? "Edit Game" : "Create Game"}
         </h2>
-        <button
+        {data && (
+          <button
           type="button"
           onClick={() => handleDeleteGame()}
           className="bg-red-600 rounded-sm text-white py-2 px-3 cursor-pointer"
         >
           {isDeletingGame ? "Deleting..." : "Delete Game"}
         </button>
+        )}
       </div>
 
       {/* Game Name */}
@@ -206,34 +246,45 @@ const ManageGameForm = ({ data, id }: Props) => {
         onChange={(e) => setName(e.target.value)}
         className="input input-bordered p-2 w-full"
       />
+      {errors?.Name && (
+        <div className="text-error">
+          <span>{errors?.Name}</span>
+        </div>
+      )}
 
       {/* 🖼️ Image Upload */}
-      <div>
-        <p className="font-semibold mb-1">Cover</p>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            if (e.target.files?.[0]) {
-              handleImageChange(e.target.files[0]);
-            }
-          }}
-          className="file-input file-input-md"
-        />
-
-        {/* Preview */}
-        {preview && (
-          <img
-            src={preview}
-            alt="preview"
-            className="mt-2 h-48 w-64 object-cover rounded-lg"
-          />
-        )}
-      </div>
+      <label htmlFor="image" className="cursor-pointer">
+        <span className="block text-sm font-medium text-gray-700">Cover</span>
+        <div className="w-80 aspect-[1.6/1] border rounded-lg flex items-center justify-center overflow-hidden">
+          {preview ? (
+            <img src={preview} className="object-cover w-full h-full" />
+          ) : (
+            <div className="flex flex-col items-center">
+              <LiaCloudUploadAltSolid className="text-gray-700 text-4xl" />
+              <p className="text-gray-700 text-sm font-medium">
+                Upload Cover Image
+              </p>
+              <p className="text-gray-700 text-xs">PNG or JPG (max 2MB)</p>
+            </div>
+          )}
+        </div>
+      </label>
+      <input
+        type="file"
+        id="image"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      {errors?.Image && (
+        <div className="text-error">
+          <span>{errors?.Image}</span>
+        </div>
+      )}
 
       {/* Fields */}
-      <div>
+      <div className="mt-4">
         <h3 className="font-semibold mb-2">Custom Fields</h3>
         {fields.length === 0 && (
           <p className="text-sm text-gray-500 italic">
@@ -259,6 +310,11 @@ const ManageGameForm = ({ data, id }: Props) => {
                 }}
                 className="input border p-1 w-full"
               />
+              {errors[field.id] && (
+  <p className="text-red-500 text-sm">
+    {errors[field.id]}
+  </p>
+)}
             </label>
 
             <label className="floating-label mt-3">

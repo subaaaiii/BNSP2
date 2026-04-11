@@ -12,7 +12,7 @@ interface ValidationErrors {
 const Profile = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
-  const { user, setUser } = useContext(AuthContext)!;
+  const { user } = useContext(AuthContext)!;
   const userId = user?.id;
   const { data, isLoading } = useUser(userId);
   const { mutate, isPending } = useUpdateProfile();
@@ -36,7 +36,6 @@ const Profile = () => {
         address: data.address ?? "",
       });
     }
-    console.log("ini kah data", data);
   }, [data]);
 
   const handleChange = (
@@ -60,29 +59,17 @@ const Profile = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("ini kah",form);
-    const formData = new FormData();
-
-    formData.append("name", form.name);
-    formData.append("birthday", form.birthday);
-    formData.append("gender", form.gender);
-    formData.append("address", form.address);
-
-    if (pictureFile) {
-      formData.append("picture", pictureFile);
-    }
     mutate(
       {
         id: userId!,
-        data: formData,
+        name: form.name,
+        birthday: form.birthday,
+        gender: form.gender,
+        address: form.address,
+        picture: pictureFile,
       },
       {
-        onSuccess: (res) => {
-          // update AuthContext
-          setUser((prev: any) => ({
-            ...prev,
-            ...res.data,
-          }));
+        onSuccess: () => {
           setIsEditing(false);
           navigate("/settings");
         },
