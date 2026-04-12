@@ -92,7 +92,7 @@ const ProductForm = () => {
     if (file.size > MAX_SIZE) {
       setErrors((prev) => ({
         ...prev,
-        IdentityImage: "File maksimal 2MB",
+        Image: "File maksimal 2MB",
       }));
       return;
     }
@@ -103,7 +103,7 @@ const ProductForm = () => {
 
     setErrors((prev) => ({
       ...prev,
-      IdentityImage: "",
+      Image: "",
     }));
   };
 
@@ -130,6 +130,7 @@ const ProductForm = () => {
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
+          toast.error(`Failed to ${productId ? "update" : "create"} offer. ${error.response.data.message || ""}`);
         },
       },
     );
@@ -191,21 +192,23 @@ const ProductForm = () => {
                                   ))}
                                 </select>
                               ) : (
-                                <input
+                                <div>
+                                  <input
                                   type="text"
                                   name={field.name}
                                   value={fieldValues[field.name] || ""}
                                   onChange={handleFieldChange}
                                   className={`${errors[field.name] ? "input-error" : ""} input px-3 py-2 rounded-xl`}
                                 />
+                                {errors[field.name] && (
+                                <div className="text-error">
+                                  <span>{errors[field.name]}</span>
+                                </div>
                               )}
+                                </div>
+                              )}
+                              
                             </div>
-
-                            {errors[field.name] && (
-                              <div className="text-error">
-                                <span>{errors[field.name]}</span>
-                              </div>
-                            )}
                           </div>
                         );
                       })}
@@ -227,53 +230,54 @@ const ProductForm = () => {
                       htmlFor="image"
                       className="flex gap-6 col-span-2 items-center cursor-pointer"
                     >
-                      <div className="w-80 aspect-[1.6/1] border rounded-lg flex items-center justify-center overflow-hidden">
-                        {preview ? (
-                          <img
-                            src={preview}
-                            className="object-cover w-full h-full"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center">
-                            <LiaCloudUploadAltSolid className="text-gray-700 text-4xl" />
-                            <p className="text-gray-700 text-sm font-medium">
-                              Upload Cover Image
-                            </p>
-                            <p className="text-gray-700 text-xs">
-                              PNG or JPG (max 2MB)
-                            </p>
+                      <div className="flex flex-col items-center">
+                        <div className={`${errors.Image ? "border border-red-300" : "border border-gray-300"} w-80 aspect-[1.6/1] rounded-lg flex items-center justify-center overflow-hidden`}>
+                          {preview ? (
+                            <img
+                              src={preview}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center">
+                              <LiaCloudUploadAltSolid className="text-gray-700 text-4xl" />
+                              <p className="text-gray-700 text-sm font-medium">
+                                Upload Cover Image
+                              </p>
+                              <p className="text-gray-700 text-xs">
+                                PNG or JPG (max 2MB)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <input
+                          type="file"
+                          id="image"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+
+                        {preview && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPictureFile(null);
+                              setPreview(null);
+                              setRemoveImage(true);
+                            }}
+                            className="text-xs text-red-500 hover:underline bg-red-100 px-3 py-2 rounded mt-2"
+                          >
+                            Remove image
+                          </button>
+                        )}
+                        {errors.Image && (
+                          <div className="text-error">
+                            <span>{errors.Image}</span>
                           </div>
                         )}
                       </div>
-
-                      <input
-                        type="file"
-                        id="image"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
-                      />
-
-                      {preview && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPictureFile(null);
-                            setPreview(null);
-                            setRemoveImage(true);
-                          }}
-                          className="text-xs text-red-500 hover:underline bg-red-100 px-3 py-2 rounded mt-2"
-                        >
-                          Remove image
-                        </button>
-                      )}
                     </label>
-
-                    {errors.Title && (
-                      <div className="text-error">
-                        <span>{errors.Title}</span>
-                      </div>
-                    )}
                   </div>
 
                   {/* TITLE */}
@@ -281,18 +285,20 @@ const ProductForm = () => {
                     <label className="text-sm font-medium text-gray-700 col-span-1">
                       Title
                     </label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={form.title}
-                      onChange={handleChange}
-                      className={`${errors.Title ? "input-error" : ""} col-span-2 w-full px-3 py-2 border border-gray-300 rounded-xl input`}
-                    />
-                    {errors.Title && (
-                      <div className="text-error">
-                        <span>{errors.Title}</span>
-                      </div>
-                    )}
+                    <div>
+                      <input
+                        type="text"
+                        name="title"
+                        value={form.title}
+                        onChange={handleChange}
+                        className={`${errors.Title ? "input-error" : ""} input col-span-2 w-full px-3 py-2 rounded-xl`}
+                      />
+                      {errors.Title && (
+                        <div className="text-error">
+                          <span>{errors.Title}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* DESCRIPTION */}
@@ -306,11 +312,6 @@ const ProductForm = () => {
                       onChange={handleChange}
                       className={`${errors.Description ? "input-error" : ""} col-span-2 w-full textarea textarea-md px-3 py-2 border border-gray-300 rounded-xl`}
                     />
-                    {errors.Description && (
-                      <div className="text-error">
-                        <span>{errors.Description}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -343,16 +344,21 @@ const ProductForm = () => {
                   Price
                 </label>
                 <div className="col-span-2 w-full items-center">
-                  <p className="border border-gray-300 input flex bg-gray-100 rounded-xl font-semibold pr-0 overflow-hidden ">
+                  <p className={`border  ${errors.Price ? " border-red-300" : "border-gray-300"} input flex bg-gray-100 rounded-xl font-semibold pr-0 overflow-hidden"`}>
                     <span>IDR</span>
                     <input
                       type="number"
                       name="price"
                       value={form.price}
                       onChange={handleChange}
-                      className={`${errors.Price ? "input-error" : ""} border-l border-gray-300 pl-2 bg-white w-full `}
+                      className={` border-l ${errors.Price ? " border-red-300" : "border-gray-300"} pl-2 bg-white rounded-r-xl w-full `}
                     />
                   </p>
+                  {errors.Price && (
+                    <div className="text-error">
+                      <span>{errors.Price}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -360,32 +366,46 @@ const ProductForm = () => {
                 <label className="text-sm font-medium text-gray-700">
                   Stock
                 </label>
-                <input
-                  type="number"
-                  name="stock"
-                  value={form.stock}
-                  onChange={handleChange}
-                  className={`${errors.Stock ? "input-error" : ""} col-span-2 px-3 py-2 border border-gray-300 rounded-xl input`}
-                />
+                <div>
+                  <input
+                    type="number"
+                    name="stock"
+                    value={form.stock}
+                    onChange={handleChange}
+                    className={`${errors.Stock ? "input-error" : ""} col-span-2 px-3 py-2  rounded-xl input`}
+                  />
+                  {errors.Stock && (
+                    <div className="text-error">
+                      <span>{errors.Stock}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-3 items-center">
                 <label className="col-span-1 text-sm font-medium text-gray-700">
                   Guarantee time
                 </label>
-                <select
-                  name="guarantee"
-                  value={form.guarantee}
-                  onChange={handleChange}
-                  className="col-span-2 input select rounded-xl"
-                >
-                  <option value="">Select guarantee time</option>
-                  {[7, 14, 30].map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt} days
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <select
+                    name="guarantee"
+                    value={form.guarantee}
+                    onChange={handleChange}
+                    className={`${errors.Guarantee ? "input-error" : ""} col-span-2 input select rounded-xl`}
+                  >
+                    <option value="">Select guarantee time</option>
+                    {[7, 14, 30].map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt} days
+                      </option>
+                    ))}
+                  </select>
+                  {errors.Guarantee && (
+                    <div className="text-error">
+                      <span>{errors.Guarantee}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -405,14 +425,15 @@ const ProductForm = () => {
           <div className="col-span-3 flex justify-end space-x-4">
             <button
               type="button"
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+              onClick={() => navigate(-1)}
+              className="cursor-pointer px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-800 text-white rounded-lg"
+              className=" cursor-pointer px-4 py-2 bg-indigo-800 text-white rounded-lg"
             >
               {isPending ? "Loading..." : "Save Changes"}
             </button>

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"bnsp2/server/database"
+	"bnsp2/server/helpers"
 	"bnsp2/server/models"
 	"bnsp2/server/structs"
 
@@ -18,15 +19,11 @@ import (
 )
 
 func CreateProduct(c *gin.Context) {
-
+	errors := make(map[string]string)
 	// ambil title
 	title := c.PostForm("title")
 	if title == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "title is required",
-		})
-		return
+		errors["Title"] = "title is required"
 	}
 
 	// ambil description
@@ -34,54 +31,46 @@ func CreateProduct(c *gin.Context) {
 
 	// ambil price
 	priceStr := c.PostForm("price")
+	var price int
+
 	if priceStr == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "price is required",
-		})
-		return
-	}
-	price, err := strconv.Atoi(priceStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "invalid price format",
-		})
-		return
+		errors["Price"] = "price is required"
+	} else {
+		p, err := strconv.Atoi(priceStr)
+		if err != nil {
+			errors["Price"] = "invalid price format"
+		} else if p < 0 {
+			errors["Price"] = "price must be a positive number"
+		}
+		price = p
 	}
 
 	stockStr := c.PostForm("stock")
+	var stock int
 	if stockStr == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "stock is required",
-		})
-		return
-	}
-	stock, err := strconv.Atoi(stockStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "invalid stock format",
-		})
-		return
-	}
-	guaranteeStr := c.PostForm("guarantee")
-	if guaranteeStr == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "guarantee is required",
-		})
-		return
+		errors["Stock"] = "stock is required"
+	} else {
+		s, err := strconv.Atoi(stockStr)
+		if err != nil {
+			errors["Stock"] = "invalid stock format"
+		} else if s <= 0 {
+			errors["Stock"] = "stock must be a positive number"
+		}
+		stock = s
 	}
 
-	guarantee, err := strconv.Atoi(guaranteeStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "invalid guarantee format",
-		})
-		return
+	guaranteeStr := c.PostForm("guarantee")
+	var guarantee int
+	if guaranteeStr == "" {
+		errors["Guarantee"] = "guarantee is required"
+	} else {
+		g, err := strconv.Atoi(guaranteeStr)
+		if err != nil {
+			errors["Guarantee"] = "invalid guarantee format"
+		} else if g < 0 {
+			errors["Guarantee"] = "guarantee must be a positive number"
+		}
+		guarantee = g
 	}
 
 	// ambil game_id
@@ -98,13 +87,22 @@ func CreateProduct(c *gin.Context) {
 
 	userId := c.MustGet("user_id").(uint)
 
-	// ambil field_values (optional)
+	var game models.Game
+	if err := database.DB.First(&game, gameId).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "game not found",
+		})
+		return
+	}
+
+	// setelah ambil game
 	fieldValuesStr := c.PostForm("field_values")
+
+	var fieldValues map[string]interface{}
 	var fieldValuesJSON []byte
 
 	if fieldValuesStr != "" {
-		var fieldValues map[string]interface{}
-
 		if err := json.Unmarshal([]byte(fieldValuesStr), &fieldValues); err != nil {
 			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 				Success: false,
@@ -112,10 +110,16 @@ func CreateProduct(c *gin.Context) {
 			})
 			return
 		}
-
 		fieldValuesJSON, _ = json.Marshal(fieldValues)
+	} else {
+		fieldValues = make(map[string]interface{})
 	}
 
+	// VALIDATION DARI HELPER
+	fieldErrors := helpers.ValidateFieldValues(game.FieldSchema, fieldValues)
+	for k, v := range fieldErrors {
+		errors[k] = v
+	}
 	// ambil file (optional)
 	file, err := c.FormFile("image")
 	var filename string
@@ -131,6 +135,15 @@ func CreateProduct(c *gin.Context) {
 			})
 			return
 		}
+	}
+
+	if len(errors) > 0 {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "validation error",
+			Errors:  errors,
+		})
+		return
 	}
 
 	product := models.Product{
@@ -208,13 +221,12 @@ func GetProductByID(c *gin.Context) {
 }
 
 func UpdateProduct(c *gin.Context) {
+	errors := make(map[string]string)
 
 	id := c.Param("id")
-
-	var product models.Product
-
 	userId := c.MustGet("user_id").(uint)
 
+	var product models.Product
 	if err := database.DB.Where("id = ? AND user_id = ?", id, userId).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -222,102 +234,98 @@ func UpdateProduct(c *gin.Context) {
 		})
 		return
 	}
-	// ambil title
-	title := c.PostForm("title")
-	if title == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+
+	if title, exists := c.GetPostForm("title"); exists {
+		if title == "" {
+			errors["Title"] = "title cannot be empty"
+		} else {
+			product.Title = title
+		}
+	}
+
+	if description, exists := c.GetPostForm("description"); exists {
+		product.Description = description
+	}
+
+	if priceStr, exists := c.GetPostForm("price"); exists {
+		if priceStr == "" {
+			errors["Price"] = "price cannot be empty"
+		} else {
+			price, err := strconv.Atoi(priceStr)
+			if err != nil || price < 0 {
+				errors["Price"] = "invalid price"
+			} else {
+				product.Price = price
+			}
+		}
+	}
+
+	if stockStr, exists := c.GetPostForm("stock"); exists {
+		if stockStr == "" {
+			errors["Stock"] = "stock cannot be empty"
+		} else {
+			stock, err := strconv.Atoi(stockStr)
+			if err != nil || stock <= 0 {
+				errors["Stock"] = "invalid stock"
+			} else {
+				product.Stock = stock
+			}
+		}
+	}
+
+	if guaranteeStr, exists := c.GetPostForm("guarantee"); exists {
+		if guaranteeStr == "" {
+			errors["Guarantee"] = "guarantee cannot be empty"
+		} else {
+			guarantee, err := strconv.Atoi(guaranteeStr)
+			if err != nil || guarantee < 0 {
+				errors["Guarantee"] = "invalid guarantee"
+			} else {
+				product.Guarantee = guarantee
+			}
+		}
+	}
+
+	var game models.Game
+	if err := database.DB.First(&game, product.GameId).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
-			Message: "title is required",
+			Message: "game not found",
 		})
 		return
 	}
 
-	// ambil description
-	description := c.PostForm("description")
-
-	// ambil price
-	priceStr := c.PostForm("price")
-	if priceStr == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "price is required",
-		})
-		return
-	}
-	price, err := strconv.Atoi(priceStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "invalid price format",
-		})
-		return
-	}
-
-	stockStr := c.PostForm("stock")
-	if stockStr == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "stock is required",
-		})
-		return
-	}
-	stock, err := strconv.Atoi(stockStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "invalid stock format",
-		})
-		return
-	}
-	guaranteeStr := c.PostForm("guarantee")
-	if guaranteeStr == "" {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "guarantee is required",
-		})
-		return
-	}
-
-	guarantee, err := strconv.Atoi(guaranteeStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "invalid guarantee format",
-		})
-		return
-	}
-
-	// ambil field_values (optional)
-	fieldValuesStr := c.PostForm("field_values")
-	var fieldValuesJSON []byte
-
-	if fieldValuesStr != "" {
+	if fieldValuesStr, exists := c.GetPostForm("field_values"); exists {
 		var fieldValues map[string]interface{}
 
-		if err := json.Unmarshal([]byte(fieldValuesStr), &fieldValues); err != nil {
-			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-				Success: false,
-				Message: "invalid field_values format",
-			})
-			return
+		if fieldValuesStr != "" {
+			if err := json.Unmarshal([]byte(fieldValuesStr), &fieldValues); err != nil {
+				errors["FieldValues"] = "invalid field_values format"
+			}
+		} else {
+			fieldValues = make(map[string]interface{})
 		}
 
-		fieldValuesJSON, _ = json.Marshal(fieldValues)
-		product.FieldValues = fieldValuesJSON
+		// validasi pakai helper
+		fieldErrors := helpers.ValidateFieldValues(game.FieldSchema, fieldValues)
+
+		for k, v := range fieldErrors {
+			errors[k] = v
+		}
+
+		if len(fieldErrors) == 0 {
+			fieldValuesJSON, _ := json.Marshal(fieldValues)
+			product.FieldValues = fieldValuesJSON
+		}
 	}
 
-	remove_imageStr := c.PostForm("remove_image")
-	remove_image := false
-
-	if remove_imageStr != "" {
-		var err error
-		remove_image, err = strconv.ParseBool(remove_imageStr)
+	removeImage := false
+	if removeStr, exists := c.GetPostForm("remove_image"); exists {
+		val, err := strconv.ParseBool(removeStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-				Success: false,
-				Message: "invalid remove_image format",
-			})
-			return
+			errors["RemoveImage"] = "invalid remove_image format"
+		} else {
+			removeImage = val
 		}
 	}
 
@@ -328,8 +336,10 @@ func UpdateProduct(c *gin.Context) {
 	if err == nil {
 		uploadPath := "./images/products/"
 		os.MkdirAll(uploadPath, os.ModePerm)
+
 		filename = fmt.Sprintf("%d%s", time.Now().Unix(), filepath.Ext(file.Filename))
 		filepath := path.Join(uploadPath, filename)
+
 		if err := c.SaveUploadedFile(file, filepath); err != nil {
 			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 				Success: false,
@@ -337,27 +347,29 @@ func UpdateProduct(c *gin.Context) {
 			})
 			return
 		}
-		// simpan image lama dulu (jangan dihapus sekarang)
-		oldImage = product.Image
 
-		// set image baru ke product
+		oldImage = product.Image
 		product.Image = filename
 
-	} else if remove_image {
+	} else if removeImage {
 		oldImage = product.Image
 		product.Image = ""
 	}
 
-	product.Title = title
-	product.Description = description
-	product.Price = price
-	product.Stock = stock
-	product.Guarantee = guarantee
+	if len(errors) > 0 {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "validation error",
+			Errors:  errors,
+		})
+		return
+	}
 
 	if err := database.DB.Save(&product).Error; err != nil {
 		if filename != "" {
 			_ = os.Remove("./images/products/" + filename)
 		}
+
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "failed to update product",
@@ -365,6 +377,7 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
+	// hapus image lama kalau ada
 	if oldImage != "" {
 		_ = os.Remove("./images/products/" + oldImage)
 	}
@@ -374,5 +387,34 @@ func UpdateProduct(c *gin.Context) {
 		Message: "Product successfully updated",
 		Data:    product,
 	})
+}
 
+func DeleteProduct(c *gin.Context) {
+
+	id := c.Param("id")
+	var product models.Product
+
+	userId := c.MustGet("user_id").(uint)
+
+	if err := database.DB.Where("id = ? AND user_id = ? ", id, userId).First(&product).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Product not found",
+		})
+		return
+	}
+	if err := database.DB.Delete(&product).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to delete product",
+		})
+		return
+	}
+	if product.Image != "" {
+		_ = os.Remove("./images/products/" + product.Image)
+	}
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Product successfully deleted",
+	})
 }

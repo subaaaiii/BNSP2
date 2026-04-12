@@ -1,15 +1,38 @@
 import { Link } from "react-router";
 import { useGetProducts } from "../../hooks/product/useGetProducts";
 import { FaEllipsisVertical } from "react-icons/fa6";
+import { useDeleteProduct } from "../../hooks/product/useDeleteProduct";
+import toast from "react-hot-toast";
+
+
 
 const ManageOffers = () => {
   const { data: products } = useGetProducts();
+  const {mutate} = useDeleteProduct();
+
+  const handleDelete = (id:string) =>{
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      mutate(id, {
+        onSuccess: () => {
+          toast.success("Product deleted successfully");
+        },
+        onError: () =>{
+          toast.error("Failed to delete product");
+        }
+      });
+    }
+}
 
   return (
     <div>
       <h2 className="text-3xl font-semibold mb-4">Manage Offers</h2>
-
-      <div className="bg-white rounded-lg shadow p-6">
+      <Link to="/offers/create" className="btn btn-neutral mb-6">
+        Add New Offer
+      </Link>
+      {products?.length === 0 ? (
+        <p className="text-gray-500 text-xl">No products available.</p>
+      ) : (
+        <div className="bg-white rounded-lg shadow p-6">
         {/* Header */}
         <div className="grid grid-cols-[50px_1fr_100px_120px_120px] font-semibold border-b border-gray-300 pb-3 ">
           <div>
@@ -47,7 +70,10 @@ const ManageOffers = () => {
                       <Link to={`/offers/create?id=${product.id}`}>Edit</Link>
                     </li>
                     <li>
-                      <a>Delete</a>
+                      <a onClick={() => {}}>Archive</a>
+                    </li>
+                    <li>
+                      <a onClick={() =>{handleDelete(product.id)}}>Delete</a>
                     </li>
                   </ul>
                 </details>
@@ -56,6 +82,9 @@ const ManageOffers = () => {
           ))}
         </div>
       </div>
+      )}
+
+      
     </div>
   );
 };

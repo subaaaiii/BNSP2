@@ -54,5 +54,6 @@ func SetupRouter() *gin.Engine {
 	router.GET("/api/products", middlewares.AuthMiddleware(), controllers.GetProducts)
 	router.GET("/api/products/:id", middlewares.AuthMiddleware(), controllers.GetProductByID)
 	router.PUT("/api/products/:id", middlewares.AuthMiddleware(), controllers.UpdateProduct)
+	router.DELETE("/api/products/:id", middlewares.AuthMiddleware(), controllers.DeleteProduct)
 	return router
 }
