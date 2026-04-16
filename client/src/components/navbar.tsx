@@ -1,120 +1,72 @@
-import { useContext } from "react";
-import { Link } from "react-router";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
-import { useLogout } from "../hooks/auth/useLogout";
 import Api from "../services/api";
+import UserProfile from "../views/user/profile";
 
 const Navbar = () => {
   const { user, loading } = useContext(AuthContext)!;
-  const logout = useLogout();
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="bg-base-100 border-b border-base-300 ">
       <div className="navbar max-w-7xl mx-auto">
-        <div className="navbar-start">
-          <div className="dropdown dropdown end">
-            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h8m-8 6h16"
-                />
-              </svg>
-            </div>
-
-            <ul className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-              <li>
-                <a>Item 1</a>
-              </li>
-              <li>
-                <a>Parent</a>
-                <ul className="p-2">
-                  <li>
-                    <a>Submenu 1</a>
-                  </li>
-                  <li>
-                    <a>Submenu 2</a>
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <a>Item 3</a>
-              </li>
-            </ul>
-          </div>
-
+        <div className="flex w-full justify-center md:justify-start md:navbar-start">
           <Link to="/" className="text-xl font-bold">
             SubGAME
           </Link>
         </div>
 
-        <div className="navbar-end hidden lg:flex">
-          <ul className="menu menu-horizontal items-center gap-2 px-1">
-            <li>
-              <a>Keranjang</a>
-            </li>
+        
+        <div className="hidden md:block w-full">
+          <ul className="flex justify-between md:justify-end w-full md:menu md:menu-horizontal items-center gap-2 px-1 p-4 md:p-0">
+            {loading ? null : user ? (
+              <div className="relative">
+                {/* OVERLAY */}
+                {open && (
+                  <div
+                    className="fixed inset-0 bg-black/50 z-40"
+                    onClick={() => setOpen(false)}
+                  />
+                )}
 
-            <li>
-              <Link to="/become-seller"> Start selling</Link>
-            </li>
-            <li>
-              <Link to="/admin/review-sellers"> Review Sellers</Link>
-            </li>
-
-            <li>
-              {loading ? null : user ? (
-                <div className="dropdown dropdown-end ">
-                  <div tabIndex={0} role="button">
-                    <div className="flex items-center gap-2">
-                      <span>{user.username}</span>
-
-                      <div className="avatar cursor-pointer">
-                        <div className="w-8 rounded-full">
-                          <img
-                            alt="avatar"
-                            src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
-                          />
-                        </div>
+                {/* TRIGGER */}
+                <div onClick={() => setOpen(!open)} className="cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <span>{user.username}</span>
+                    <div className="avatar">
+                      <div className="w-8 rounded-full">
+                        <img
+                          src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
+                        />
                       </div>
                     </div>
                   </div>
-                  <ul
-                    tabIndex={0}
-                    className="dropdown-content menu bg-base-100 rounded-box mt-3 z-[1] w-40 p-2 shadow"
-                  >
-                    <li>
-                      <Link to="/settings">Settings</Link>
-                    </li>
-
-                    <li>
-                      <Link to="/admin/games"> Manage Games</Link>
-                    </li>
-                    <li>
-                      <Link to="/offers/create">Create offers</Link>
-                    </li>
-                    <li>
-                      <Link to="/offers">Manage offers</Link>
-                    </li>
-
-                    <li>
-                      <button onClick={logout}>Logout</button>
-                    </li>
-                  </ul>
                 </div>
-              ) : (
-                <Link to="/login" className="btn btn-neutral btn-sm">
-                  Login
+
+                {/* DROPDOWN */}
+                {open && (
+                  <div className="absolute right-0 mt-3 z-50 bg-white rounded-xl shadow p-4 min-w-[400px]">
+                    <UserProfile onClose={() => setOpen(false)} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
+                <Link
+                  className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-neutral md:border-none text-neutral "
+                  to="/become-seller"
+                >
+                  Start selling
                 </Link>
-              )}
-            </li>
+                <Link
+                  to="/login"
+                  className="w-full md:w-auto bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium p-4 md:p-3 rounded text-center"
+                >
+                  Login/Register
+                </Link>
+              </div>
+            )}
           </ul>
         </div>
       </div>

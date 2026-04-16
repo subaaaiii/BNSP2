@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"bnsp2/server/database"
@@ -140,7 +141,7 @@ func CreateProduct(c *gin.Context) {
 	if len(errors) > 0 {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
-			Message: "validation error",
+			Message: "validation error nih",
 			Errors:  errors,
 		})
 		return
@@ -176,8 +177,23 @@ func CreateProduct(c *gin.Context) {
 func GetProducts(c *gin.Context) {
 
 	userId := c.MustGet("user_id").(uint)
+	status := c.Query("status")
+	game_id := c.Query("game_id")
+	q := c.Query("q")
+
 	var products []models.Product
-	if err := database.DB.Where("user_id = ?", userId).Find(&products).Error; err != nil {
+	query := database.DB.Preload("Game").Where("user_id = ?", userId)
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if game_id != "" {
+		query = query.Where("game_id = ?", game_id)
+	}
+	if q != "" {
+		query = query.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(q)+"%")
+	}
+	if err := query.Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "failed to get products",
@@ -416,5 +432,53 @@ func DeleteProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Product successfully deleted",
+	})
+}
+
+func ChangeProductStatus(c *gin.Context) {
+
+	var req structs.UpdateProductStatusRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid request body",
+		})
+		return
+	}
+	var products []models.Product
+
+	userId := c.MustGet("user_id").(uint)
+
+	if err := database.DB.Where("id IN ? AND user_id = ?", req.Ids, userId).
+		Find(&products).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Product not found",
+		})
+		return
+	}
+	status := req.Status
+	if status != "available" && status != "archived" && status != "sold" {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "invalid status value",
+		})
+		return
+	}
+	for _, product := range products {
+		product.Status = status
+		if err := database.DB.Save(&product).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "failed to update product status",
+			})
+			return
+		}
+	}
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Product status successfully updated",
+		Data:    products,
 	})
 }

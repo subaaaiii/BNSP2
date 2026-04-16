@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLogin } from "../../hooks/auth/useLogin";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -27,18 +28,18 @@ const Login = () => {
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
-          console.log("errornya nih",errors)
+          console.log("errornya nih", errors);
         },
       },
     );
   };
   return (
-    <div className="flex justify-center items-center ">
-      <form onSubmit={handleLogin}>
-        <fieldset className="fieldset border-base-300 rounded-box w-lg  p-4">
+    <div className="flex w-full justify-center items-center ">
+      <form onSubmit={handleLogin} className="flex w-full justify-center px-4">
+        <fieldset className="fieldset border-base-300 rounded-box flex flex-col w-full max-w-md md:w-lg">
           <div className="flex justify-center items-center">
-            <legend className="fieldset-legend text-lg font-semi-bold">
-              Login
+            <legend className="fieldset-legend text-lg font-semi-bold mb-8">
+              Welcome Back!
             </legend>
           </div>
           {errors.Error && (
@@ -74,7 +75,7 @@ const Login = () => {
             </div>
           )}
 
-          <label className="label">Password</label>
+          <label className="label mt-4">Password</label>
 
           <div className="relative">
             <input
@@ -92,7 +93,11 @@ const Login = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 cursor-pointer hover:text-gray-700"
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? (
+                <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
+              ) : (
+                <FaRegEye className="w-6 h-6 cursor-pointer" />
+              )}
             </button>
           </div>
 
@@ -101,15 +106,45 @@ const Login = () => {
               <span>{errors.Password}</span>
             </div>
           )}
-          <a href="/forgot-password" className="flex w-full justify-end text-sm text-blue-500 hover:underline">
+          <a
+            href="/forgot-password"
+            className="flex w-full justify-end text-sm text-blue-500 hover:underline"
+          >
             Forgot password?
           </a>
-          <button type="submit" className="btn btn-neutral mt-4">
+          <button
+            type="submit"
+            className="hidden md:block btn btn-neutral mt-4"
+          >
             {isPending ? "Loading..." : "LOGIN"}
           </button>
-          <div className="flex justify-center gap-2 "> <span>Don't have account?</span>
-          <a href="/register" className="text-sm text-blue-500 hover:underline">Register</a></div>
+          <div className="flex justify-center gap-2 ">
+            {" "}
+            <span>Don't have account?</span>
+            <a
+              href="/register"
+              className="items-center text-sm text-blue-500 underline"
+            >
+              Register
+            </a>
+          </div>
         </fieldset>
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 p-4 md:hidden">
+          <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
+            <button
+              className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-neutral md:border-none text-neutral "
+              onClick={() => navigate(-1)}
+            >
+              Later
+            </button>
+            <button
+              type="submit"
+              className="w-full md:w-auto bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium p-4 md:p-3 rounded text-center"
+            >
+              {isPending ? "Loading..." : "Login"}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );

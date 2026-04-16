@@ -1,0 +1,76 @@
+import { useContext } from "react";
+import Api from "../../services/api";
+import { AuthContext } from "../../context/AuthContext";
+import { Link } from "react-router";
+import { useLogout } from "../../hooks/auth/useLogout";
+import BottomNavbar from "../../components/bottom_navbar";
+
+type Props = {
+  onClose?: () => void;
+};
+
+const UserProfile = ({ onClose }: Props) => {
+  const { user, loading } = useContext(AuthContext)!;
+  const logout = useLogout();
+  return (
+    <div className="w-full">
+      {loading ? null : user ? (
+        <div className="">
+          <div className="px-6 py-3 flex w-full justify-between items-center ">
+            <div className="flex flex-row items-center gap-3 space-y-2">
+              <div className="avatar cursor-pointer">
+                <div className="w-9 rounded-full">
+                  <img
+                    alt="avatar"
+                    src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
+                  />
+                </div>
+              </div>
+              <div>
+                <h2 className="font-medium">{user.username}</h2>
+                <p className="text-sm text-gray-500">Type user: {user.role}</p>
+                <p className="text-sm text-gray-500">Account ID: {user.id}</p>
+              </div>
+            </div>
+            <button className=" block md:hidden py-2 px-5 bg-neutral text-white rounded-md cursor-pointer">
+              Sell
+            </button>
+          </div>
+          <hr className="border border-gray-300 w-full" />
+          <ul
+            tabIndex={0}
+            className="dropdown-content menu  rounded-box mt-3 z-[1] w-40 w-full p-0 m-0"
+            onClick={onClose}
+          >
+            <li className="w-full px-1 py-2">
+              <Link to="/settings">Settings</Link>
+            </li >
+
+            <li className="w-full px-1 py-2">
+              <Link to="/admin/games"> Manage Games</Link>
+            </li>
+            <li className="w-full px-1 py-2">
+              <Link to="/offers/create">Create offers</Link>
+            </li>
+            <li className="w-full px-1 py-2">
+              <Link to="/offers">Manage offers</Link>
+            </li>
+            <li className="w-full px-1 py-2">
+              <Link to="/admin/review-sellers"> Review Sellers</Link>
+            </li>
+
+            <li className="w-full px-1 py-2">
+              <button onClick={logout}>Logout</button>
+            </li>
+          </ul>
+        </div>
+      ) : (
+        <div className="p-6">
+          <p>User not found</p>
+        </div>
+      )}
+      <BottomNavbar />
+    </div>
+  );
+};
+export default UserProfile;

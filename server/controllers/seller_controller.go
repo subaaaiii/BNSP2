@@ -235,7 +235,6 @@ func UpdateSellerStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
 			Message: "Invalid request body",
-			Errors:  helpers.TranslateErrorMessage(err),
 		})
 		return
 	}

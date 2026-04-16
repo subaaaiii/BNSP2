@@ -10,7 +10,7 @@ const App = () => {
       <Navbar />
       <Toaster />
 
-      <div className="max-w-7xl mx-auto mt-5">
+      <div className="max-w-7xl mx-auto">
         <SkeletonTheme baseColor="#757373" highlightColor="#a7a3a3">
           <AppRoutes/>
         </SkeletonTheme>

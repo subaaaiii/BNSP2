@@ -105,15 +105,15 @@ const Profile = () => {
   }
 
   return (
-    <div className="font-std mb-10 w-full rounded-2xl bg-white p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
+    <div className="font-std mb-10 w-full rounded-2xl md:bg-white p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl">
       <div className="flex flex-col">
         <div className="flex flex-col md:flex-row justify-between mb-5 items-start">
           <div>
-            <h2 className="mb-5 text-4xl font-bold text-blue-900">Profile</h2>
-            {!isEditing && (
+            <h2 className="mb-5 text-4xl font-bold ">Profile</h2>
+            {!isEditing && user?.email_verified === false && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+                className="bg-neutral text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
               >
                 Update Profile
               </button>
@@ -130,7 +130,7 @@ const Profile = () => {
                     : `${Api.defaults.baseURL}/images/users/${data?.picture}`
                 }
                 alt="Profile"
-                className="rounded-full w-32 h-32 mx-auto border-4 border-indigo-800 mb-4"
+                className="rounded-full w-32 h-32 mx-auto border-2 border-neutral  mb-4"
               />
             )}
 

@@ -28,7 +28,7 @@ const AuthGuard = ({
   }
 
   // belum verifikasi
-  if (requireVerified && !isVerified) {
+  if (requireVerified && isVerified === false) {
     return <Navigate to="/verify-email" replace state={{ message: "Please verify your email first." }} />;
   }
 

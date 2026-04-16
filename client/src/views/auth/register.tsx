@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useRegister } from "../../hooks/auth/useRegister";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -72,9 +73,9 @@ const Register = () => {
     );
   };
   return (
-    <div className="flex justify-center items-center ">
-      <form onSubmit={handleRegister}>
-        <fieldset className="fieldset border-base-300 rounded-box w-lg  p-4">
+    <div className="flex w-full justify-center items-center ">
+      <form onSubmit={handleRegister} className="w-full flex justify-center">
+        <fieldset className="fieldset border-base-300 rounded-box max-w-lg w-full md:w-lg  p-4">
           <div className="flex justify-center items-center">
             <legend className="fieldset-legend text-lg font-semi-bold">
               Register
@@ -164,7 +165,11 @@ const Register = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? (
+                              <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
+                            ) : (
+                              <FaRegEye className="w-6 h-6 cursor-pointer" />
+                            )}
             </button>
           </div>
           {isPasswordFocused? (
@@ -220,7 +225,11 @@ const Register = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? (
+                              <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
+                            ) : (
+                              <FaRegEye className="w-6 h-6 cursor-pointer" />
+                            )}
             </button>
           </div>
 
@@ -229,10 +238,26 @@ const Register = () => {
               <span>{errors.Password2}</span>
             </div>
           )}
-          <button type="submit" className="btn btn-neutral mt-4">
+          <button type="submit" className="hidden md:block btn btn-neutral mt-4">
             {isPending ? "Loading..." : "REGISTER"}
           </button>
         </fieldset>
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 p-4 md:hidden">
+          <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
+            <button
+              className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-neutral md:border-none text-neutral "
+              onClick={() => navigate(-1)}
+            >
+              Later
+            </button>
+            <button
+              type="submit"
+              className="w-full md:w-auto bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium p-4 md:p-3 rounded text-center"
+            >
+              {isPending ? "Loading..." : "Register"}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );

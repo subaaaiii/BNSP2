@@ -29,12 +29,12 @@ import AuthGuard from "./guard.tsx";
 import ForgotPassword from "../views/forgot-password/index.tsx";
 import ResetPassword from "../views/forgot-password/reset.tsx";
 import ManageOffers from "../views/offers/index.tsx";
+import UserProfile from "../views/user/profile.tsx";
 
 export default function AppRoutes() {
   const auth = useContext(AuthContext);
 
   const isLoading = auth?.loading ?? true;
-  // Menggunakan optional chaining untuk menghindari error jika auth tidak ada
   const isAuthenticated = auth?.isAuthenticated ?? false;
   const isVerified = auth?.user?.email_verified ?? false;
   const role = auth?.user?.role;
@@ -93,6 +93,12 @@ export default function AppRoutes() {
         path="/profile"
         element={
           isAuthenticated ? <Profile /> : <Navigate to="/login" replace />
+        }
+      />
+      <Route
+        path="/user/profile"
+        element={
+          isAuthenticated ? <UserProfile /> : <Navigate to="/login" replace />
         }
       />
       <Route
