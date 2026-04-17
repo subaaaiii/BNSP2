@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { useUpdateProductStatus } from "../../hooks/product/useUpdateStatusProduct";
 import { IoSearchOutline } from "react-icons/io5";
 import ImageNoData from "./../../assets/no_data.png"
+import { MdNavigateNext, MdNavigateBefore  } from "react-icons/md";
+
 
 const ManageOffers = () => {
   const { mutate } = useDeleteProduct();
@@ -19,11 +21,19 @@ const ManageOffers = () => {
   const [statusFilter, setStatusFilter] = useState("available");
   const [gameFilter, setGameFilter] = useState("");
   const [titleFilter, setTitleFilter] = useState("");
-  const { data: products } = useGetProducts({
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const { data, isLoading  } = useGetProducts({
     status: statusFilter,
     game_id: gameFilter,
     q: titleFilter,
+    page,
+    limit,
   });
+  
+  const products = data?.data;
+  const meta = data?.meta;
+
   const [allGames, setAllGames] = useState<any[]>([]);
 
   const handleDelete = (id: string) => {
@@ -70,19 +80,19 @@ const ManageOffers = () => {
     );
   };
 
-  useEffect(() => {
-    console.log("Selected products:", products);
-  }, [products]);
 
   useEffect(() => {
     setSelected([]);
   }, [statusFilter]);
 
-  const { data: productsForGames } = useGetProducts({
+  const { data: productk } = useGetProducts({
   status: statusFilter,
   game_id: "",   
-  q: "",         
+  q: "",
+  page: 1,
+  limit : 10000,         
 });
+const productsForGames = productk?.data
 
   useEffect(() => {
   if (productsForGames) {
@@ -99,6 +109,7 @@ const ManageOffers = () => {
     setGameFilter("");
     setSelected([]);
   }
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="mt-8 p-3 md:p-0">
@@ -150,7 +161,6 @@ const ManageOffers = () => {
             </div>
             <div>
               <select
-                defaultValue="All brands"
                 className="select  h-12 w-50 px-5 rounded-xl "
                 value={gameFilter}
                 onChange={(e) => setGameFilter(e.target.value)}
@@ -270,6 +280,7 @@ const ManageOffers = () => {
                       </ul>
                     </details>
                   </div>
+                  
                 </div>
                 {selected.length > 0 && (
                   <div className="fixed bottom-0 left-0 w-full bg-base-100 p-6 flex justify-center gap-4 items-center z-40 shadow-[0_-6px_10px_rgba(0,0,0,0.1)]">
@@ -415,7 +426,33 @@ const ManageOffers = () => {
                 </div>
               </div>
             ))}
+
+            {/* PAGINATION */}
+      <div className="flex gap-2 mt-4 items-center w-full justify-center">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage((p) => p - 1)}
+          className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
+        >
+          <MdNavigateBefore/>
+          <span>Prev</span>
+        </button>
+
+        <span>
+          Page {meta.page} of {meta.total_pages}
+        </span>
+
+        <button
+          disabled={page === meta.total_pages}
+          onClick={() => setPage((p) => p + 1)}
+          className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
+        >
+          <span>Next</span>
+          <MdNavigateNext className="w-6 h-6"/>
+        </button>
+      </div>
           </div>
+          
           )}
           
         </div>

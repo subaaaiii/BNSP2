@@ -130,8 +130,13 @@ func CreateGame(c *gin.Context) {
 
 func GetGames(c *gin.Context) {
 	var games []models.Game
+	query := database.DB.Model(&models.Game{})
+	q := c.Query("q")
+	if q != "" {
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(q)+"%")
+	}
 
-	if err := database.DB.Find(&games).Error; err != nil {
+	if err := query.Find(&games).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "failed to fetch games",

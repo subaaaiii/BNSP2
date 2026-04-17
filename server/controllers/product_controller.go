@@ -3,6 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"math"
 	"net/http"
 	"os"
 	"path"
@@ -181,8 +183,25 @@ func GetProducts(c *gin.Context) {
 	game_id := c.Query("game_id")
 	q := c.Query("q")
 
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	var total int64
+
 	var products []models.Product
-	query := database.DB.Preload("Game").Where("user_id = ?", userId)
+	query := database.DB.Model(&models.Product{}).Where("user_id = ?", userId)
 
 	if status != "" {
 		query = query.Where("status = ?", status)
@@ -193,18 +212,38 @@ func GetProducts(c *gin.Context) {
 	if q != "" {
 		query = query.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(q)+"%")
 	}
-	if err := query.Find(&products).Error; err != nil {
+	if err := query.Count(&total).Error; err != nil {
+		log.Println("ERROR:", err)
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
-			Message: "failed to get products",
+			Message: "failed to count products",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, structs.SuccessResponse{
-		Success: true,
-		Message: "Products retrieved successfully",
-		Data:    products,
+	if err := query.
+		Preload("Game").Limit(limit).
+		Offset(offset).
+		Order("created_at DESC").Find(&products).Error; err != nil {
+		log.Println("🔥 GET PRODUCTS ERROR:", err)
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Products retrieved successfully",
+		"data":    products,
+		"meta": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
 	})
 }
 

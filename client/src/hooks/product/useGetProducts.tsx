@@ -6,18 +6,35 @@ export const useGetProducts = (filters:{
     status? : string;
     game_id? : string;
     q? :string;
+    page: number;
+    limit: number;
 }) => {
   return useQuery({
-    queryKey: ["products", filters],
+    queryKey: [
+      "products",
+      filters.status,
+      filters.game_id,
+      filters.q,
+      filters.page,
+      filters.limit,
+    ],
     queryFn: async () => {
       const token = Cookies.get("token");
+      // 🔥 bersihin params
+      const cleanParams = Object.fromEntries(
+        Object.entries(filters).filter(
+          ([_, value]) =>
+            value !== "" && value !== undefined && value !== null
+        )
+      );
       const res = await Api.get("/api/products", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        params: filters,
+        params: cleanParams,
       });
-      return res.data.data;
+      return res.data;
     },
+    placeholderData: (prev) => prev
   });
 };

@@ -20,6 +20,7 @@ export const useLogin = () => {
     onSuccess: (data) => {
       Cookies.set("token", data.data.token);
       queryClient.setQueryData(["me"], data.data);
+      queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
 };

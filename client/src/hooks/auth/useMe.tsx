@@ -3,20 +3,29 @@ import Cookies from "js-cookie";
 import Api from "../../services/api";
 
 export const useMe = () => {
+  const token = Cookies.get("token");
+
   return useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      const token = Cookies.get("token");
+      try {
+        const res = await Api.get("/api/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const res = await Api.get("/api/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      return res.data.data;
+        return res.data.data;
+      } catch (err: any) {
+        if (err.response?.status === 401) {
+          Cookies.remove("token");
+        }
+        throw err;
+      }
     },
-    enabled: !!Cookies.get("token"), // hanya fetch kalau ada token
-    retry: false, // no retry kalau unauthorized
+    enabled: !!token,
+    retry: false,
+    refetchInterval: 1000 * 60 * 60,
+    refetchOnWindowFocus: true
   });
 };
