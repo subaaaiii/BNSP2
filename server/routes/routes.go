@@ -46,7 +46,7 @@ func SetupRouter() *gin.Engine {
 	{
 		admin.POST("/games", controllers.CreateGame)
 		admin.GET("/games", controllers.GetGames)
-		admin.GET("/games/:id", middlewares.AuthMiddleware(), controllers.GetGameByID)
+		admin.GET("/games/:id", controllers.GetGameByID)
 		admin.PUT("/games/:id", controllers.UpdateGame)
 		admin.DELETE("/games/:id", controllers.DeleteGame)
 	}
@@ -56,5 +56,6 @@ func SetupRouter() *gin.Engine {
 	router.PUT("/api/products/:id", middlewares.AuthMiddleware(), controllers.UpdateProduct)
 	router.DELETE("/api/products/:id", middlewares.AuthMiddleware(), controllers.DeleteProduct)
 	router.PATCH("/api/products/status", middlewares.AuthMiddleware(), controllers.ChangeProductStatus)
+	router.GET("/api/products/public", controllers.GetProductsPublic)
 	return router
 }

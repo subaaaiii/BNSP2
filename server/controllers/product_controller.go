@@ -19,6 +19,7 @@ import (
 	"bnsp2/server/structs"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func CreateProduct(c *gin.Context) {
@@ -225,7 +226,90 @@ func GetProducts(c *gin.Context) {
 		Preload("Game").Limit(limit).
 		Offset(offset).
 		Order("created_at DESC").Find(&products).Error; err != nil {
-		log.Println("🔥 GET PRODUCTS ERROR:", err)
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Products retrieved successfully",
+		"data":    products,
+		"meta": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
+	})
+}
+
+func GetProductsPublic(c *gin.Context) {
+
+	game_id := c.Query("game_id")
+	q := c.Query("q")
+	sort := c.Query("sort")
+
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	var total int64
+
+	var products []models.Product
+	query := database.DB.Model(&models.Product{}).Where("status = ?", "available")
+
+	if game_id != "" {
+		query = query.Where("game_id = ?", game_id)
+	}
+	if q != "" {
+		query = query.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(q)+"%")
+	}
+	if sort != "" {
+		switch sort {
+		case "most_recent":
+			query = query.Order("created_at DESC")
+		case "lowest_price":
+			query = query.Order("price ASC")
+		case "highest_price":
+			query = query.Order("price DESC")
+		default:
+			query = query.Order("created_at DESC") // fallback
+		}
+	} else {
+		query = query.Order("created_at DESC") // default
+	}
+	if err := query.Count(&total).Error; err != nil {
+		log.Println("ERROR:", err)
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to count products",
+		})
+		return
+	}
+
+	if err := query.
+		Preload("Game").
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "name", "picture")
+		}).
+		Limit(limit).
+		Offset(offset).
+		Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: err.Error(),

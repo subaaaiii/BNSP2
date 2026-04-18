@@ -9,9 +9,8 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { useUpdateProductStatus } from "../../hooks/product/useUpdateStatusProduct";
 import { IoSearchOutline } from "react-icons/io5";
-import ImageNoData from "./../../assets/no_data.png"
-import { MdNavigateNext, MdNavigateBefore  } from "react-icons/md";
-
+import ImageNoData from "./../../assets/no_data.png";
+import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
 
 const ManageOffers = () => {
   const { mutate } = useDeleteProduct();
@@ -23,14 +22,16 @@ const ManageOffers = () => {
   const [titleFilter, setTitleFilter] = useState("");
   const [page, setPage] = useState(1);
   const limit = 10;
-  const { data, isLoading  } = useGetProducts({
+  const { data, isLoading } = useGetProducts({
     status: statusFilter,
     game_id: gameFilter,
     q: titleFilter,
     page,
     limit,
   });
-  
+
+
+
   const products = data?.data;
   const meta = data?.meta;
 
@@ -80,35 +81,34 @@ const ManageOffers = () => {
     );
   };
 
-
   useEffect(() => {
     setSelected([]);
   }, [statusFilter]);
 
   const { data: productk } = useGetProducts({
-  status: statusFilter,
-  game_id: "",   
-  q: "",
-  page: 1,
-  limit : 10000,         
-});
-const productsForGames = productk?.data
+    status: statusFilter,
+    game_id: "",
+    q: "",
+    page: 1,
+    limit: 10000,
+  });
+  const productsForGames = productk?.data;
 
   useEffect(() => {
-  if (productsForGames) {
-    const games = Array.from(
-      new Map(productsForGames.map((p: any) => [p.game.id, p.game])).values()
-    );
-    setAllGames(games);
-  }
-}, [productsForGames]);
+    if (productsForGames) {
+      const games = Array.from(
+        new Map(productsForGames.map((p: any) => [p.game.id, p.game])).values(),
+      );
+      setAllGames(games);
+    }
+  }, [productsForGames]);
 
-  const handleStartOver = () =>{
-    setStatusFilter("available")
+  const handleStartOver = () => {
+    setStatusFilter("available");
     setTitleFilter("");
     setGameFilter("");
     setSelected([]);
-  }
+  };
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -146,70 +146,85 @@ const productsForGames = productk?.data
           Archived
         </div>
       </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          {/* Header */}
-          <div className="flex py-6 items-center gap-6">
-            <div className="relative inline-block">
-              <input
-                type="text"
-                className="input input-lg rounded-xl pr-12"
-                placeholder="Search product title"
-                value={titleFilter}
-                onChange={(e) => setTitleFilter(e.target.value)}
-              />
-              <IoSearchOutline className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-6 h-6" />
-            </div>
-            <div>
-              <select
-                className="select  h-12 w-50 px-5 rounded-xl "
-                value={gameFilter}
-                onChange={(e) => setGameFilter(e.target.value)}
-              >
-                <option value="">All brands</option>
-                {allGames?.map((game: any) => (
-                  <option key={game.id} value={game.id}>
-                    {game.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        {/* Header */}
+        <div className="flex py-6 items-center gap-6">
+          <div className="relative inline-block">
+            <input
+              type="text"
+              className="input input-lg rounded-xl pr-12"
+              placeholder="Search product title"
+              value={titleFilter}
+              onChange={(e) => setTitleFilter(e.target.value)}
+            />
+            <IoSearchOutline className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-6 h-6" />
           </div>
-          {/**/ }
-          <div className="md:grid md:grid-cols-[50px_1fr_100px_120px_120px] font-semibold border-b border-gray-300 pb-3 ">
-            <div>
-              <input
-                type="checkbox"
-                className="checkbox"
-                checked={selected.length === products?.length && products?.length != 0 }
-                onChange={() =>
-                  setSelected(
-                    selected.length === products?.length
-                      ? []
-                      : products?.map((p: { id: number }) => p.id) || [],
-                  )
-                }
-              />
-            </div>
-            <div className="hidden md:block">Title</div>
-            <div className="hidden md:block">Stock</div>
-            <div className="hidden md:block">Price</div>
-            <div className="text-center hidden md:block">Action</div>
+          <div>
+            <select
+              className="select  h-12 w-50 px-5 rounded-xl "
+              value={gameFilter}
+              onChange={(e) => setGameFilter(e.target.value)}
+            >
+              <option value="">All brands</option>
+              {allGames?.map((game: any) => (
+                <option key={game.id} value={game.id}>
+                  {game.name}
+                </option>
+              ))}
+            </select>
           </div>
-          {/*header */}
+        </div>
+        {/**/}
+        <div className="md:grid md:grid-cols-[50px_1fr_100px_120px_120px] font-semibold border-b border-gray-300 pb-3 ">
+          <div>
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={
+                selected.length === products?.length && products?.length != 0
+              }
+              onChange={() =>
+                setSelected(
+                  selected.length === products?.length
+                    ? []
+                    : products?.map((p: { id: number }) => p.id) || [],
+                )
+              }
+            />
+          </div>
+          <div className="hidden md:block">Title</div>
+          <div className="hidden md:block">Stock</div>
+          <div className="hidden md:block">Price</div>
+          <div className="text-center hidden md:block">Action</div>
+        </div>
+        {/*header */}
 
-          {/* Rows */}
-          {products?.length === 0 ? (
-            <div className="w-full flex flex-col justify-center items-center">
-              <img src={ImageNoData} alt="no data found" className="w-80 h-auto flex justify-center my-6" />
-              <span className="text-2xl font-bold">{allGames.length > 1  ? "We are unable to find matching offer" : `You have no ${statusFilter === "available" ? "live" : "archived" } product` }</span>
-              {allGames.length > 1 ? (
-                <span className="text-sm">Please broaden your search criteria or {" "} 
-                <span className="underline" onClick={handleStartOver}>start over</span>
+        {/* Rows */}
+        {products?.length === 0 ? (
+          <div className="w-full flex flex-col justify-center items-center">
+            <img
+              src={ImageNoData}
+              alt="no data found"
+              className="w-80 h-auto flex justify-center my-6"
+            />
+            <span className="text-2xl font-bold">
+              {allGames.length > 1
+                ? "We are unable to find matching offer"
+                : `You have no ${statusFilter === "available" ? "live" : "archived"} product`}
+            </span>
+            {allGames.length > 1 ? (
+              <span className="text-sm">
+                Please broaden your search criteria or{" "}
+                <span className="underline" onClick={handleStartOver}>
+                  start over
+                </span>
               </span>
-              ): ""}
-            </div>
-          ): (
-            <div className="">
+            ) : (
+              ""
+            )}
+          </div>
+        ) : (
+          <div className="">
             {products?.map((product: any) => (
               <div key={product.id}>
                 <div className="hidden md:block md:grid md:grid-cols-[50px_1fr_100px_120px_120px] items-center py-4 rounded-lg hover:bg-gray-50 border-b border-gray-100 last:border-none">
@@ -280,40 +295,38 @@ const productsForGames = productk?.data
                       </ul>
                     </details>
                   </div>
-                  
                 </div>
                 {selected.length > 0 && (
                   <div className="fixed bottom-0 left-0 w-full bg-base-100 p-6 flex justify-center gap-4 items-center z-40 shadow-[0_-6px_10px_rgba(0,0,0,0.1)]">
                     <span className="text-sm">{selected.length} selected</span>
 
                     <div>
-                      {statusFilter=== "available" ? (
+                      {statusFilter === "available" ? (
                         <button
-                        className="btn btn-success btn-sm mr-2"
-                        onClick={() =>
-                          handleReviewSelected({
-                            ids: selected,
-                            status: "archived",
-                          })
-                        }
-                      >
-                        Archive Selected
-                      </button>
-                      ):(
-                         <button
-                        className="btn btn-success btn-sm mr-2"
-                        onClick={() =>
-                          handleReviewSelected({
-                            ids: selected,
-                            status: "available",
-                          })
-                        }
-                      >
-                        Publish Selected
-                      </button>
+                          className="btn btn-success btn-sm mr-2"
+                          onClick={() =>
+                            handleReviewSelected({
+                              ids: selected,
+                              status: "archived",
+                            })
+                          }
+                        >
+                          Archive Selected
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-success btn-sm mr-2"
+                          onClick={() =>
+                            handleReviewSelected({
+                              ids: selected,
+                              status: "available",
+                            })
+                          }
+                        >
+                          Publish Selected
+                        </button>
                       )}
-                      
-                     
+
                       <button
                         className="btn btn-error btn-sm"
                         onClick={() =>
@@ -428,35 +441,32 @@ const productsForGames = productk?.data
             ))}
 
             {/* PAGINATION */}
-      <div className="flex gap-2 mt-4 items-center w-full justify-center">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
-        >
-          <MdNavigateBefore/>
-          <span>Prev</span>
-        </button>
+            <div className="flex gap-2 mt-4 items-center w-full justify-center">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
+              >
+                <MdNavigateBefore />
+                <span>Prev</span>
+              </button>
 
-        <span>
-          Page {meta.page} of {meta.total_pages}
-        </span>
+              <span>
+                Page {meta.page} of {meta.total_pages}
+              </span>
 
-        <button
-          disabled={page === meta.total_pages}
-          onClick={() => setPage((p) => p + 1)}
-          className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
-        >
-          <span>Next</span>
-          <MdNavigateNext className="w-6 h-6"/>
-        </button>
-      </div>
+              <button
+                disabled={page === meta.total_pages}
+                onClick={() => setPage((p) => p + 1)}
+                className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
+              >
+                <span>Next</span>
+                <MdNavigateNext className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-          
-          )}
-          
-        </div>
-      
+        )}
+      </div>
     </div>
   );
 };
