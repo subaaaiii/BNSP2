@@ -31,6 +31,7 @@ import ResetPassword from "../views/forgot-password/reset.tsx";
 import ManageOffers from "../views/offers/index.tsx";
 import UserProfile from "../views/user/profile.tsx";
 import BrandProducts from "../views/product/brand.tsx";
+import DetailProduct from "../views/product/detail.tsx";
 
 export default function AppRoutes() {
   const auth = useContext(AuthContext);
@@ -54,6 +55,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
 
       <Route path="/products" element={<BrandProducts />} />
+      <Route path="/products/detail" element={<DetailProduct />} />
 
       {/* route "/register" */}
       <Route

@@ -1,7 +1,7 @@
 import BottomNavbar from "../../components/bottom_navbar";
 import Card from "../../components/card";
 import { IoSearch } from "react-icons/io5";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useGames } from "../../hooks/game/useGames";
 import { useNavigate } from "react-router";
 import { useGetProductsPublic } from "../../hooks/product/useGetProductPublic";
