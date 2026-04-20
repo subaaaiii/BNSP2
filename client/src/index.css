@@ -1,5 +1,30 @@
 @import "tailwindcss";
+
+@theme {
+  /* LIGHT (default) */
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-text: #111827;
+
+  --color-primary1: #2d3330;
+  --color-primary1-hover: #343a38;
+
+  --color-secondary1: #C5A16F;
+}
+
+/* DARK MODE */
+.dark {
+  --color-bg: #27282d;
+  --color-surface: #1e293b;
+  --color-text: #f9fafb;
+
+  --color-primary1: #f9fafb;
+  --color-primary-hover1: #525957;
+
+  --color-secondary1: #d4b486;
+}
 @plugin "daisyui";
+
 
 /* hide scrollbar tapi tetap bisa scroll */
 .no-scrollbar::-webkit-scrollbar {
@@ -9,4 +34,18 @@
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE & Edge */
   scrollbar-width: none;     /* Firefox */
+}
+
+.hero-gradient {
+  background-image: linear-gradient(to right, 
+    #b91c1c 45%, /* Titik akhir warna merah (45% dari kiri) */
+    #ec4899 50%, /* Titik awal warna pink (50% dari kiri) */
+    #ec4899 55%, /* Titik akhir warna pink (55% dari kiri) */
+    #a855f7 60%, /* Titik awal warna ungu (60% dari kiri) */
+    #a855f7 65%, /* Titik akhir warna ungu (65% dari kiri) */
+    #1f2937 70%  /* Titik awal warna gelap (70% dari kiri) */
+  );
+  /* Tambahkan tinggi dan lebar untuk melihat efeknya */
+  height: 300px;
+  width: 100%;
 }

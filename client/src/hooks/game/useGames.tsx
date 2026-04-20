@@ -1,17 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import Api from "../../services/api";
-import Cookies from "js-cookie";
+import { cleanParams } from "../../helpers/clean_params";
 
-export const useGames = (q? : string) => {
+export const useGames = (filters:{q?: string, page: number;
+    limit: number;}) => {
   return useQuery({
-    queryKey: ["games"],
+    queryKey: ["games", filters],
     queryFn: async () => {
-      const token = Cookies.get("token");
+      const params = cleanParams(filters)
       const res = await Api.get("/api/admin/games", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params : q,
+        
+        params,
       });
       return res.data.data;
     },

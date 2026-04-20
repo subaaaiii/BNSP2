@@ -3,7 +3,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 
 const ProductCardSkeleton = () => {
   return (
-    <div className="card bg-base-100 w-74 shadow-sm rounded-md overflow-hidden">
+    <div className="card bg-base-100 w-full shadow-sm rounded-md overflow-hidden">
       
       {/* Image */}
       <Skeleton className="w-full aspect-[1.6/1]" />

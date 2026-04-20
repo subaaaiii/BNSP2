@@ -34,7 +34,7 @@ const Login = () => {
     );
   };
   return (
-    <div className="flex w-full justify-center items-center ">
+    <div className="flex w-full justify-center items-center mt-10">
       <form onSubmit={handleLogin} className="flex w-full justify-center px-4">
         <fieldset className="fieldset border-base-300 rounded-box flex flex-col w-full max-w-md md:w-lg">
           <div className="flex justify-center items-center">

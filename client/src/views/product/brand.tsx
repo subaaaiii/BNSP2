@@ -13,64 +13,77 @@ import Skeleton from "react-loading-skeleton";
 const BrandProducts = () => {
   const [searchParams] = useSearchParams();
   const game_id = searchParams.get("brand");
-  const [titleFilter, setTitleFilter] = useState("");
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("most_recent");
   const limit = 40;
+
+  const { data, isLoading } = useGame(game_id!);
+
+  const [inputValue, setInputValue] = useState("");
+  const [debouncedValue, setDebouncedValue] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(inputValue);
+    }, 500); // delay 500ms
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [inputValue]);
+
   const { data: productData, isLoading: ProductLoading } = useGetProductsPublic(
     {
       game_id: game_id!,
-      q: titleFilter,
+      q: debouncedValue || "",
       page,
       limit,
       sort,
     },
   );
-  const { data, isLoading } = useGame(game_id!);
 
-//   const [delayedLoading, setDelayedLoading] = useState(true);
-//   useEffect(() => {
-//     let timer: any;
+  // const [delayedLoading, setDelayedLoading] = useState(true);
+  // useEffect(() => {
+  //   let timer: any;
 
-//     if (isLoading && ProductLoading) {
-//       setDelayedLoading(true);
-//     } else {
-//       timer = setTimeout(() => {
-//         setDelayedLoading(false);
-//       }, 3000); //delay 3 detik
-//     }
+  //   if (isLoading && ProductLoading) {
+  //     setDelayedLoading(true);
+  //   } else {
+  //     timer = setTimeout(() => {
+  //       setDelayedLoading(false);
+  //     }, 3000); //delay 3 detik
+  //   }
 
-//     return () => clearTimeout(timer);
-//   }, [isLoading]);
-//   const loading = delayedLoading;
+  //   return () => clearTimeout(timer);
+  // }, [isLoading]);
+  // const loading = delayedLoading;
 
-const loading = isLoading && ProductLoading
+  const loading = isLoading && ProductLoading;
 
   const products = productData?.data;
   const meta = productData?.meta;
 
   return (
-    <div className="mt-8 max-w-7xl mx-auto px-4">
+    <div className="mt-8 max-w-6xl mx-auto pb-20">
       {loading ? (
         <Skeleton width={160} height={16} />
       ) : (
-        <div className="text-2xl font-semibold ">{data?.name}</div>
+        <div className="text-2xl font-semibold text-text ">{data?.name}</div>
       )}
       <div className="flex mt-4 items-center gap-6 justify-between">
         <div className="relative items-center w-xl">
           <input
             type="text"
             className="input rounded-full w-full text-xl py-6 pl-14 text-gray-400"
-            onChange={(e) => {
-              setTitleFilter(e.target.value);
-            }}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type to filter"
           />
           <div className="absolute left-4 top-1/2 -translate-y-1/2 ">
             <IoSearch className="w-6 h-6 text-gray-400" />
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 text-text">
           <span>Sort by:</span>
           <div className="flex gap-3 items-center">
             <div className="flex gap-1">
@@ -89,7 +102,7 @@ const loading = isLoading && ProductLoading
               <input
                 type="radio"
                 name="radio-3"
-                className="radio radio-neutral"
+                className="radio radio-neutral "
                 onChange={() => {
                   setSort("lowest_price");
                 }}
@@ -119,7 +132,7 @@ const loading = isLoading && ProductLoading
           About {meta?.total} results
         </div>
       )}
-      <div className="col-md-12 fs-4 flex flex-wrap gap-5">
+      <div className="w-full">
         {products?.length === 0 ? (
           <div className="w-full flex flex-col justify-center items-center">
             <img
@@ -134,13 +147,13 @@ const loading = isLoading && ProductLoading
         ) : (
           <div>
             {loading ? (
-              <div className="flex flex-wrap gap-5">
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
                 {Array.from({ length: 40 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-wrap gap-5 w-full">
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
                 {products?.map((product: any) => (
                   <Card
                     brand={product.game.name}

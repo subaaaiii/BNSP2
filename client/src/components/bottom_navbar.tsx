@@ -70,7 +70,7 @@ const BottomNavbar = () => {
         ) : (
           <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
             <Link
-              className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-neutral md:border-none text-neutral "
+              className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-primary1 md:border-none text-primary1 "
               to="/become-seller"
             >
               Start selling

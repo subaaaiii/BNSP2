@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
+	"strconv"
 
 	"errors"
 	"fmt"
@@ -132,22 +134,55 @@ func GetGames(c *gin.Context) {
 	var games []models.Game
 	query := database.DB.Model(&models.Game{})
 	q := c.Query("q")
+
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+	var total int64
+
 	if q != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(q)+"%")
 	}
 
-	if err := query.Find(&games).Error; err != nil {
+	if err := query.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to count products",
+		})
+		return
+	}
+
+	if err := query.Limit(limit).
+		Offset(offset).Find(&games).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "failed to fetch games",
 		})
 		return
 	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 
-	c.JSON(http.StatusOK, structs.SuccessResponse{
-		Success: true,
-		Message: "Games successfully fecthed",
-		Data:    games,
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Games retrieved successfully",
+		"data":    games,
+		"meta": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
 	})
 }
 
@@ -230,7 +265,7 @@ func UpdateGame(c *gin.Context) {
 	} else {
 		ext := strings.ToLower(filepath.Ext(file.Filename))
 
-		if ext != ".jpg" && ext != ".png" {
+		if ext != ".jpg" && ext != ".png" && ext != ".webp" && ext != ".jpeg" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
 			return
 		}

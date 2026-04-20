@@ -6,11 +6,11 @@ import { SkeletonTheme } from "react-loading-skeleton";
 
 const App = () => {
   return (
-    <div className="min-h-screen bg-base-200">
+    <div data-theme="mytheme" className="min-h-screen bg-bg pt-20 ">
       <Navbar />
       <Toaster />
 
-      <div className="max-w-7xl mx-auto">
+      <div className="">
         <SkeletonTheme baseColor="#757373" highlightColor="#a7a3a3">
           <AppRoutes/>
         </SkeletonTheme>
