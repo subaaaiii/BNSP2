@@ -20,8 +20,8 @@ const GameCard = ({ image, name, onClick }: DataType) => {
       <div className="absolute inset-0 bg-black/40" />
 
       {/* Center Text */}
-      <div className="relative items-center mt-12 z-10 flex justify-center h-full">
-        <h2 className="text-white text-lg font-semibold text-center px-2">
+      <div className="relative items-center  z-10 flex justify-center h-full">
+        <h2 className="absolute bottom-2 text-white text-sm md:text-lg font-semibold text-center px-2">
           {name}
         </h2>
       </div>

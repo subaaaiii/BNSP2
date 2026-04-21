@@ -4,19 +4,21 @@ import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { IoChatbubbles, IoTimerSharp } from "react-icons/io5";
 import { RiMedal2Line } from "react-icons/ri";
 import { IoMdThumbsUp } from "react-icons/io";
+import Footer from "../../components/footer";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="w-full h-screen grid grid-cols-5">
-      <div className="col-span-3 p-4 overflow-y-auto no-scrollbar">
+    <div >
+      <div className=" max-w-6xl mx-auto w-full h-screen grid grid-cols-5 gap-8">
+      <div className="col-span-3 py-4 overflow-y-auto no-scrollbar">
         <img
           src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
           alt=""
           className="w-full h-auto rounded-xl "
         />
         <h1 className="text-4xl font-bold mt-8">Ini title</h1>
-        <div className="mt-8 rounded-lg p-4">
+        <div className="mt-8 rounded-lg py-4">
           <div className="w-full py-4 border-b border-gray-200 text-2xl font-bold">
             Product Info
           </div>
@@ -98,7 +100,7 @@ const DetailProduct = () => {
         </div>
       </div>
 
-      <div className="col-span-2 w-full p-4 flex flex-col">
+      <div className="col-span-2 w-full py-4 flex flex-col">
         <div className="w-full flex justify-between bg-[#eef4ff] py-4 px-8 rounded-xl shadow-sm">
           <div className="flex gap-2 items-center">
             <AiOutlineSafetyCertificate className="w-8 h-8 text-[#005386]" />
@@ -108,7 +110,7 @@ const DetailProduct = () => {
           </div>
           <div className="text-lg text-[#005386]">14 day</div>
         </div>
-        <div className="w-full bg-white flex flex-col p-8 mt-6 rounded-xl">
+        <div className="w-full bg-white flex flex-col py-2 mt-6 rounded-xl">
           <div className="w-full flex justify-between items-center">
             <div className="flex gap-2 items-center">
               <img
@@ -142,7 +144,7 @@ const DetailProduct = () => {
             </div>
           </div>
         </div>
-        <div className="w-full bg-white flex flex-col justify-center items-center gap-8 p-8 mt-4 rounded-xl">
+        <div className="w-full bg-white flex flex-col justify-center items-center gap-8 mt-4 rounded-xl">
           <span className="text-gray-500 text-center">1 Available</span>
           <div className="flex w-fit justify-between gap-16 items-center border border-gray-300 rounded-full px-2 py-2 shadow-md">
             <div className="aspect-square w-10 flex items-center justify-center  rounded-full  bg-gray-100 text-xl font-bold text-gray-500 cursor-pointer">
@@ -169,6 +171,10 @@ const DetailProduct = () => {
             Buy Now
           </div>
         </div>
+      </div>
+    </div>
+      <div className="-mb-20 -mx-4">
+        <Footer />
       </div>
     </div>
   );

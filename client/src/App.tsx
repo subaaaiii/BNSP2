@@ -3,19 +3,22 @@ import AppRoutes from "./routes";
 import { Toaster } from "react-hot-toast";
 import 'react-loading-skeleton/dist/skeleton.css'
 import { SkeletonTheme } from "react-loading-skeleton";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const App = () => {
   return (
-    <div data-theme="mytheme" className="min-h-screen bg-bg pt-20 ">
+    <ThemeProvider>
+      <div className="min-h-screen bg-bg pt-20 ">
       <Navbar />
       <Toaster />
 
-      <div className="">
+      <div className="pb-20 md:pb-0">
         <SkeletonTheme baseColor="#757373" highlightColor="#a7a3a3">
           <AppRoutes/>
         </SkeletonTheme>
       </div>
     </div>
+    </ThemeProvider>
   );
 };
 

@@ -15,39 +15,55 @@ const Card = ({
   profile,
   name_store,
 }: DataType) => {
-
   const formattedPrice = new Intl.NumberFormat("id-ID").format(Number(price));
 
   return (
-    <div className="card bg-bg w-full shadow-sm rounded-md overflow-hidden">
-        <img
-          src={image}
-          alt={title}
-          className="w-full  aspect-[1.8/1]  object-cover rounded-t-md hover:scale-110"
-        />
+    <div className="card flex flex-row md:flex-col bg-bg shadow-sm rounded-md min-w-0">
+      <img
+        src={image}
+        alt={title}
+        className="w-32 h-32 md:w-full md:h-auto 
+             aspect-square md:aspect-[1.8/1] 
+             object-cover rounded-md md:rounded-t-md "
+      />
 
-      <div className="flex flex-col gap-1 px-6 py-3 cursor-pointer">
-        <span className="text-base text-gray-400">{brand}</span>
+      <div className="flex flex-col flex-1 gap-1 px-3 md:px-6 py-1 md:py-3 cursor-pointer min-w-0">
+        <span className="text-xs md:text-base text-gray-400">{brand}</span>
 
-        <span className="text-2xl font-semibold hover:underline truncate text-primary1">
+        <span className="text-lg md:text-2xl font-semibold hover:underline truncate text-primary1">
           {title}
         </span>
 
-        <span className="text-xl font-semibold text-secondary1">
+        <span className="text-sm md:text-xl font-semibold text-secondary1">
           Rp. {formattedPrice}
         </span>
+        <hr className="block md:hidden border-gray-300" />
+
+        <div className="block md:hidden flex md:gap-2 md:px-6 items-center py-1 md:py-3">
+          <img
+            src={profile}
+            alt={name_store}
+            className="w-6 md:w-8 h-6 md:h-8 rounded-full object-cover"
+          />
+
+          <span className="font-semibold text-sm md:text-lg text-primary1">
+            {name_store}
+          </span>
+        </div>
       </div>
 
-      <hr className="border-gray-300" />
+      <hr className="hidden md:block border-gray-300" />
 
-      <div className="flex gap-2 px-6 items-center py-3">
+      <div className="hidden md:flex gap-2 md:px-6 md:items-center py-3">
         <img
           src={profile}
           alt={name_store}
           className="w-8 h-8 rounded-full object-cover"
         />
 
-        <span className="font-semibold text-lg text-primary1">{name_store}</span>
+        <span className="font-semibold text-lg text-primary1">
+          {name_store}
+        </span>
       </div>
     </div>
   );

@@ -12,13 +12,13 @@ const BottomNavbar = () => {
   const { user, loading } = useContext(AuthContext)!;
 
   return (
-    <div className="block md:hidden fixed w-full bg-white bottom-0 left-0 ">
+    <div className="block md:hidden fixed w-full bg-bg bottom-0 left-0">
       <ul className="flex justify-between w-full items-center gap-2 px-1 p-4 md:p-0">
         {loading ? null : user ? (
           <div className="flex items-center gap-4 w-full justify-evenly">
             <div
               className={`flex flex-col items-center ${
-                isActive("/") ? "text-neutral" : "text-gray-500"
+                isActive("/") ? "text-[#C5A16F]" : "text-gray-500"
               }`}
               onClick={() => {
                 navigate("/");
@@ -37,7 +37,7 @@ const BottomNavbar = () => {
             </div>
             <div
               className={`flex flex-col items-center ${
-                isActive("/notifications") ? "text-neutral" : "text-gray-500"
+                isActive("/notifications") ? "text-[#C5A16F]" : "text-gray-500"
               }`}
             >
               <IoMdNotifications className="w-7 h-7" />
@@ -52,7 +52,7 @@ const BottomNavbar = () => {
             >
               <div
                 className={`flex flex-col items-center ${
-                  isActive("/user/profile") ? "text-neutral" : "text-gray-500"
+                  isActive("/user/profile") ? "text-[#C5A16F]" : "text-gray-500"
                 }`}
               >
                 <div className="avatar cursor-pointer">
@@ -70,14 +70,14 @@ const BottomNavbar = () => {
         ) : (
           <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
             <Link
-              className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-primary1 md:border-none text-primary1 "
+              className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-[#C5A16F] dark:border-text md:border-none text-[#C5A16F] dark:text-text "
               to="/become-seller"
             >
               Start selling
             </Link>
             <Link
               to="/login"
-              className="w-full md:w-auto bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium p-4 md:p-3 rounded text-center"
+              className="w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center"
             >
               Login/Register
             </Link>

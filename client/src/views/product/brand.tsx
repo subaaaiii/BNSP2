@@ -9,6 +9,7 @@ import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
 import ImageNoData from "./../../assets/no_data.png";
 import ProductCardSkeleton from "../../components/skeleton/ProductCard";
 import Skeleton from "react-loading-skeleton";
+import Footer from "../../components/footer";
 
 const BrandProducts = () => {
   const [searchParams] = useSearchParams();
@@ -64,7 +65,8 @@ const BrandProducts = () => {
   const meta = productData?.meta;
 
   return (
-    <div className="mt-8 max-w-6xl mx-auto pb-20">
+    <div className="mt-4 md:mt-8">
+      <div className="max-w-6xl mx-auto px-3 md:px-0 ">
       {loading ? (
         <Skeleton width={160} height={16} />
       ) : (
@@ -83,7 +85,7 @@ const BrandProducts = () => {
             <IoSearch className="w-6 h-6 text-gray-400" />
           </div>
         </div>
-        <div className="flex gap-4 text-text">
+        <div className="gap-4 text-text hidden md:flex">
           <span>Sort by:</span>
           <div className="flex gap-3 items-center">
             <div className="flex gap-1">
@@ -132,7 +134,7 @@ const BrandProducts = () => {
           About {meta?.total} results
         </div>
       )}
-      <div className="w-full">
+      <div className="w-full mb-20">
         {products?.length === 0 ? (
           <div className="w-full flex flex-col justify-center items-center">
             <img
@@ -153,9 +155,10 @@ const BrandProducts = () => {
                 ))}
               </div>
             ) : (
-              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
                 {products?.map((product: any) => (
                   <Card
+                    key={product.id}
                     brand={product.game.name}
                     image={
                       product.image
@@ -169,7 +172,7 @@ const BrandProducts = () => {
                   />
                 ))}
                 {/* PAGINATION */}
-                {meta.total >= limit ? (
+                {meta?.total >= limit ? (
                   <div className="flex gap-2 mt-4 items-center w-full justify-center">
                     <button
                       disabled={page === 1}
@@ -180,11 +183,11 @@ const BrandProducts = () => {
                     </button>
 
                     <span>
-                      Page {meta.page} of {meta.total_pages}
+                      Page {meta?.page} of {meta?.total_pages}
                     </span>
 
                     <button
-                      disabled={page === meta.total_pages}
+                      disabled={page === meta?.total_pages}
                       onClick={() => setPage((p) => p + 1)}
                       className="border border-gray-400 text-white py-3 px-2 rounded-md flex gap-1 items-center"
                     >
@@ -198,6 +201,10 @@ const BrandProducts = () => {
             )}
           </div>
         )}
+      </div>
+    </div>
+      <div className="-mb-20 md:mb-0 mx-auto">
+        <Footer />
       </div>
     </div>
   );

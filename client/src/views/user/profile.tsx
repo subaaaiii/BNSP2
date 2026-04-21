@@ -27,9 +27,9 @@ const UserProfile = ({ onClose }: Props) => {
                 </div>
               </div>
               <div>
-                <h2 className="font-medium">{user.username}</h2>
-                <p className="text-sm text-gray-500">Type user: {user.role}</p>
-                <p className="text-sm text-gray-500">Account ID: {user.id}</p>
+                <h2 className="font-medium text-text">{user.username}</h2>
+                <p className="text-sm text-gray-500 dark:text-white ">Type user: {user.role}</p>
+                <p className="text-sm text-gray-500 dark:text-white">Account ID: {user.id}</p>
               </div>
             </div>
             <button className=" block md:hidden py-2 px-5 bg-neutral text-white rounded-md cursor-pointer">
@@ -42,24 +42,24 @@ const UserProfile = ({ onClose }: Props) => {
             className="dropdown-content menu  rounded-box mt-3 z-[1] w-40 w-full p-0 m-0"
             onClick={onClose}
           >
-            <li className="w-full px-1 py-2">
+            <li className="w-full px-1 py-2 text-text">
               <Link to="/settings">Settings</Link>
             </li >
 
-            <li className="w-full px-1 py-2">
+            <li className="w-full px-1 py-2 text-text">
               <Link to="/admin/games"> Manage Games</Link>
             </li>
-            <li className="w-full px-1 py-2">
+            <li className="w-full px-1 py-2 text-text">
               <Link to="/offers/create">Create offers</Link>
             </li>
-            <li className="w-full px-1 py-2">
+            <li className="w-full px-1 py-2 text-text">
               <Link to="/offers">Manage offers</Link>
             </li>
-            <li className="w-full px-1 py-2">
+            <li className="w-full px-1 py-2 text-text">
               <Link to="/admin/review-sellers"> Review Sellers</Link>
             </li>
 
-            <li className="w-full px-1 py-2">
+            <li className="w-full px-1 py-2 text-text">
               <button onClick={logout}>Logout</button>
             </li>
           </ul>

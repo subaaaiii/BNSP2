@@ -9,10 +9,6 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const toggleDark = () => {
-  document.documentElement.classList.toggle("dark");
-};
-
   const location = useLocation();
   const isHome = location.pathname === "/";
 
@@ -39,21 +35,18 @@ const Navbar = () => {
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         isTransparent
           ? "bg-transparent border-transparent"
-          : "bg-bg backdrop-blur-md shadow border-b border-base-300"
+          : "bg-bg backdrop-blur-md shadow"
       }`}
     >
-      <div className="max-w-6xl mx-auto flex items-center py-4 ">
-        <div className="flex w-full justify-between md:justify-start md:navbar-start">
+      <div className="max-w-6xl mx-auto flex items-center py-4 px-3 md:px-0 ">
           <Link
             to="/"
             className={`text-xl font-bold ${
-              isTransparent ? "text-white" : "text-primary1"
+              isTransparent ? "text-[#2d3330]" : "text-[#C5A16F]"
             }`}
           >
             SubGAME
           </Link>
-        </div>
-        <button onClick={toggleDark}>Toggle Dark</button>
 
         <div className="hidden md:block w-full">
           <ul className="flex justify-between md:justify-end w-full items-center gap-2 px-1 p-4 md:p-0">
@@ -95,10 +88,10 @@ const Navbar = () => {
             ) : (
               <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
                 <Link
-                  className={`col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border ${
+                  className={`w-full md:w-auto font-medium p-4 md:p-3 rounded text-center border ${
                     isTransparent
-                      ? "border-white text-white"
-                      : "border-primary1 text-primary1"
+                      ? "border-[#2d3330] dark:border-[#C5A16F] bg-transparent text-[#2d3330] dark:text-[#C5A16F]"
+                      : "border-[#C5A16F] text-[#C5A16F]"
                   }`}
                   to="/become-seller"
                 >
@@ -108,8 +101,8 @@ const Navbar = () => {
                   to="/login"
                   className={`w-full md:w-auto font-medium p-4 md:p-3 rounded text-center ${
                     isTransparent
-                      ? "bg-bg text-text"
-                      : "bg-primary1 text-surface hover:bg-primary1-hover"
+                      ? "bg-[#2d3330] text-[#C5A16F] dark:text-[#2d3330]"
+                      : "text-bg bg-[#C5A16F]  "
                   }`}
                 >
                   Login/Register

@@ -179,7 +179,7 @@ const Security = () => {
   };
 
   return (
-    <div className="font-std md:mb-10 w-full rounded-2xl md:bg-white p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl">
+    <div className="font-std md:mb-10 w-full rounded-2xl md:bg-white p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl ">
       <div className="flex flex-row">
         <div className="flex flex-col mb-5 items-start w-full ">
           <h2 className="mb-5 text-4xl font-bold text-blue-900">Security</h2>

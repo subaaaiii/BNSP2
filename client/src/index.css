@@ -7,6 +7,7 @@
   --color-text: #111827;
 
   --color-primary1: #2d3330;
+  --color-primary2: #a6b6b2;
   --color-primary1-hover: #343a38;
 
   --color-secondary1: #C5A16F;
@@ -14,12 +15,12 @@
 
 /* DARK MODE */
 .dark {
-  --color-bg: #27282d;
-  --color-surface: #1e293b;
+  --color-bg: #1a1a19;
+  --color-surface: #272726;
   --color-text: #f9fafb;
 
   --color-primary1: #f9fafb;
-  --color-primary-hover1: #525957;
+  --color-primary1-hover: #525957;
 
   --color-secondary1: #d4b486;
 }
