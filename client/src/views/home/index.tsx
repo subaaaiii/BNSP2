@@ -20,7 +20,6 @@ import { HiOutlineBadgeCheck } from "react-icons/hi";
 import { paymentLogos } from "../../assets/payment";
 import Footer from "../../components/footer";
 
-
 const Home = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -55,8 +54,6 @@ const Home = () => {
   const filtered = data?.filter((item: any) =>
     item.name.toLowerCase().includes(query.toLowerCase()),
   );
-
-  
 
   return (
     <div className="mb-2 rounded-5 -mt-20 w-full ">
@@ -273,7 +270,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div className="max-w-2xl mx-auto mb-20 ">
+      <div className="max-w-2xl mx-auto mb-20 md:mb-40 ">
         <div className="text-2xl font-semibold mb-2 text-text text-center mb-6">
           Payments
         </div>
@@ -288,7 +285,7 @@ const Home = () => {
           ))}
         </div>
       </div>
-      <div className="mb-20 md:mb-0 ">
+      <div className="-mt-20 md:mb-0 ">
         <Footer />
       </div>
       <BottomNavbar />

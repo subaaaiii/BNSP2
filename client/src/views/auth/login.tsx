@@ -38,7 +38,7 @@ const Login = () => {
       <form onSubmit={handleLogin} className="flex w-full justify-center px-4">
         <fieldset className="fieldset border-base-300 rounded-box flex flex-col w-full max-w-md md:w-lg">
           <div className="flex justify-center items-center">
-            <legend className="fieldset-legend text-lg font-semi-bold mb-8">
+            <legend className="fieldset-legend text-lg font-semi-bold mb-8 text-text">
               Welcome Back!
             </legend>
           </div>
@@ -61,12 +61,12 @@ const Login = () => {
             </div>
           )}
 
-          <label className="label">Username</label>
+          <label className="label text-text">Username</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className={`input w-full ${errors.Username ? "input-error" : ""}`}
+            className={`input w-full bg-surface text-text ${errors.Username ? "input-error" : ""}`}
             placeholder="Username"
           />
           {errors.Username && (
@@ -75,14 +75,14 @@ const Login = () => {
             </div>
           )}
 
-          <label className="label mt-4">Password</label>
+          <label className="label mt-4 text-text">Password</label>
 
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`input w-full pr-12 ${
+              className={`input w-full bg-surface text-text pr-12 ${
                 errors.Password ? "input-error" : ""
               }`}
               placeholder="Password"
@@ -114,13 +114,13 @@ const Login = () => {
           </a>
           <button
             type="submit"
-            className="hidden md:block btn btn-neutral mt-4"
+            className="hidden md:block btn bg-[#C5A16F] mt-4 text-bg"
           >
             {isPending ? "Loading..." : "LOGIN"}
           </button>
           <div className="flex justify-center gap-2 ">
             {" "}
-            <span>Don't have account?</span>
+            <span className="text-text">Don't have account?</span>
             <a
               href="/register"
               className="items-center text-sm text-blue-500 underline"
@@ -129,17 +129,17 @@ const Login = () => {
             </a>
           </div>
         </fieldset>
-        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 p-4 md:hidden">
+        <div className="fixed bottom-0 left-0 w-full bg-bg border-t border-gray-300 p-4 md:hidden">
           <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
             <button
-              className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-neutral md:border-none text-neutral "
+              className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-secondary1 md:border-none text-[#C5A16F] "
               onClick={() => navigate(-1)}
             >
               Later
             </button>
             <button
               type="submit"
-              className="w-full md:w-auto bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium p-4 md:p-3 rounded text-center"
+              className="w-full md:w-auto bg-[#C5A16F] text-bg cursor-pointer font-medium p-4 md:p-3 rounded text-center"
             >
               {isPending ? "Loading..." : "Login"}
             </button>

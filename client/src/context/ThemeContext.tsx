@@ -1,4 +1,3 @@
-// context/ThemeContext.tsx
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
@@ -11,28 +10,31 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>("light");
+  // ✅ ambil dari localStorage langsung (anti flicker)
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("theme") as Theme | null;
+      return saved || "light";
+    }
+    return "light";
+  });
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
-  // apply ke html + simpan ke localStorage
+  // ✅ apply ke <html> + simpan
   useEffect(() => {
+    const root = document.documentElement;
+
     if (theme === "dark") {
-      document.documentElement.classList.add("dark");
+      root.classList.add("dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      root.classList.remove("dark");
     }
 
     localStorage.setItem("theme", theme);
   }, [theme]);
-
-  // load dari localStorage saat pertama
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved) setTheme(saved);
-  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -41,9 +43,11 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// custom hook biar enak dipakai
+// ✅ custom hook
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  if (!context) throw new Error("useTheme must be used within ThemeProvider");
+  if (!context) {
+    throw new Error("useTheme must be used within ThemeProvider");
+  }
   return context;
 };

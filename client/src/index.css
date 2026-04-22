@@ -22,7 +22,7 @@
   --color-primary1: #f9fafb;
   --color-primary1-hover: #525957;
 
-  --color-secondary1: #d4b486;
+  /* --color-secondary1: #d4b486; */
 }
 @plugin "daisyui";
 

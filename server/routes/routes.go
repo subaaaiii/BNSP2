@@ -2,6 +2,7 @@ package routes
 
 import (
 	"bnsp2/server/controllers"
+	"bnsp2/server/handlers"
 	"bnsp2/server/middlewares"
 
 	"github.com/gin-contrib/cors"
@@ -57,5 +58,10 @@ func SetupRouter() *gin.Engine {
 	router.DELETE("/api/products/:id", middlewares.AuthMiddleware(), controllers.DeleteProduct)
 	router.PATCH("/api/products/status", middlewares.AuthMiddleware(), controllers.ChangeProductStatus)
 	router.GET("/api/products/public", controllers.GetProductsPublic)
+
+	router.POST("/pusher/auth", middlewares.AuthMiddleware(), handlers.AuthHandler)
+	router.POST("/api/chat/send", middlewares.AuthMiddleware(), handlers.SendMessage)
+	router.GET("/api/chat/messages", middlewares.AuthMiddleware(), handlers.GetMessages)
+	router.GET("/api/chat/list", middlewares.AuthMiddleware(), handlers.GetChatListHandler)
 	return router
 }

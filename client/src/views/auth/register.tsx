@@ -100,12 +100,12 @@ const Register = () => {
             </div>
           )}
 
-          <label className="label">Name</label>
+          <label className="label text-text">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={`input w-full ${errors.Name ? "input-error" : ""}`}
+            className={`input bg-surface text-text w-full ${errors.Name ? "input-error" : ""}`}
             placeholder="Name"
           />
           {errors.Name && (
@@ -114,12 +114,12 @@ const Register = () => {
             </div>
           )}
 
-          <label className="label">Username</label>
+          <label className="label text-text">Username</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className={`input w-full ${errors.Username ? "input-error" : ""}`}
+            className={`input w-full bg-surface text-text ${errors.Username ? "input-error" : ""}`}
             placeholder="Username"
           />
           {errors.Username && (
@@ -127,12 +127,12 @@ const Register = () => {
               <span>{errors.Username}</span>
             </div>
           )}
-          <label className="label">Email</label>
+          <label className="label text-text">Email</label>
           <input
             type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`input w-full ${errors.Email ? "input-error" : ""}`}
+            className={`input w-full bg-surface text-text ${errors.Email ? "input-error" : ""}`}
             placeholder="Email"
           />
           {errors.Email && (
@@ -141,7 +141,7 @@ const Register = () => {
             </div>
           )}
 
-          <label className="label">Password</label>
+          <label className="label text-text">Password</label>
 
           <div className="relative">
             <input
@@ -154,7 +154,7 @@ const Register = () => {
                 setPassword(value);
                 setPasswordRules(validatePassword(value));
               }}
-              className={`input w-full pr-12 ${
+              className={`input w-full bg-surface text-text pr-12 ${
                 errors.Password ? "input-error" : ""
               }`}
               placeholder="Password"
@@ -166,55 +166,57 @@ const Register = () => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
             >
               {showPassword ? (
-                              <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
-                            ) : (
-                              <FaRegEye className="w-6 h-6 cursor-pointer" />
-                            )}
+                <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
+              ) : (
+                <FaRegEye className="w-6 h-6 cursor-pointer" />
+              )}
             </button>
           </div>
-          {isPasswordFocused? (
+          {isPasswordFocused ? (
             <div className="text-sm space-y-1">
-            {!passwordRules.minLength ? (
-              <p className="text-gray-400">• Minimal 8 karakter</p>
-            ) : (
-              ""
-            )}
-            {!passwordRules.hasUpper ? (
-              <p className="text-gray-400">• Mengandung huruf besar</p>
-            ) : (
-              ""
-            )}
-            {!passwordRules.hasLower ? (
-              <p className="text-gray-400">• Mengandung huruf kecil</p>
-            ) : (
-              ""
-            )}
-            {!passwordRules.hasNumber ? (
-              <p className="text-gray-400">• Mengandung angka</p>
-            ) : (
-              ""
-            )}
-            {!passwordRules.hasSymbol ? (
-              <p className="text-gray-400">• Mengandung simbol</p>
-            ) : (
-              ""
-            )}
-          </div>
-          ): ""}
+              {!passwordRules.minLength ? (
+                <p className="text-gray-400">• Minimal 8 karakter</p>
+              ) : (
+                ""
+              )}
+              {!passwordRules.hasUpper ? (
+                <p className="text-gray-400">• Mengandung huruf besar</p>
+              ) : (
+                ""
+              )}
+              {!passwordRules.hasLower ? (
+                <p className="text-gray-400">• Mengandung huruf kecil</p>
+              ) : (
+                ""
+              )}
+              {!passwordRules.hasNumber ? (
+                <p className="text-gray-400">• Mengandung angka</p>
+              ) : (
+                ""
+              )}
+              {!passwordRules.hasSymbol ? (
+                <p className="text-gray-400">• Mengandung simbol</p>
+              ) : (
+                ""
+              )}
+            </div>
+          ) : (
+            ""
+          )}
 
           {errors.Password && (
             <div className="text-error mt-1">
               <span>{errors.Password}</span>
             </div>
           )}
-          <label className="label">Konfirmasi Password</label>
+          <label className="label text-text">Konfirmasi Password</label>
 
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
-              className={`input w-full pr-12 ${
+              className={`input w-full bg-surface text-text pr-12 ${
                 errors.Password2 ? "input-error" : ""
               }`}
               placeholder="Konfirmasi Password"
@@ -226,10 +228,10 @@ const Register = () => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
             >
               {showPassword ? (
-                              <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
-                            ) : (
-                              <FaRegEye className="w-6 h-6 cursor-pointer" />
-                            )}
+                <FaRegEyeSlash className="w-6 h-6 cursor-pointer" />
+              ) : (
+                <FaRegEye className="w-6 h-6 cursor-pointer" />
+              )}
             </button>
           </div>
 
@@ -238,21 +240,24 @@ const Register = () => {
               <span>{errors.Password2}</span>
             </div>
           )}
-          <button type="submit" className="hidden md:block btn btn-neutral mt-4">
+          <button
+            type="submit"
+            className="hidden md:block btn bg-secondary1 mt-4"
+          >
             {isPending ? "Loading..." : "REGISTER"}
           </button>
         </fieldset>
-        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 p-4 md:hidden">
+        <div className="fixed bottom-0 left-0 w-full bg-bg border-t border-gray-300 p-4 md:hidden">
           <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
             <button
-              className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-neutral md:border-none text-neutral "
+              className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-secondary1 md:border-none text-secondary1 "
               onClick={() => navigate(-1)}
             >
               Later
             </button>
             <button
               type="submit"
-              className="w-full md:w-auto bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium p-4 md:p-3 rounded text-center"
+              className="w-full md:w-auto bg-secondary1 hover:bg-gray-700 cursor-pointer text-text font-medium p-4 md:p-3 rounded text-center"
             >
               {isPending ? "Loading..." : "Register"}
             </button>
