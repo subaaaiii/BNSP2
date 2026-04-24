@@ -8,7 +8,7 @@ import { IoIosInformationCircle } from "react-icons/io";
 const SelectGameBrand = () => {
   const navigate = useNavigate();
   const [selected, setSelected] = useState("");
-  const { data: games } = useGames();
+  const { data: games } = useGames({ page: 1, limit: 6 });
   const [showInfo, setShowInfo] = useState(false);
 
   return (

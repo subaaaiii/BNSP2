@@ -39,8 +39,9 @@ func GetMessages(c *gin.Context) {
 
 func GetChatListHandler(c *gin.Context) {
 	userID := c.MustGet("user_id").(uint)
+	q := c.Query("q")
 
-	result, err := helpers.GetChatList(database.DB, userID)
+	result, err := helpers.GetChatList(database.DB, userID, q)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

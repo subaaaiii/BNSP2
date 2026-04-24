@@ -32,7 +32,7 @@ import ManageOffers from "../views/offers/index.tsx";
 import UserProfile from "../views/user/profile.tsx";
 import BrandProducts from "../views/product/brand.tsx";
 import DetailProduct from "../views/product/detail.tsx";
-import ChatTest from "../components/chatTest.tsx";
+import Chat from "../views/chat/index.tsx";
 
 export default function AppRoutes() {
   const auth = useContext(AuthContext);
@@ -57,7 +57,7 @@ export default function AppRoutes() {
 
       <Route path="/products" element={<BrandProducts />} />
       <Route path="/products/detail" element={<DetailProduct />} />
-      <Route path="/chat" element={<ChatTest />} />
+      <Route path="/chat" element={<Chat />} />
 
       {/* route "/register" */}
       <Route

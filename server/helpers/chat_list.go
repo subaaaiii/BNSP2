@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,10 +15,10 @@ type ChatList struct {
 	Picture   string    `json:"picture"`
 }
 
-func GetChatList(db *gorm.DB, currentUserID uint) ([]ChatList, error) {
+func GetChatList(db *gorm.DB, currentUserID uint, q string) ([]ChatList, error) {
 	var result []ChatList
 
-	err := db.Raw(`
+	query := `
 		SELECT 
 			u.id AS user_id,
 			u.name,
@@ -38,9 +39,23 @@ func GetChatList(db *gorm.DB, currentUserID uint) ([]ChatList, error) {
 				OR
 				(from_user_id = ? AND to_user_id = u.id)
 		)
-		ORDER BY m.created_at DESC
-	`, currentUserID, currentUserID, currentUserID, currentUserID).
-		Scan(&result).Error
+	`
 
+	args := []interface{}{
+		currentUserID,
+		currentUserID,
+		currentUserID,
+		currentUserID,
+	}
+
+	// 🔥 tambah search
+	if q != "" {
+		query += " AND LOWER(u.name) LIKE ?"
+		args = append(args, "%"+strings.ToLower(q)+"%")
+	}
+
+	query += " ORDER BY m.created_at DESC"
+
+	err := db.Raw(query, args...).Scan(&result).Error
 	return result, err
 }
