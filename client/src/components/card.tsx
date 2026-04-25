@@ -5,6 +5,7 @@ type DataType = {
   price: string;
   profile?: string;
   name_store: string;
+  onClick?: () => void;
 };
 
 const Card = ({
@@ -14,11 +15,12 @@ const Card = ({
   price,
   profile,
   name_store,
+  onClick,
 }: DataType) => {
   const formattedPrice = new Intl.NumberFormat("id-ID").format(Number(price));
 
   return (
-    <div className="card flex flex-row md:flex-col bg-bg shadow-sm rounded-md min-w-0">
+    <div className="card flex flex-row md:flex-col bg-bg shadow-sm rounded-md min-w-0" onClick={onClick}>
       <img
         src={image}
         alt={title}

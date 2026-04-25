@@ -344,7 +344,9 @@ func GetProductByID(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := database.DB.First(&product, id).Error; err != nil {
+	if err := database.DB.Preload("Game").Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "name", "picture")
+	}).First(&product, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
 			Message: "Product not found",

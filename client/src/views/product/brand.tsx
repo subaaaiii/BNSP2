@@ -10,8 +10,10 @@ import ImageNoData from "./../../assets/no_data.png";
 import ProductCardSkeleton from "../../components/skeleton/ProductCard";
 import Skeleton from "react-loading-skeleton";
 import Footer from "../../components/footer";
+import { useNavigate } from "react-router";
 
 const BrandProducts = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const game_id = searchParams.get("brand");
   const [page, setPage] = useState(1);
@@ -169,6 +171,8 @@ const BrandProducts = () => {
                     price={product.price}
                     profile={`${Api.defaults.baseURL}/images/users/${product.user.picture}`}
                     name_store={product.user.name}
+                    onClick={()=>navigate ('/products/detail/'+ product.id)}
+                    
                   />
                 ))}
                 {/* PAGINATION */}

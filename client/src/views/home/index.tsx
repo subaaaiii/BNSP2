@@ -153,7 +153,6 @@ const Home = () => {
               </div>
             </div>
           </div>
-          {/* here */}
           {/* {GAME favorite} */}
           <div className="max-w-6xl mx-auto mt-8">
             <div className="text-2xl font-bold mb-4 text-white">
@@ -205,6 +204,7 @@ const Home = () => {
                   price={product.price}
                   profile={`${Api.defaults.baseURL}/images/users/${product.user.picture}`}
                   name_store={product.user.name}
+                  onClick={()=>navigate ('/products/detail/'+ product.id)}
                 />
               ))}
             </div>

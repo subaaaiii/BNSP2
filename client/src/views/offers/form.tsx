@@ -14,8 +14,8 @@ interface ValidationErrors {
 const ProductForm = () => {
   const [searchParams] = useSearchParams();
   const productId = searchParams.get("id");
-  const { data: productData } = useGetProductById(productId ?? undefined);
-  const product = productData?.data;
+  const { data: product } = useGetProductById(productId ?? undefined);
+  // const product = productData?.data;
   const gameIdFromParams = searchParams.get("game");
   const gameId = product ? product?.game_id : gameIdFromParams;
   const { data } = useGame(gameId ?? undefined);
@@ -140,7 +140,7 @@ const ProductForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
       <div>
         <h2 className="text-3xl font-semibold mb-4 px-4 md:px-0">
           Create Offer

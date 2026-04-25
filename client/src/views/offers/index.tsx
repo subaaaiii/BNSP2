@@ -30,8 +30,6 @@ const ManageOffers = () => {
     limit,
   });
 
-
-
   const products = data?.data;
   const meta = data?.meta;
 
@@ -112,7 +110,7 @@ const ManageOffers = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="mt-8 p-3 md:p-0">
+    <div className="mt-8 p-3 md:p-0 max-w-6xl mx-auto">
       <TopNavbar title="Manage Offer" />
       <h2 className="hidden md:block text-3xl font-semibold mb-4">
         Manage Offers

@@ -12,7 +12,7 @@ export const useGetProductById = (id?: string) => {
                     Authorization: `Bearer ${token}`}
                 },
             );
-            return res.data
+            return res.data.data
         },
         enabled: !!id,
     });

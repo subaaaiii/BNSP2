@@ -12,7 +12,7 @@ const SelectGameBrand = () => {
   const [showInfo, setShowInfo] = useState(false);
 
   return (
-    <div className="p-0 md:p-6">
+    <div className="p-0 md:p-6 max-w-6xl mx-auto">
       <h1 className="hidden md:block text-2xl font-bold mb-6 text-gray-900">
         Add new offer
       </h1>

@@ -31,7 +31,7 @@ const Navbar = () => {
 
   const isTransparent = isHome && !scrolled;
 
-  if (location.pathname === "/chat") return null;
+  if (location.pathname.startsWith("/chat")) return null;
 
   return (
     <div

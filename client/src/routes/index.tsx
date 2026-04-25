@@ -56,8 +56,9 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
 
       <Route path="/products" element={<BrandProducts />} />
-      <Route path="/products/detail" element={<DetailProduct />} />
+      <Route path="/products/detail/:id" element={<DetailProduct />} />
       <Route path="/chat" element={<Chat />} />
+      <Route path="/chat/offer/:id" element={<Chat />} />
 
       {/* route "/register" */}
       <Route

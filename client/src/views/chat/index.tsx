@@ -5,17 +5,26 @@ import Cookies from "js-cookie";
 import { AuthContext } from "../../context/AuthContext";
 import { useChatList } from "../../hooks/chat/useChatList";
 import Api from "../../services/api";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { CiSearch } from "react-icons/ci";
 import banner_hero from "../../assets/banner_hero.png";
 import { IoIosArrowBack, IoMdSend } from "react-icons/io";
 import { useDebounce } from "../../hooks/helpers/useDebounce";
 import { useTheme } from "../../context/ThemeContext";
+import { useGetProductById } from "../../hooks/product/useGetProductById";
 
 const Chat = () => {
+  const { id } = useParams();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
-  const [targetUserId, setTargetUserId] = useState(""); // 🔥 input target
+  const [targetUserId, setTargetUserId] = useState(""); 
+  const { data } = useGetProductById(id);
+
+  useEffect(() => {
+  if (id && data && data.user.id !== targetUserId) {
+    setTargetUserId(data.user.id);
+  }
+}, [id, data]);
 
   const { user } = useContext(AuthContext)!;
   const token = Cookies.get("token");
@@ -61,7 +70,10 @@ const Chat = () => {
 
     channel.bind("new-message", (data: any) => {
       console.log("RECEIVED:", data);
-      setMessages((prev) => [...prev, data]);
+      setMessages((prev) => {
+  if (!Array.isArray(prev)) return [data];
+  return [...prev, data];
+});
     });
 
     return () => {
@@ -126,15 +138,13 @@ const Chat = () => {
         },
       })
       .then((res) => {
-        setMessages(res.data);
+        setMessages(Array.isArray(res.data) ? res.data : []);
       });
   }, [debouncedTarget]);
 
   const { data: chatList } = useChatList({ q: debouncedSearch });
 
-  useEffect(() => {
-    console.log("list", chatList);
-  }, [chatList]);
+  
 
   useEffect(() => {
     console.log("messages", messages);
@@ -147,8 +157,6 @@ const Chat = () => {
       year: "numeric",
     });
   };
-
-  const [openChat, setOpenChat] = useState<any>(null);
 
   const formatTime = (ts: any) => {
     return new Date(ts * 1000).toLocaleTimeString("id-ID", {
@@ -175,6 +183,15 @@ const Chat = () => {
       year: "numeric",
     });
   };
+
+  const activeChat = Array.isArray(chatList)
+  ? chatList.find((c: any) => String(c.user_id) === String(targetUserId))
+  : null;
+
+
+useEffect(() => {
+    console.log("chatlist", activeChat)
+  }, [activeChat]);
 
   return (
     <div className=" max-w-7xl mx-auto shadow grid grid-cols-4 -mt-20 -mb-20">
@@ -255,10 +272,9 @@ const Chat = () => {
         {chatList?.map((list: any) => (
           <div
             key={list.user_id}
-            className={`space-y-3 flex justify-between items-center hover:bg-surface-hover px-3 py-2 cursor-pointer ${list.user_id === openChat?.user_id ? "bg-surface" : ""}`}
+            className={`space-y-3 flex justify-between items-center hover:bg-surface-hover px-3 py-2 cursor-pointer ${list.user_id === activeChat?.user_id ? "bg-surface" : ""}`}
             onClick={() => {
               setTargetUserId(list.user_id);
-              setOpenChat(list);
             }}
           >
             <div className="flex  gap-2 items-center">
@@ -283,7 +299,7 @@ const Chat = () => {
       <div
         className={`${targetUserId ? "block" : "hidden md:block"} col-span-4 md:col-span-3 h-screen relative flex flex-col`}
       >
-        {messages.length > 0 ? (
+        {targetUserId ? (
           <div className="">
             <div className="font-semibold text-text px-4 py-4 flex gap-3 items-center">
               <div
@@ -292,7 +308,7 @@ const Chat = () => {
               >
                 <IoIosArrowBack className="w-5 h-5" />
               </div>
-              {openChat?.name}
+              {activeChat?.name || data?.user?.name} 
             </div>
             <hr className="border-gray-300" />
 
