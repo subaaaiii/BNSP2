@@ -106,21 +106,21 @@ const ManageGameForm = ({ data, id }: Props) => {
   };
 
   const removeOption = (fieldIndex: number, optionIndex: number) => {
-  setFields((prev) =>
-    prev.map((field, i) => {
-      if (i !== fieldIndex) return field;
+    setFields((prev) =>
+      prev.map((field, i) => {
+        if (i !== fieldIndex) return field;
 
-      if ((field.options || []).length <= 1) {
-        return field;
-      }
+        if ((field.options || []).length <= 1) {
+          return field;
+        }
 
-      return {
-        ...field,
-        options: (field.options || []).filter((_, i) => i !== optionIndex),
-      };
-    })
-  );
-};
+        return {
+          ...field,
+          options: (field.options || []).filter((_, i) => i !== optionIndex),
+        };
+      }),
+    );
+  };
 
   const removeField = (index: number) => {
     setFields((prev) => prev.filter((_, i) => i !== index));
@@ -140,24 +140,24 @@ const ManageGameForm = ({ data, id }: Props) => {
 
     const newErrors: { [key: string]: string } = {};
 
-  for (const field of fields) {
-    if (!field.label.trim()) {
-      newErrors[field.id] = "Field label is required";
+    for (const field of fields) {
+      if (!field.label.trim()) {
+        newErrors[field.id] = "Field label is required";
+      }
+
+      if (field.type === "select") {
+        if (!field.options || field.options.length === 0) {
+          newErrors[field.id] = `Field "${field.label}" harus punya option`;
+        } else if (field.options.some((opt) => !opt.trim())) {
+          newErrors[field.id] = `Semua option di "${field.label}" wajib diisi`;
+        }
+      }
     }
 
-    if (field.type === "select") {
-      if (!field.options || field.options.length === 0) {
-        newErrors[field.id] = `Field "${field.label}" harus punya option`;
-      }else if (field.options.some((opt) => !opt.trim())) {
-    newErrors[field.id] = `Semua option di "${field.label}" wajib diisi`;
-  }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
-  }
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
 
     const payloadFields = fields.map(({ id, ...rest }) => rest);
     createUpdateGameMutation(
@@ -221,19 +221,19 @@ const ManageGameForm = ({ data, id }: Props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-4 text-text">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">
           {data ? "Edit Game" : "Create Game"}
         </h2>
         {data && (
           <button
-          type="button"
-          onClick={() => handleDeleteGame()}
-          className="bg-red-600 rounded-sm text-white py-2 px-3 cursor-pointer"
-        >
-          {isDeletingGame ? "Deleting..." : "Delete Game"}
-        </button>
+            type="button"
+            onClick={() => handleDeleteGame()}
+            className="bg-red-600 rounded-sm text-white py-2 px-3 cursor-pointer"
+          >
+            {isDeletingGame ? "Deleting..." : "Delete Game"}
+          </button>
         )}
       </div>
 
@@ -244,7 +244,7 @@ const ManageGameForm = ({ data, id }: Props) => {
         placeholder="Game Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="input input-bordered p-2 w-full"
+        className="bg-surface input input-bordered p-2 w-full"
       />
       {errors?.Name && (
         <div className="text-error">
@@ -252,10 +252,9 @@ const ManageGameForm = ({ data, id }: Props) => {
         </div>
       )}
 
-      {/* 🖼️ Image Upload */}
 
       <label htmlFor="image" className="cursor-pointer">
-        <span className="block text-sm font-medium text-gray-700">Cover</span>
+        <span className="block text-sm font-medium ">Cover</span>
         <div className="w-80 aspect-[1.6/1] border rounded-lg flex items-center justify-center overflow-hidden">
           {preview ? (
             <img src={preview} className="object-cover w-full h-full" />
@@ -298,7 +297,7 @@ const ManageGameForm = ({ data, id }: Props) => {
             className="border border-gray-300  p-3 mb-3 rounded-md space-y-2"
           >
             <label className="floating-label">
-              <span>Field Label</span>
+              <span className="bg-surface">Field Label</span>
               <input
                 placeholder="Field Label"
                 value={field.label}
@@ -308,17 +307,15 @@ const ManageGameForm = ({ data, id }: Props) => {
                   handleFieldChange(index, "label", label);
                   handleFieldChange(index, "name", generateName(label));
                 }}
-                className="input border p-1 w-full"
+                className="bg-surface input border p-1 w-full"
               />
               {errors[field.id] && (
-  <p className="text-red-500 text-sm">
-    {errors[field.id]}
-  </p>
-)}
+                <p className="text-red-500 text-sm">{errors[field.id]}</p>
+              )}
             </label>
 
             <label className="floating-label mt-3">
-              <span>Field Type</span>
+              <span className="bg-surface">Field Type</span>
               <select
                 value={field.type}
                 onChange={(e) => {
@@ -334,7 +331,7 @@ const ManageGameForm = ({ data, id }: Props) => {
                     handleFieldChange(index, "options", []);
                   }
                 }}
-                className="select border border-gray-300 p-1 rounded-sm"
+                className="bg-surface select border border-gray-300 p-1 rounded-sm"
               >
                 <option value="text">Text</option>
                 <option value="select">Select</option>
@@ -362,7 +359,7 @@ const ManageGameForm = ({ data, id }: Props) => {
                       onChange={(e) =>
                         handleOptionChange(index, i, e.target.value)
                       }
-                      className="input border p-1 rounded-sm"
+                      className="bg-surface input border p-1 rounded-sm"
                     />
                     <button
                       type="button"
@@ -411,7 +408,7 @@ const ManageGameForm = ({ data, id }: Props) => {
             {DEFAULT_FIELD_NAMES.map((field) => (
               <div className="flex" key={field}>
                 <label className="label">
-                  <input type="checkbox" defaultChecked className="checkbox" />
+                  <input type="checkbox" checked={true} className="checkbox border-text bg-text checked:border-text checked:bg-text checked:text-bg" />
                   {field.charAt(0).toUpperCase() + field.slice(1)}
                 </label>
               </div>
@@ -425,7 +422,7 @@ const ManageGameForm = ({ data, id }: Props) => {
 
         <button
           type="submit"
-          className="my-2 rounded-sm bg-neutral text-white px-3 py-2 cursor-pointer"
+          className="my-2 rounded-sm bg-secondary1 text-bg px-3 py-2 cursor-pointer"
         >
           {id
             ? isCreatingUpdatingGame

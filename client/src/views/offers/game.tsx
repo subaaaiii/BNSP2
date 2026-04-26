@@ -4,6 +4,7 @@ import { FiAlertCircle } from "react-icons/fi";
 import { useGames } from "../../hooks/game/useGames";
 import { FaAngleLeft } from "react-icons/fa6";
 import { IoIosInformationCircle } from "react-icons/io";
+import TopNavbar from "../../components/top_navbar";
 
 const SelectGameBrand = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const SelectGameBrand = () => {
 
   return (
     <div className="p-0 md:p-6 max-w-6xl mx-auto">
+      <TopNavbar title="Select brand"/>
       <h1 className="hidden md:block text-2xl font-bold mb-6 text-gray-900">
         Add new offer
       </h1>
@@ -70,9 +72,9 @@ const SelectGameBrand = () => {
         </div>
       </div>
       <div className="grid grid-cols-4 gap-6 mb-6">
-        <div className="col-span-4 md:col-span-3 p-4 md:p-12 bg-white shadow-xl rounded-xl leading-relaxed text-gray-900">
-          <div className="text-2xl font-medium">Game brand</div>
-          <div className="font-std mb-4">
+        <div className="col-span-4 md:col-span-3 p-4 md:p-12 bg-bg shadow-xl rounded-xl leading-relaxed text-gray-900">
+          <div className="text-2xl font-medium text-text">Game brand</div>
+          <div className="font-std mb-4 text-text">
             Select game brand you want to offer
           </div>
           <div className="w-full bg-[#448aff] rounded-lg flex flex-row items-start mb-4 px-3 md:px-4">
@@ -106,16 +108,16 @@ const SelectGameBrand = () => {
             </ol>
           </div>
           <div className="flex flex-col md:flex-row md:items-center md:gap-64 mb-20 md:mb-6">
-            <div className="">
+            <div className="text-text">
               Brand
               <span className="text-red-500">*</span>
             </div>
             <select
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
-              className="select rounded-lg w-full"
+              className="select rounded-lg w-full bg-surface text-text"
             >
-              <option value="" disabled hidden>
+              <option value="" disabled hidden >
                 Select brand game
               </option>
               {games?.map((g: any) => (
@@ -150,10 +152,10 @@ const SelectGameBrand = () => {
         </div>
       </div>
       {selected && (
-        <div className="md:grid md:grid-cols-4 bg-white md:bg-transparent fixed md:static bottom-0 left-0 w-full p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
+        <div className="md:grid md:grid-cols-4 bg-bg md:bg-transparent fixed md:static bottom-0 left-0 w-full p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
           <div className="col-span-3 w-full flex justify-center md:justify-end ">
             <button
-              className="bg-neutral hover:bg-gray-700 cursor-pointer text-white font-medium py-3 px-5 rounded w-full md:w-auto"
+              className="bg-secondary1 cursor-pointer text-white font-medium py-3 px-5 rounded w-full md:w-auto"
               onClick={() => navigate(`/offers/create?game=${selected}`)}
             >
               Continue

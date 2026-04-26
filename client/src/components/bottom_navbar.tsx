@@ -31,6 +31,7 @@ const BottomNavbar = () => {
               className={`flex flex-col items-center ${
                 isActive("/chat") ? "text-blue-500" : "text-gray-500"
               }`}
+              onClick={()=>navigate("/chat")}
             >
               <IoChatbubbleEllipsesSharp className="w-7 h-7" />
               <span className="text-sm">Chat</span>

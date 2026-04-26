@@ -13,6 +13,7 @@
 
   --color-secondary1: #C5A16F;
   --color-bgchat: #e3fbe7;
+  --color-backdrop: #00000080
 }
 
 /* DARK MODE */
@@ -27,6 +28,8 @@
 
   /* --color-secondary1: #d4b486; */
   --color-bgchat: #2a6d65;
+  --color-backdrop: #0000001A
+
 }
 @plugin "daisyui";
 

@@ -117,16 +117,16 @@ const ManageOffers = () => {
       </h2>
       <Link
         to="/offers/create"
-        className="flex w-full md:w-fit btn btn-neutral mb-6"
+        className="flex w-full md:w-fit btn bg-secondary1 mb-6"
       >
-        <IoAddCircle className="w-5 h-5 mr-2" />
+        <IoAddCircle className="w-5 h-5 mr-2 text-bg" />
         Add New Offer
       </Link>
       <div className="flex gap-2 cursor-pointer">
         <div
           className={`px-6 py-3 text-lg text-gray-500 ${
             statusFilter === "available"
-              ? "border-b-3 border-neutral text-neutral"
+              ? "border-b-3 border-neutral text-text"
               : ""
           }`}
           onClick={() => setStatusFilter("available")}
@@ -136,7 +136,7 @@ const ManageOffers = () => {
         <div
           className={`px-6 py-3  text-lg text-gray-500 ${
             statusFilter === "archived"
-              ? "border-b-3 border-neutral text-neutral"
+              ? "border-b-3 border-neutral text-text"
               : ""
           }`}
           onClick={() => setStatusFilter("archived")}
@@ -144,13 +144,13 @@ const ManageOffers = () => {
           Archived
         </div>
       </div>
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-bg rounded-lg shadow p-6">
         {/* Header */}
         <div className="flex py-6 items-center gap-6">
           <div className="relative inline-block">
             <input
               type="text"
-              className="input input-lg rounded-xl pr-12"
+              className="input input-lg rounded-xl pr-12 bg-surface text-text"
               placeholder="Search product title"
               value={titleFilter}
               onChange={(e) => setTitleFilter(e.target.value)}
@@ -159,7 +159,7 @@ const ManageOffers = () => {
           </div>
           <div>
             <select
-              className="select  h-12 w-50 px-5 rounded-xl "
+              className="select  h-12 w-50 px-5 rounded-xl bg-surface text-text"
               value={gameFilter}
               onChange={(e) => setGameFilter(e.target.value)}
             >
@@ -177,7 +177,7 @@ const ManageOffers = () => {
           <div>
             <input
               type="checkbox"
-              className="checkbox"
+              className="checkbox border-text bg-text checked:border-text checked:bg-text checked:text-bg"
               checked={
                 selected.length === products?.length && products?.length != 0
               }
@@ -190,16 +190,16 @@ const ManageOffers = () => {
               }
             />
           </div>
-          <div className="hidden md:block">Title</div>
-          <div className="hidden md:block">Stock</div>
-          <div className="hidden md:block">Price</div>
-          <div className="text-center hidden md:block">Action</div>
+          <div className="hidden md:block text-text">Title</div>
+          <div className="hidden md:block text-text">Stock</div>
+          <div className="hidden md:block text-text">Price</div>
+          <div className="text-center hidden md:block text-text">Action</div>
         </div>
         {/*header */}
 
         {/* Rows */}
         {products?.length === 0 ? (
-          <div className="w-full flex flex-col justify-center items-center">
+          <div className="w-full flex flex-col justify-center items-center text-text">
             <img
               src={ImageNoData}
               alt="no data found"
@@ -222,14 +222,14 @@ const ManageOffers = () => {
             )}
           </div>
         ) : (
-          <div className="">
+          <div className=" text-text">
             {products?.map((product: any) => (
               <div key={product.id}>
-                <div className="hidden md:block md:grid md:grid-cols-[50px_1fr_100px_120px_120px] items-center py-4 rounded-lg hover:bg-gray-50 border-b border-gray-100 last:border-none">
+                <div className="hidden md:block md:grid md:grid-cols-[50px_1fr_100px_120px_120px] items-center py-4 rounded-lg hover:bg-surface border-b border-gray-100 last:border-none">
                   <div>
                     <input
                       type="checkbox"
-                      className="checkbox"
+                      className="checkbox border-text bg-text checked:border-text checked:bg-text checked:text-bg"
                       checked={selected.includes(product.id)}
                       onChange={() => handleCheck(product.id)}
                     />
@@ -250,7 +250,7 @@ const ManageOffers = () => {
                       <summary className="btn btn-ghost">
                         <FaEllipsisVertical />
                       </summary>
-                      <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                      <ul className="menu dropdown-content bg-bg rounded-box z-1 w-52 p-2 shadow-sm">
                         <li>
                           <Link to={`/offers/create?id=${product.id}`}>
                             Edit
@@ -295,7 +295,7 @@ const ManageOffers = () => {
                   </div>
                 </div>
                 {selected.length > 0 && (
-                  <div className="fixed bottom-0 left-0 w-full bg-base-100 p-6 flex justify-center gap-4 items-center z-40 shadow-[0_-6px_10px_rgba(0,0,0,0.1)]">
+                  <div className="fixed bottom-0 left-0 w-full bg-surface p-6 flex justify-center gap-4 items-center z-40 shadow-[0_-6px_10px_rgba(0,0,0,0.1)]">
                     <span className="text-sm">{selected.length} selected</span>
 
                     <div>
@@ -371,7 +371,7 @@ const ManageOffers = () => {
                     >
                       {/* BACKDROP */}
                       <div
-                        className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
+                        className={`absolute inset-0 bg-backdrop  transition-opacity duration-300 ${
                           open ? "opacity-100" : "opacity-0"
                         }`}
                         onClick={() => setOpen(false)}
@@ -379,7 +379,7 @@ const ManageOffers = () => {
 
                       {/* CONTENT (slide dari bawah) */}
                       <div
-                        className={`relative w-full  bg-white transform transition-transform duration-300 ${
+                        className={`relative w-full  bg-bg transform transition-transform duration-300 ${
                           open ? "translate-y-0" : "translate-y-full"
                         }`}
                         onClick={(e) => e.stopPropagation()}

@@ -10,11 +10,11 @@ const GameList = () => {
 
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Games</h1>
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6 text-text">Games</h1>
       <button
         type="submit"
-        className="my-2 rounded-sm bg-neutral text-white px-3 py-2 cursor-pointer"
+        className="my-2 rounded-sm bg-secondary1 text-bg px-3 py-2 cursor-pointer"
         onClick={() => {
           navigate("/admin/games/add");
         }}

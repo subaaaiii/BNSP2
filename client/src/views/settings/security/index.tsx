@@ -179,17 +179,17 @@ const Security = () => {
   };
 
   return (
-    <div className="font-std md:mb-10 w-full rounded-2xl md:bg-white p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl ">
+    <div className="font-std md:mb-10 w-full rounded-2xl md:bg-bg p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl ">
       <div className="flex flex-row">
         <div className="flex flex-col mb-5 items-start w-full ">
-          <h2 className="mb-5 text-4xl font-bold text-blue-900">Security</h2>
+          <h2 className="mb-5 text-4xl font-bold text-text">Security</h2>
           
           {/* EMAIL */}
           <div className="flex justify-between w-full items-center py-4">
             <div>
               <div className="font-semibold text-lg">Email</div>
               <div className="flex flex-col  gap-2">
-                <div className="text-gray-600 text-sm md:text-base">
+                <div className="text-text text-sm md:text-base">
                   Your Email Address is {user?.email}
                 </div>
                 {user && Boolean(user.email_verified) ? (
@@ -206,13 +206,13 @@ const Security = () => {
 
             <div>
               <button
-                className="hidden md:block shadow-md py-3 px-5 rounded-box cursor-pointer"
+                className="hidden md:block shadow-md py-3 px-5 rounded-box cursor-pointer bg-surface text-text"
                 onClick={openModal}
               >
                 Change email
               </button>
               <button
-                className="block md:hidden border shadow-md py-4 px-5 rounded-box cursor-pointer"
+                className="block md:hidden border shadow-md py-4 px-5 rounded-box cursor-pointer bg-surface text-text"
                 onClick={openModal}
               >
                 <MdModeEdit />
@@ -234,13 +234,13 @@ const Security = () => {
           <div className="flex justify-between w-full items-center py-4">
             <div>
               <div className="font-semibold text-lg">Password</div>
-              <div className="text-gray-600 text-sm md:text-base">
+              <div className="text-sm text-text">
                 Guard your password and do not reveal it to anyone.
               </div>
             </div>
 
             <button
-              className="hidden md:block shadow-md py-3 px-5 rounded-box cursor-pointer"
+              className="hidden md:block shadow-md py-3 px-5 rounded-box cursor-pointer bg-surface text-text"
               onClick={openPasswordModal}
             >
               Change password

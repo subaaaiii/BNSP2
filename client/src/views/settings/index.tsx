@@ -16,14 +16,14 @@ const Settings = () => {
     }
   };
   return (
-    <div className="grid grid-cols-4 md:min-h-screen">
+    <div className="max-w-6xl mx-auto  grid grid-cols-4 md:min-h-screen ">
       <div className="col-span-4 md:col-span-1">
         <div className="flex p-4">
           <ul className="flex flex-row md:flex-col min-h-full shadow-xl md:shadow-none p-4 md:p-0 rounded-box w-full border border-gray-300 md:border-none">
             <button
-              className={`w-full text-lg text-left px-5 py-3 rounded-box ${
+              className={`w-full text-lg text-left px-5 py-3 rounded-box text-text ${
                 activeTab === "profile"
-                  ? "bg-base-100 font-semibold shadow-md"
+                  ? "bg-surface font-semibold shadow-md"
                   : ""
               }`}
               onClick={() => setActiveTab("profile")}
@@ -32,9 +32,9 @@ const Settings = () => {
             </button>
 
             <button
-              className={`w-full text-lg text-left px-5 py-3 rounded-box ${
+              className={`w-full text-lg text-left px-5 py-3 rounded-box text-text ${
                 activeTab === "security"
-                  ? "bg-base-100 font-semibold shadow-md"
+                  ? "bg-surface font-semibold shadow-md"
                   : ""
               }`}
               onClick={() => setActiveTab("security")}

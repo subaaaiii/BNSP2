@@ -31,7 +31,11 @@ const Navbar = () => {
 
   const isTransparent = isHome && !scrolled;
 
-  if (location.pathname.startsWith("/chat")) return null;
+  const hiddenRoutes = ["/chat", "/user/profile"];
+
+if (hiddenRoutes.some(route => location.pathname.startsWith(route))) {
+  return null;
+}
 
   return (
     <div
@@ -85,7 +89,7 @@ const Navbar = () => {
                   </div>
 
                   {open && (
-                    <div className="absolute right-0 mt-3 z-50 bg-white rounded-xl shadow p-4 min-w-[400px]">
+                    <div className="absolute right-0 mt-3 z-50 bg-bg rounded-xl shadow p-4 min-w-[400px]">
                       <UserProfile onClose={() => setOpen(false)} />
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { IoChatbubbles, IoTimerSharp } from "react-icons/io5";
@@ -6,9 +6,11 @@ import { RiMedal2Line } from "react-icons/ri";
 import { IoMdThumbsUp } from "react-icons/io";
 import Footer from "../../components/footer";
 import { useGetProductById } from "../../hooks/product/useGetProductById";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import Api from "../../services/api";
 import { formattedPrice } from "../../helpers/formatted_price";
+import { FaStore } from "react-icons/fa6";
+import TopNavbar from "../../components/top_navbar";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
@@ -21,33 +23,46 @@ const DetailProduct = () => {
     console.log("data nih", data);
   }, [data]);
 
-  if (isLoading) {
+
+  const handleAddQuantity = () => {
+    if (!data?.stock) return;
+
+    setQuantity((prev) => {
+      const current = prev === "" ? 0 : prev;
+      return Math.min(data.stock, current + 1);
+    });
+  };
+
+  const handleMinusQuantity = () => {
+    setQuantity((prev) => {
+      const current = prev === "" ? 1 : prev;
+      return Math.max(1, current - 1);
+    });
+  };
+
+const [isOverflowing, setIsOverflowing] = useState(false);
+const textRef = useRef<HTMLParagraphElement>(null);
+
+useEffect(() => {
+  const el = textRef.current;
+  if (!el) return;
+
+  const isClamped = el.scrollHeight > el.clientHeight;
+  setIsOverflowing(isClamped);
+}, [data?.description, expanded]);
+
+if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-700 rounded-full animate-spin"></div>
       </div>
     );
   }
-
-  const handleAddQuantity = () => {
-  if (!data?.stock) return;
-
-  setQuantity((prev) => {
-    const current = prev === "" ? 0 : prev;
-    return Math.min(data.stock, current + 1);
-  });
-};
-
-const handleMinusQuantity = () => {
-  setQuantity((prev) => {
-    const current = prev === "" ? 1 : prev;
-    return Math.max(1, current - 1);
-  });
-};
   return (
     <div>
-      <div className=" max-w-6xl mx-auto w-full h-screen grid grid-cols-5 gap-8">
-        <div className="col-span-3 py-4 overflow-y-auto no-scrollbar">
+      <TopNavbar title="Product detail"/>
+      <div className="max-w-6xl mx-auto w-full md:h-screen grid grid-cols-5 md:gap-8 px-3 md:px-0">
+        <div className="col-span-5 md:col-span-3 py-4 overflow-y-auto no-scrollbar">
           <img
             src={
               data.image
@@ -70,18 +85,21 @@ const handleMinusQuantity = () => {
               </div>
             </div>
             <div className="p-4">
-              <p className={`text-text ${expanded ? "" : "line-clamp-5"}`}>
+              <p ref={textRef} className={`text-text ${expanded ? "" : "line-clamp-5"}`}>
                 {data.description}
               </p>
             </div>
-            <div className="w-full flex justify-center p-4 items-center">
+            {isOverflowing && (
+              <div className="w-full flex justify-center p-4 items-center">
               <button
                 onClick={() => setExpanded(!expanded)}
                 className="py-2 px-4 text-neutral hover:bg-surface rounded-lg"
               >
                 {expanded ? (
                   <div className="flex items-center gap-2 text-text">
-                    <span className="font-semibold text-lg ">Lebih sedikit</span>
+                    <span className="font-semibold text-lg ">
+                      Lebih sedikit
+                    </span>
                     <IoIosArrowUp className="w-6 h-6" />
                   </div>
                 ) : (
@@ -92,10 +110,11 @@ const handleMinusQuantity = () => {
                 )}
               </button>
             </div>
+            )}
           </div>
         </div>
 
-        <div className="col-span-2 w-full py-4 flex flex-col">
+        <div className="col-span-5 md:col-span-2 w-full py-4 flex flex-col">
           <div className="w-full flex justify-between bg-[#eef4ff] py-4 px-8 rounded-xl shadow-sm">
             <div className="flex gap-2 items-center">
               <AiOutlineSafetyCertificate className="w-8 h-8 text-[#005386]" />
@@ -117,20 +136,23 @@ const handleMinusQuantity = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div
-                  className="p-2 text-bg bg-secondary1 rounded-md cursor-pointer"
+                  className="hidden md:block p-2 text-bg bg-secondary1 rounded-md cursor-pointer"
                   onClick={() => navigate("/chat/offer/" + data.id)}
                 >
                   <IoChatbubbles className="w-6 h-6" />
                 </div>
-                <div className="px-3 py-2 rounded-md font-semibold text-bg text-center text-lg bg-secondary1 cursor-pointer">
-                  Visit store
+                <div className="px-3 py-2 rounded-md font-semibold text-bg text-center text-lg bg-secondary1 cursor-pointer flex items-center gap-2">
+                  <FaStore/> 
+                  <span>Visit store</span>
                 </div>
               </div>
             </div>
             <div className="items-start space-y-3 mt-8">
               <div className="px-4 py-1 bg-surface rounded-full w-fit flex gap-1 items-center">
                 <RiMedal2Line className="text-blue-500" />
-                <span className="text-text text-sm">99% Suceesfull delivery</span>
+                <span className="text-text text-sm">
+                  99% Suceesfull delivery
+                </span>
               </div>
               <div className="px-4 py-1 bg-surface rounded-full w-fit flex gap-1 items-center">
                 <IoTimerSharp className="text-[#FFA500]" />
@@ -153,7 +175,6 @@ const handleMinusQuantity = () => {
               >
                 -
               </div>
-              {/* <span className="text-lg ">{quantity}</span> */}
               <input
                 className="w-12 text-center bg-transparent outline-none text-text"
                 min="1"
@@ -161,25 +182,25 @@ const handleMinusQuantity = () => {
                 type="number"
                 value={quantity}
                 onChange={(e) => {
-  const val = e.target.value;
+                  const val = e.target.value;
 
-  if (val === "") {
-    setQuantity(""); // ⬅️ ini yang kamu mau
-    return;
-  }
+                  if (val === "") {
+                    setQuantity(""); 
+                    return;
+                  }
 
-  let num = Number(val);
+                  let num = Number(val);
 
-  if (num < 1) num = 1;
-  if (num > data?.stock) num = data.stock;
+                  if (num < 1) num = 1;
+                  if (num > data?.stock) num = data.stock;
 
-  setQuantity(num);
-}}
-onBlur={() => {
-  if (quantity === "" || quantity < 1) {
-    setQuantity(1);
-  }
-}}
+                  setQuantity(num);
+                }}
+                onBlur={() => {
+                  if (quantity === "" || quantity < 1) {
+                    setQuantity(1);
+                  }
+                }}
               />
               <div
                 className="aspect-square w-10 flex items-center justify-center  rounded-full  bg-gray-100 text-xl font-bold text-gray-500 cursor-pointer"
@@ -189,7 +210,7 @@ onBlur={() => {
               </div>
             </div>
             <hr className="border-gray-300 w-full " />
-            <div className="flex w-full justify-between">
+            <div className="flex w-full justify-between py-5">
               <span className="text-2xl font-bold text-gray-500">
                 Total Amount
               </span>
@@ -200,14 +221,31 @@ onBlur={() => {
                 <span className="text-sm text-gray-500">IDR</span>
               </div>
             </div>
-            <div className="w-full p-5 rounded-xl bg-secondary1 text-bg text-2xl text-center font-bold cursor-pointer">
+            <div className="hidden md:block w-full p-5 rounded-xl bg-secondary1 text-bg text-2xl text-center font-bold cursor-pointer">
               Buy Now
             </div>
           </div>
         </div>
       </div>
-      <div className="-mb-20 -mx-4">
+      <div className="">
         <Footer />
+      </div>
+      <div className="block md:hidden fixed w-full bg-bg bottom-0 left-0 p-4">
+        <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
+            <Link
+              className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-[#C5A16F] dark:border-text md:border-none text-[#C5A16F] dark:text-text flex items-center gap-3 justify-center"
+              to="/become-seller"
+            >
+              <IoChatbubbles className="w-6 h-6" />
+              <span>Chat</span>
+            </Link>
+            <Link
+              to="/login"
+              className="w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center"
+            >
+              Buy now
+            </Link>
+          </div>
       </div>
     </div>
   );

@@ -81,7 +81,7 @@ const Profile = () => {
   };
   if (isLoading) {
     return (
-      <div className="mb-10 w-full rounded-2xl bg-white p-10 shadow-xl animate-pulse">
+      <div className="max-w-6xl mx-auto mb-10 w-full rounded-2xl bg-bg p-10 shadow-xl animate-pulse">
         <div className="flex flex-col md:flex-row justify-between mb-5">
           <div className="space-y-4 w-full">
             <div className="h-10 bg-gray-200 rounded w-40"></div>
@@ -105,15 +105,15 @@ const Profile = () => {
   }
 
   return (
-    <div className="font-std mb-10 w-full rounded-2xl md:bg-white p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl">
+    <div className="font-std mb-10 w-full rounded-2xl md:bg-bg p-4 md:p-10 font-normal leading-relaxed text-gray-900 md:shadow-xl">
       <div className="flex flex-col">
         <div className="flex flex-col md:flex-row justify-between mb-5 items-start">
           <div>
-            <h2 className="mb-5 text-4xl font-bold ">Profile</h2>
+            <h2 className="mb-5 text-4xl font-bold text-text ">Profile</h2>
             {!isEditing && user?.email_verified === false && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-neutral text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+                className="bg-surface text-text px-4 py-2 rounded-lg text-text"
               >
                 Update Profile
               </button>
@@ -156,7 +156,7 @@ const Profile = () => {
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-text"
             >
               Name
             </label>
@@ -166,7 +166,7 @@ const Profile = () => {
               value={form.name}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`${errors.Name ? "input-error" : ""} w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
+              className={`bg-surface text-text ${errors.Name ? "input-error" : ""} w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Name && (
               <div className="text-error">
@@ -179,7 +179,7 @@ const Profile = () => {
           <div>
             <label
               htmlFor="birthday"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-text"
             >
               Birthday
             </label>
@@ -189,7 +189,7 @@ const Profile = () => {
               value={form.birthday}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`${errors.Birthday ? "input-error" : ""}w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
+              className={`bg-surface text-text ${errors.Birthday ? "input-error" : ""}w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Birthday && (
               <div className="text-error">
@@ -201,12 +201,12 @@ const Profile = () => {
           <div>
             <label
               htmlFor="gender"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-text"
             >
               Gender
             </label>
             <select
-              className={`${errors.Gender ? "input-error" : ""} w-full select`}
+              className={`bg-surface text-text ${errors.Gender ? "input-error" : ""} w-full select`}
               name="gender"
               value={form.gender}
               onChange={handleChange}
@@ -225,13 +225,13 @@ const Profile = () => {
           <div>
             <label
               htmlFor="address"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-text"
             >
               Address
             </label>
             <textarea
               placeholder="address"
-              className={`${errors.Name ? "input-error" : ""} w-full textarea textarea-md`}
+              className={`bg-surface text-text ${errors.Name ? "input-error" : ""} w-full textarea textarea-md`}
               name="address"
               value={form.address}
               onChange={handleChange}

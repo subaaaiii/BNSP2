@@ -13,7 +13,7 @@ const UserProfile = ({ onClose }: Props) => {
   const { user, loading } = useContext(AuthContext)!;
   const logout = useLogout();
   return (
-    <div className="w-full">
+    <div className="w-full -mt-20 md:mt-0">
       {loading ? null : user ? (
         <div className="">
           <div className="px-6 py-3 flex w-full justify-between items-center ">

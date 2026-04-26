@@ -6,6 +6,7 @@ import { LiaCloudUploadAltSolid } from "react-icons/lia";
 import { useGetProductById } from "../../hooks/product/useGetProductById";
 import Api from "../../services/api";
 import toast from "react-hot-toast";
+import TopNavbar from "../../components/top_navbar";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -141,24 +142,25 @@ const ProductForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
+      <TopNavbar title={`${productId ? "Update Offer" : "Create offer"}`}/>
       <div>
-        <h2 className="text-3xl font-semibold mb-4 px-4 md:px-0">
-          Create Offer
+        <h2 className="text-3xl font-semibold mb-4 px-4 md:px-0 hidden md:block">
+          {productId ? "Update Offer" : "Create offer"}
         </h2>
 
         {/* ================= SECTION 1 ================= */}
         <div className="grid grid-cols-4 gap-6">
-          <div className="col-span-4 md:col-span-3 font-std mb-10 w-full rounded-2xl bg-white p-4 md:p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
+          <div className="col-span-4 md:col-span-3 font-std mb-10 w-full rounded-2xl bg-bg p-4 md:p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
             <div className="flex flex-col">
               <div className="flex flex-col justify-between mb-5 items-start">
-                <h6 className="text-2xl font-semibold mb-4">Offer Details</h6>
+                <h6 className="text-2xl font-semibold mb-4 text-text">Offer Details</h6>
 
                 <div className="grid grid-cols-3 w-full space-y-4">
                   <div className="col-span-1">
-                    <div className="font-medium text-gray-700">Game Brand</div>
+                    <div className="font-medium text-text">Game Brand</div>
                   </div>
                   <div className="col-span-2">
-                    <div className="font-medium text-gray-700">
+                    <div className="font-medium text-text">
                       {data?.name}
                     </div>
                   </div>
@@ -166,7 +168,6 @@ const ProductForm = () => {
 
                 <hr className="w-full border-t border-gray-300 my-10 " />
 
-                {/* 🔥 FORM CONTENT (tetap sama, cuma tidak buka form lagi) */}
                 <div className="space-y-10 w-full">
                   {data?.fields && (
                     <div className="space-y-10">
@@ -179,7 +180,7 @@ const ProductForm = () => {
                             <div className="col-span-1">
                               <label
                                 htmlFor={field.name}
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-medium text-text"
                               >
                                 {field.label}
                               </label>
@@ -216,7 +217,7 @@ const ProductForm = () => {
                                     name={field.name}
                                     value={fieldValues[field.name] || ""}
                                     onChange={handleFieldChange}
-                                    className={`${errors[field.name] ? "input-error" : ""} input px-3 py-2 rounded-xl w-full md:max-w-xs`}
+                                    className={`bg-surface text-text ${errors[field.name] ? "input-error" : ""} input px-3 py-2 rounded-xl w-full md:max-w-xs`}
                                   />
                                   {errors[field.name] && (
                                     <div className="text-error">
@@ -238,7 +239,7 @@ const ProductForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 space-y-2 md:space-y-0 items-center">
                     <label
                       htmlFor="image"
-                      className="block text-sm font-medium text-gray-700 col-span-1"
+                      className="block text-sm font-medium text-text col-span-1"
                     >
                       Image
                     </label>
@@ -258,11 +259,11 @@ const ProductForm = () => {
                             />
                           ) : (
                             <div className="flex flex-col items-center">
-                              <LiaCloudUploadAltSolid className="text-gray-700 text-4xl" />
-                              <p className="text-gray-700 text-sm font-medium">
+                              <LiaCloudUploadAltSolid className="text-text text-4xl" />
+                              <p className="text-text text-sm font-medium">
                                 Upload Cover Image
                               </p>
-                              <p className="text-gray-700 text-xs">
+                              <p className="text-text text-xs">
                                 PNG or JPG (max 2MB)
                               </p>
                             </div>
@@ -301,7 +302,7 @@ const ProductForm = () => {
 
                   {/* TITLE */}
                   <div className="grid grid-cols-1 md:grid-cols-3 space-y-2 md:space-y-0 items-center">
-                    <label className="text-sm font-medium text-gray-700 col-span-1">
+                    <label className="text-sm font-medium text-text col-span-1">
                       Title
                     </label>
                     <div className="col-span-2">
@@ -310,7 +311,7 @@ const ProductForm = () => {
                         name="title"
                         value={form.title}
                         onChange={handleChange}
-                        className={`${errors.Title ? "input-error" : ""}input  w-full rounded-md md:rounded-xl`}
+                        className={`bg-surface text-text ${errors.Title ? "input-error" : ""}input  w-full rounded-md md:rounded-xl`}
                       />
                       {errors.Title && (
                         <div className="text-error">
@@ -322,14 +323,14 @@ const ProductForm = () => {
 
                   {/* DESCRIPTION */}
                   <div className="grid grid-cols-1 md:grid-cols-3 space-y-2 md:space-y-0 items-center">
-                    <label className="col-span-1 text-sm font-medium text-gray-700">
+                    <label className="col-span-1 text-sm font-medium text-text">
                       Description
                     </label>
                     <textarea
                       name="description"
                       value={form.description}
                       onChange={handleChange}
-                      className={`${errors.Description ? "input-error" : ""} col-span-2 w-full h-32 textarea textarea-md px-3 py-2 border border-gray-300 rounded-md md:rounded-xl`}
+                      className={`bg-surface text-text ${errors.Description ? "input-error" : ""} col-span-2 w-full h-32 textarea textarea-md px-3 py-2 border border-gray-300 rounded-md md:rounded-xl`}
                     />
                   </div>
                 </div>
@@ -339,7 +340,7 @@ const ProductForm = () => {
 
           {/* RIGHT PANEL */}
           <div className="hidden md:block md:col-span-1 mt-4">
-            <ul className="list-disc space-y-3 text-gray-700">
+            <ul className="list-disc space-y-3 text-text">
               <li>
                 Buyers must know what they're buying. Provide product
                 specifications accurately and truthfully.
@@ -354,12 +355,12 @@ const ProductForm = () => {
 
         {/* ================= SECTION 2 ================= */}
         <div className="grid grid-cols-4 gap-6 ">
-          <div className="col-span-4 md:col-span-3 font-std pb-30 md:mb-10 w-full rounded-2xl bg-white p-4 md:p-10 text-gray-900 shadow-xl">
+          <div className="col-span-4 md:col-span-3 font-std pb-30 md:mb-10 w-full rounded-2xl bg-bg p-4 md:p-10 text-gray-900 shadow-xl">
             <div className="flex flex-col space-y-10">
               <h6 className="text-2xl font-semibold mb-4">Sales Information</h6>
 
               <div className="grid grid-cols-1 md:grid-cols-3 items-center">
-                <label className="col-span-1 text-sm font-medium text-gray-700">
+                <label className="col-span-1 text-sm font-medium text-text">
                   Price
                 </label>
                 <div className="col-span-2 w-full md:max-w-xs items-center">
@@ -372,7 +373,7 @@ const ProductForm = () => {
                       name="price"
                       value={form.price}
                       onChange={handleChange}
-                      className={` border-l ${errors.Price ? " border-red-300" : "border-gray-300"} pl-2 bg-white rounded-r-xl w-full `}
+                      className={`bg-surface text-text border-l ${errors.Price ? " border-red-300" : "border-gray-300"} pl-2 rounded-r-lg w-full `}
                     />
                   </p>
                   {errors.Price && (
@@ -384,7 +385,7 @@ const ProductForm = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 items-center">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-text">
                   Stock
                 </label>
                 <div className="col-span-2 w-full md:max-w-xs">
@@ -393,7 +394,7 @@ const ProductForm = () => {
                     name="stock"
                     value={form.stock}
                     onChange={handleChange}
-                    className={`${errors.Stock ? "input-error" : ""} rounded-md md:rounded-xl  input w-full`}
+                    className={`bg-surface text-text ${errors.Stock ? "input-error" : ""} rounded-md md:rounded-xl  input w-full`}
                   />
                   {errors.Stock && (
                     <div className="text-error">
@@ -404,7 +405,7 @@ const ProductForm = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 items-center">
-                <label className="col-span-1 text-sm font-medium text-gray-700">
+                <label className="col-span-1 text-sm font-medium text-text">
                   Guarantee time
                 </label>
                 <div className="col-span-2 w-full md:max-w-xs">
@@ -412,7 +413,7 @@ const ProductForm = () => {
                     name="guarantee"
                     value={form.guarantee}
                     onChange={handleChange}
-                    className={`${errors.Guarantee ? "input-error" : ""} col-span-2 input select rounded-md md:rounded-xl w-full`}
+                    className={`bg-surface text-text ${errors.Guarantee ? "input-error" : ""} col-span-2 input select rounded-md md:rounded-xl w-full`}
                   >
                     <option value="">Select guarantee time</option>
                     {[7, 14, 30].map((opt) => (
@@ -432,7 +433,7 @@ const ProductForm = () => {
           </div>
 
           <div className="hidden md:block col-span-1 mt-4">
-            <ul className="list-disc space-y-3 text-gray-700">
+            <ul className="list-disc space-y-3 text-text">
               <li>Set a reasonable but competitive price.</li>
               <li>
                 You can also get more sales by offering a longer Guarantee time.
@@ -442,19 +443,19 @@ const ProductForm = () => {
         </div>
 
         {/* ================= ACTION ================= */}
-        <div className="bg-white md:bg-transparent fixed md:static bottom-0 left-0 w-full grid grid-cols-4 p-4 md:pb-10 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
+        <div className="bg-bg md:bg-transparent fixed md:static bottom-0 left-0 w-full grid grid-cols-4 p-4 md:pb-10 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
           <div className="col-span-4 md:col-span-3 flex justify-center md:justify-end space-x-4">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="cursor-pointer px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+              className="cursor-pointer px-4 py-2 bg-surface text-text rounded-lg"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className=" cursor-pointer px-4 py-2 bg-indigo-800 text-white rounded-lg"
+              className=" cursor-pointer px-4 py-2 bg-secondary1 text-bg rounded-lg"
             >
               {isPending ? "Loading..." : "Save Changes"}
             </button>
