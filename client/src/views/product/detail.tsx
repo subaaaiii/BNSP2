@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { IoChatbubbles, IoTimerSharp } from "react-icons/io5";
@@ -11,6 +11,12 @@ import Api from "../../services/api";
 import { formattedPrice } from "../../helpers/formatted_price";
 import { FaStore } from "react-icons/fa6";
 import TopNavbar from "../../components/top_navbar";
+import { useCreateOrder } from "../../hooks/order/useMakeOrder";
+import toast from "react-hot-toast";
+import Cookies from "js-cookie";
+import OrderCard from "../../components/order_card";
+import { AuthContext } from "../../context/AuthContext";
+import qrCode from "../../assets/qr-code.png";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
@@ -18,11 +24,12 @@ const DetailProduct = () => {
   const { id } = useParams();
   const { data, isLoading } = useGetProductById(id);
   const navigate = useNavigate();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const { user } = useContext(AuthContext)!;
 
   useEffect(() => {
     console.log("data nih", data);
   }, [data]);
-
 
   const handleAddQuantity = () => {
     if (!data?.stock) return;
@@ -40,27 +47,118 @@ const DetailProduct = () => {
     });
   };
 
-const [isOverflowing, setIsOverflowing] = useState(false);
-const textRef = useRef<HTMLParagraphElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
 
-useEffect(() => {
-  const el = textRef.current;
-  if (!el) return;
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
 
-  const isClamped = el.scrollHeight > el.clientHeight;
-  setIsOverflowing(isClamped);
-}, [data?.description, expanded]);
+    const isClamped = el.scrollHeight > el.clientHeight;
+    setIsOverflowing(isClamped);
+  }, [data?.description, expanded]);
 
-if (isLoading) {
+  type Order = {
+    id: string;
+    invoice: string;
+    total: number;
+    status: string;
+    created_at: string;
+  };
+
+  const [step, setStep] = useState("Review");
+
+  const { mutate } = useCreateOrder();
+  const [order, setOrder] = useState<Order | null>(null);
+
+  const handleBuy = () => {
+    const token = Cookies.get("token");
+    if (!token) {
+      toast.error("Silakan login terlebih dahulu");
+      navigate("/login");
+      return;
+    }
+
+    if (Number(data?.stock) < 1) {
+      toast.error("Product Sold out");
+      return;
+    }
+
+    if (!quantity || Number(quantity) <= 0) {
+      toast.error("Quantity not valid");
+      return;
+    }
+    mutate(
+      {
+        product_id: Number(id),
+        qty: Number(quantity),
+      },
+      {
+        onSuccess: (res) => {
+          toast.success("Order created");
+          setOrder(res);
+          console.log("res", res);
+          setStep("Payment");
+        },
+        onError: () => {
+          toast.error("Failed to make order ");
+        },
+      },
+    );
+  };
+
+  const handleClickBuyNow = () => {
+    const token = Cookies.get("token");
+    if (!token) {
+      toast.error("Silakan login terlebih dahulu");
+      navigate("/login");
+      return;
+    }
+    dialogRef.current?.showModal();
+  };
+
+  const EXPIRED_TIME = 15 * 60 * 1000;
+  const [timeLeft, setTimeLeft] = useState(0);
+  useEffect(() => {
+    if (!order?.created_at) return;
+
+    const expiredAt = new Date(order.created_at).getTime() + EXPIRED_TIME;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = expiredAt - now;
+
+      if (diff <= 0) {
+        setTimeLeft(0);
+        clearInterval(interval);
+        return;
+      }
+
+      setTimeLeft(diff);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [order]);
+
+  const formatTime = (ms: any) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-700 rounded-full animate-spin"></div>
       </div>
     );
   }
+
   return (
     <div>
-      <TopNavbar title="Product detail"/>
+      <TopNavbar title="Product detail" />
       <div className="max-w-6xl mx-auto w-full md:h-screen grid grid-cols-5 md:gap-8 px-3 md:px-0">
         <div className="col-span-5 md:col-span-3 py-4 overflow-y-auto no-scrollbar">
           <img
@@ -85,31 +183,36 @@ if (isLoading) {
               </div>
             </div>
             <div className="p-4">
-              <p ref={textRef} className={`text-text ${expanded ? "" : "line-clamp-5"}`}>
+              <p
+                ref={textRef}
+                className={`text-text ${expanded ? "" : "line-clamp-5"}`}
+              >
                 {data.description}
               </p>
             </div>
             {isOverflowing && (
               <div className="w-full flex justify-center p-4 items-center">
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="py-2 px-4 text-neutral hover:bg-surface rounded-lg"
-              >
-                {expanded ? (
-                  <div className="flex items-center gap-2 text-text">
-                    <span className="font-semibold text-lg ">
-                      Lebih sedikit
-                    </span>
-                    <IoIosArrowUp className="w-6 h-6" />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-text">
-                    <span className="font-semibold text-lg ">Lebih banyak</span>
-                    <IoIosArrowDown className="w-6 h-6" />
-                  </div>
-                )}
-              </button>
-            </div>
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="py-2 px-4 text-neutral hover:bg-surface rounded-lg"
+                >
+                  {expanded ? (
+                    <div className="flex items-center gap-2 text-text">
+                      <span className="font-semibold text-lg ">
+                        Lebih sedikit
+                      </span>
+                      <IoIosArrowUp className="w-6 h-6" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-text">
+                      <span className="font-semibold text-lg ">
+                        Lebih banyak
+                      </span>
+                      <IoIosArrowDown className="w-6 h-6" />
+                    </div>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -142,7 +245,7 @@ if (isLoading) {
                   <IoChatbubbles className="w-6 h-6" />
                 </div>
                 <div className="px-3 py-2 rounded-md font-semibold text-bg text-center text-lg bg-secondary1 cursor-pointer flex items-center gap-2">
-                  <FaStore/> 
+                  <FaStore />
                   <span>Visit store</span>
                 </div>
               </div>
@@ -185,7 +288,7 @@ if (isLoading) {
                   const val = e.target.value;
 
                   if (val === "") {
-                    setQuantity(""); 
+                    setQuantity("");
                     return;
                   }
 
@@ -210,20 +313,153 @@ if (isLoading) {
               </div>
             </div>
             <hr className="border-gray-300 w-full " />
-            <div className="flex w-full justify-between py-5">
-              <span className="text-2xl font-bold text-gray-500">
-                Total Amount
-              </span>
-              <div className="flex gap-1 items-center">
-                <span className="text-2xl font-bold text-gray-500">
-                  Rp. {formattedPrice(data.price * (quantity || 0))}
-                </span>
-                <span className="text-sm text-gray-500">IDR</span>
+            {data?.stock === 0 ? (
+              <div className="border-3 border-red-500 rounded-xl text-2xl font-bold text-red-500 py-3 px-5 -rotate-3">
+                Sold out
               </div>
-            </div>
-            <div className="hidden md:block w-full p-5 rounded-xl bg-secondary1 text-bg text-2xl text-center font-bold cursor-pointer">
+            ) : (
+              <div className="flex w-full justify-between py-5">
+                <span className="text-2xl font-bold text-gray-500">
+                  Total Amount
+                </span>
+                <div className="flex gap-1 items-center">
+                  <span className="text-2xl font-bold text-gray-500">
+                    Rp. {formattedPrice(data.price * (quantity || 0))}
+                  </span>
+                  <span className="text-sm text-gray-500">IDR</span>
+                </div>
+              </div>
+            )}
+            <button
+              className={` ${data?.stock === 0 ? "cursor-not-allowed" : "cursor-pointer"} hidden md:block w-full p-5 rounded-xl bg-secondary1 text-bg text-2xl text-center font-bold `}
+              onClick={handleClickBuyNow}
+              disabled={data?.stock === 0}
+            >
               Buy Now
-            </div>
+            </button>
+
+            <dialog
+              ref={dialogRef}
+              className="modal modal-bottom sm:modal-middle"
+            >
+              <div className="modal-box">
+                {step === "Review" && (
+                  <div>
+                    <span className="text-3xl font-semibold">Review order</span>
+                    <div className=" border-b border-t border-gray-300 py-4">
+                      <OrderCard
+                        key={data.id}
+                        brand={data.game.name}
+                        image={
+                          data.image
+                            ? `${Api.defaults.baseURL}/images/products/${data.image}`
+                            : `${Api.defaults.baseURL}/images/games/covers/${data.game.image}`
+                        }
+                        title={data.title}
+                      />
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-300">
+                      <div className="flex flex-col">
+                        <span>Qty</span>
+                        <span>Tax</span>
+                        <span className="text-lg font-medium">Total</span>
+                      </div>
+                      <div className="flex flex-col text-end">
+                        <span>{quantity}</span>
+                        <span>free</span>
+                        <span className="text-lg font-medium">
+                          Rp. {formattedPrice(data.price * (quantity || 0))}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-lg font-semibold flex justify-center mt-4">
+                      Customer detail
+                    </span>
+                    <div className="grid grid-cols-2 gap-y-3 py-2 border-b border-gray-300 items-center">
+                      <span>Name</span>
+                      <input
+                        type="text"
+                        disabled
+                        className="input w-full"
+                        value={user?.name}
+                      />
+
+                      <span>Email</span>
+                      <input
+                        type="text"
+                        disabled
+                        className="input w-full"
+                        value={user?.email}
+                      />
+
+                      <span>Phone number</span>
+                      <input
+                        type="number"
+                        className="input w-full"
+                        placeholder="ex: 08xxxxxx"
+                      />
+                    </div>
+                    <div className="modal-action">
+                      <button
+                        className="bg-secondary1 text-bg px-4 rounded-md cursor-pointer"
+                        onClick={handleBuy}
+                      >
+                        Proceed Payment
+                      </button>
+                      <form method="dialog">
+                        <button className="btn bg-red-500 text-bg">
+                          Cancel
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
+                {step === "Payment" && (
+                  <div className="flex flex-col">
+                    <span className="text-3xl font-semibold py-4">Payment | Demo</span>
+                    <div className="flex flex-col bg-surface p-2">
+                      <span className="text-3xl font-semibold py-3">
+                      Rp. {formattedPrice(order?.total ?? 0)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      Invoice ID: {order?.invoice}
+                    </span>
+                    </div>
+                    <span className="font-medium text-gray-800 bg-gray-200 py-1 text-center">
+                      Pay within: {formatTime(timeLeft)}
+                    </span>
+                    <div className=" flex justify-center items-center my-6">
+                      <img src={qrCode} alt="qr code" className="w-60" />
+                    </div>
+                    <details
+                      className="collapse collapse-arrow bg-base-100 border border-base-300"
+                      name="my-accordion-det-1"
+                      open
+                    >
+                      <summary className="collapse-title font-semibold">
+                        How to pay?
+                      </summary>
+                      <div className="p-4">
+                        <ul className="list-decimal pl-5">
+                        <li>Open your Gojek, GoPay or other e-wallet app.</li>
+                        <li>Download or scan QRIS on your monitor.</li>
+                        <li>Confirm payment in the app.</li>
+                        <li>Payment completed.</li>
+                      </ul>
+                      </div>
+                    </details>
+                    <a href={qrCode} download="qris.png" className="w-full flex items-center justify-center px-6  items-center mt-3">
+  <button className="w-full bg-surface py-3 rounded-xl text-2xl cursor-pointer">
+    Download QRIS
+  </button>
+</a>
+                    <div className="w-full flex items-center justify-center px-6  items-center mt-3 ">
+                      <button className="w-full  py-3 rounded-xl text-2xl bg-secondary1 text-bg cursor-pointer">Check status</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </dialog>
           </div>
         </div>
       </div>
@@ -232,20 +468,21 @@ if (isLoading) {
       </div>
       <div className="block md:hidden fixed w-full bg-bg bottom-0 left-0 p-4">
         <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
-            <Link
-              className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-[#C5A16F] dark:border-text md:border-none text-[#C5A16F] dark:text-text flex items-center gap-3 justify-center"
-              to="/become-seller"
-            >
-              <IoChatbubbles className="w-6 h-6" />
-              <span>Chat</span>
-            </Link>
-            <Link
-              to="/login"
-              className="w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center"
-            >
-              Buy now
-            </Link>
-          </div>
+          <Link
+            className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-[#C5A16F] dark:border-text md:border-none text-[#C5A16F] dark:text-text flex items-center gap-3 justify-center"
+            to="/become-seller"
+          >
+            <IoChatbubbles className="w-6 h-6" />
+            <span>Chat</span>
+          </Link>
+          <button
+            className={`${data?.stock === 0 ? "cursor-not-allowed" : "cursor-pointer"} w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center`}
+            onClick={handleBuy}
+            disabled={data?.stock === 0}
+          >
+            Buy now
+          </button>
+        </div>
       </div>
     </div>
   );

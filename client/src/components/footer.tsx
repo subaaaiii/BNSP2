@@ -21,7 +21,7 @@ const Footer = () => {
           </span>
           <div className="flex flex-col md:flex-row  justify-center md:justify-start gap-2 items-center mt-4 md:mt-0">
             <span className="text-text text-center md:text-start">
-              © 2026 G2G.com | About Us | Terms of Service | Legal | Privacy |
+              © 2026 SubGAME | About Us | Terms of Service | Legal | Privacy |
               Policy | Help Center |
             </span>
             <div

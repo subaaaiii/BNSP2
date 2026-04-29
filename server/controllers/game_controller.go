@@ -46,29 +46,6 @@ func CreateGame(c *gin.Context) {
 		}
 	}
 
-	// defaultFields := []map[string]interface{}{
-	// 	{"label": "Title", "name": "title", "type": "text", "required": true},
-	// 	{"label": "Description", "name": "description", "type": "text", "required": true},
-	// 	{"label": "Price", "name": "price", "type": "text", "required": true},
-	// 	{"label": "Cover", "name": "cover", "type": "text", "required": false},
-	// }
-
-	// // 🔥 cek field yang sudah ada
-	// existing := map[string]bool{}
-	// for _, f := range fields {
-	// 	if name, ok := f["name"].(string); ok {
-	// 		existing[name] = true
-	// 	}
-	// }
-
-	// // 🔥 tambahkan default fields di BELAKANG (tanpa duplicate)
-	// for _, df := range defaultFields {
-	// 	name := df["name"].(string)
-	// 	if !existing[name] {
-	// 		fields = append(fields, df)
-	// 	}
-	// }
-
 	file, err := c.FormFile("image")
 	if file == nil {
 		errors["Image"] = "Image is required"

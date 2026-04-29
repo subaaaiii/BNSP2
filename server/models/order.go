@@ -3,15 +3,17 @@ package models
 import "time"
 
 type Order struct {
-	Id         uint   `gorm:"primaryKey" json:"id"`
-	UserId     uint   `gorm:"not null" json:"user_id"`
-	SellerId   uint   `gorm:"not null" json:"seller_id"`
-	Total      int    `gorm:"not null" json:"total"`
-	IsVerified bool   `gorm:"default:false" json:"is_verified"`
-	Proof      string `gorm:"size:255" json:"proof"`
+	Id        string `gorm:"primaryKey" json:"id"`
+	Invoice   string `gorm:"not null" json:"invoice"`
+	UserId    uint   `gorm:"not null" json:"user_id"`
+	SellerId  uint   `gorm:"not null" json:"seller_id"`
+	ProductId uint   `gorm:"not null" json:"product_id"`
+	Qty       int    `gorm:"not null" json:"qty"`
+	Total     int    `gorm:"not null" json:"total"`
+	Status    string `gorm:"not null" json:"status"`
 
-	User       User        `gorm:"foreignKey:UserId" json:"user"`
-	OrderItems []OrderItem `json:"order_items,omitempty"`
+	User    User    `gorm:"foreignKey:UserId" json:"user"`
+	Product Product `gorm:"foreignKey:ProductId" json:"product"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

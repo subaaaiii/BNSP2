@@ -63,5 +63,8 @@ func SetupRouter() *gin.Engine {
 	router.POST("/api/chat/send", middlewares.AuthMiddleware(), handlers.SendMessage)
 	router.GET("/api/chat/messages", middlewares.AuthMiddleware(), handlers.GetMessages)
 	router.GET("/api/chat/list", middlewares.AuthMiddleware(), handlers.GetChatListHandler)
+	router.POST("/api/orders", middlewares.AuthMiddleware(), controllers.CreateOrder)
+	router.GET("/api/orders/:id", middlewares.AuthMiddleware(), controllers.GetOrder)
+	router.POST("/api/payment/callback", middlewares.AuthMiddleware(), controllers.PaymentCallback)
 	return router
 }
