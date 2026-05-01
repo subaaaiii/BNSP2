@@ -6,7 +6,7 @@ import { RiMedal2Line } from "react-icons/ri";
 import { IoMdThumbsUp } from "react-icons/io";
 import Footer from "../../components/footer";
 import { useGetProductById } from "../../hooks/product/useGetProductById";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 import Api from "../../services/api";
 import { formattedPrice } from "../../helpers/formatted_price";
 import { FaStore } from "react-icons/fa6";
@@ -17,6 +17,13 @@ import Cookies from "js-cookie";
 import OrderCard from "../../components/order_card";
 import { AuthContext } from "../../context/AuthContext";
 import qrCode from "../../assets/qr-code.png";
+import { useCallBack } from "../../hooks/order/useCallBack";
+import { useOrder } from "../../hooks/order/useOrder";
+import {
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
@@ -26,6 +33,8 @@ const DetailProduct = () => {
   const navigate = useNavigate();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { user } = useContext(AuthContext)!;
+
+  const location = useLocation();
 
   useEffect(() => {
     console.log("data nih", data);
@@ -98,7 +107,7 @@ const DetailProduct = () => {
           toast.success("Order created");
           setOrder(res);
           console.log("res", res);
-          setStep("Payment");
+          setStep("PENDING");
         },
         onError: () => {
           toast.error("Failed to make order ");
@@ -111,7 +120,9 @@ const DetailProduct = () => {
     const token = Cookies.get("token");
     if (!token) {
       toast.error("Silakan login terlebih dahulu");
-      navigate("/login");
+      navigate("/login", {
+        state: { from: location.pathname },
+      });
       return;
     }
     dialogRef.current?.showModal();
@@ -147,6 +158,34 @@ const DetailProduct = () => {
 
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
+
+  const [status, setStatus] = useState<string>();
+  const { mutate: callBackMutate } = useCallBack();
+
+  const handleSetCallback = (callback: string) => {
+    if (!order) return;
+    callBackMutate(
+      {
+        order_id: order.id,
+        status: callback,
+      },
+      {
+        onSuccess: (res) => {
+          setStatus(res.status);
+        },
+      },
+    );
+  };
+  const { data: orderData, refetch } = useOrder(order?.id);
+
+  useEffect(() => {
+    if (!order) return;
+
+    if (orderData?.status) {
+      setStep(orderData.status);
+    }
+    console.log("step", step);
+  }, [orderData]);
 
   if (isLoading) {
     return (
@@ -342,10 +381,10 @@ const DetailProduct = () => {
               ref={dialogRef}
               className="modal modal-bottom sm:modal-middle"
             >
-              <div className="modal-box">
+              <div className="modal-box bg-bg">
                 {step === "Review" && (
                   <div>
-                    <span className="text-3xl font-semibold">Review order</span>
+                    <span className="text-3xl font-semibold text-text">Review order</span>
                     <div className=" border-b border-t border-gray-300 py-4">
                       <OrderCard
                         key={data.id}
@@ -358,9 +397,9 @@ const DetailProduct = () => {
                         title={data.title}
                       />
                     </div>
-                    <div className="flex justify-between py-2 border-b border-gray-300">
-                      <div className="flex flex-col">
-                        <span>Qty</span>
+                    <div className="flex justify-between py-2 border-b border-gray-300 text-text">
+                      <div className="flex flex-col ">
+                        <span >Qty</span>
                         <span>Tax</span>
                         <span className="text-lg font-medium">Total</span>
                       </div>
@@ -375,12 +414,12 @@ const DetailProduct = () => {
                     <span className="text-lg font-semibold flex justify-center mt-4">
                       Customer detail
                     </span>
-                    <div className="grid grid-cols-2 gap-y-3 py-2 border-b border-gray-300 items-center">
+                    <div className="grid grid-cols-2 gap-y-3 py-2 border-b border-gray-300 items-center text-text">
                       <span>Name</span>
                       <input
                         type="text"
                         disabled
-                        className="input w-full"
+                        className="input w-full bg-surface text-text"
                         value={user?.name}
                       />
 
@@ -388,73 +427,189 @@ const DetailProduct = () => {
                       <input
                         type="text"
                         disabled
-                        className="input w-full"
+                        className="input w-full bg-surface text-text"
                         value={user?.email}
                       />
 
                       <span>Phone number</span>
                       <input
                         type="number"
-                        className="input w-full"
+                        className="input w-full bg-surface text-text"
                         placeholder="ex: 08xxxxxx"
                       />
                     </div>
                     <div className="modal-action">
                       <button
-                        className="bg-secondary1 text-bg px-4 rounded-md cursor-pointer"
-                        onClick={handleBuy}
+                        className="bg-secondary1 text-bg px-4 font-medium rounded-md cursor-pointer"
+                        onClick={() => handleBuy()}
                       >
                         Proceed Payment
                       </button>
                       <form method="dialog">
-                        <button className="btn bg-red-500 text-bg">
+                        <button className="px-4 py-2 rounded-md bg-red-500 text-bg font-medium">
                           Cancel
                         </button>
                       </form>
                     </div>
                   </div>
                 )}
-                {step === "Payment" && (
+                {step === "PENDING" && (
                   <div className="flex flex-col">
-                    <span className="text-3xl font-semibold py-4">Payment | Demo</span>
-                    <div className="flex flex-col bg-surface p-2">
-                      <span className="text-3xl font-semibold py-3">
-                      Rp. {formattedPrice(order?.total ?? 0)}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Invoice ID: {order?.invoice}
-                    </span>
+                    <div>
+                      <span className="text-3xl font-semibold py-4 text-text">
+                        Payment | Demo
+                      </span>
+                      <div className="py-4 flex gap-2 text-lg font-medium text-text">
+                        <span>
+                          {status
+                            ? `Status : ${status}`
+                            : "Set demo callback : "}{" "}
+                        </span>
+                        {!status && (
+                          <div className="flex gap-2">
+                            <button
+                              className="bg-green-500 px-4 py-1 rounded-md shadow-md font-medium text-bg"
+                              onClick={() => handleSetCallback("PAID")}
+                            >
+                              Paid
+                            </button>
+                            <button
+                              className="bg-red-500 px-4 py-1 rounded-md shadow-md font-medium text-bg"
+                              onClick={() => handleSetCallback("FAILED")}
+                            >
+                              Failed
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <span className="font-medium text-gray-800 bg-gray-200 py-1 text-center">
+                    <div className="flex flex-col bg-surface px-6 -mx-6">
+                      <span className="text-3xl font-semibold py-3 text-text">
+                        Rp. {formattedPrice(order?.total ?? 0)}
+                      </span>
+                      <span className="text-sm text-gray-500 pb-3">
+                        Invoice ID: {order?.invoice}
+                      </span>
+                    </div>
+                    <span className="font-medium text-gray-800 bg-gray-200 py-1 text-center -mx-6 ">
                       Pay within: {formatTime(timeLeft)}
                     </span>
                     <div className=" flex justify-center items-center my-6">
                       <img src={qrCode} alt="qr code" className="w-60" />
                     </div>
                     <details
-                      className="collapse collapse-arrow bg-base-100 border border-base-300"
+                      className="collapse collapse-arrow bg-surface "
                       name="my-accordion-det-1"
                       open
                     >
-                      <summary className="collapse-title font-semibold">
+                      <summary className="collapse-title font-semibold text-text">
                         How to pay?
                       </summary>
                       <div className="p-4">
-                        <ul className="list-decimal pl-5">
-                        <li>Open your Gojek, GoPay or other e-wallet app.</li>
-                        <li>Download or scan QRIS on your monitor.</li>
-                        <li>Confirm payment in the app.</li>
-                        <li>Payment completed.</li>
-                      </ul>
+                        <ul className="list-decimal pl-5 text-text">
+                          <li>Open your Gojek, GoPay or other e-wallet app.</li>
+                          <li>Download or scan QRIS on your monitor.</li>
+                          <li>Confirm payment in the app.</li>
+                          <li>Payment completed.</li>
+                        </ul>
                       </div>
                     </details>
-                    <a href={qrCode} download="qris.png" className="w-full flex items-center justify-center px-6  items-center mt-3">
-  <button className="w-full bg-surface py-3 rounded-xl text-2xl cursor-pointer">
-    Download QRIS
-  </button>
-</a>
+                    <a
+                      href={qrCode}
+                      download="qris.png"
+                      className="w-full flex items-center justify-center px-6  items-center mt-3"
+                    >
+                      <button className="w-full bg-surface py-3 rounded-xl text-2xl cursor-pointer text-text">
+                        Download QRIS
+                      </button>
+                    </a>
                     <div className="w-full flex items-center justify-center px-6  items-center mt-3 ">
-                      <button className="w-full  py-3 rounded-xl text-2xl bg-secondary1 text-bg cursor-pointer">Check status</button>
+                      <button
+                        className="w-full  py-3 rounded-xl text-2xl bg-secondary1 text-bg cursor-pointer"
+                        onClick={() => refetch()}
+                      >
+                        Check status
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {step === "PAID" && (
+                  <div className="-m-6">
+                    <div className="bg-green-100 w-full flex flex-col items-center justify-center py-40">
+                      <FaCheckCircle className="w-20 h-20 text-green-700" />
+                      <span className="text-2xl font-semibold mt-6">
+                        Your payment was received
+                      </span>
+                      <span className="text-center mt-2">
+                        We have confirmed your payment. Your order is now being
+                        processed.
+                      </span>
+                    </div>
+                    <div className="p-8 pt-30">
+                      <button className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium">
+                        Go to order page
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {step === "FAILED" && (
+                  <div className="-m-6">
+                    <div className="bg-red-100 w-full flex flex-col items-center justify-center py-40">
+                      <FaTimesCircle className="w-20 h-20 text-red-600" />
+                      <span className="text-2xl font-semibold mt-6">
+                        Payment failed
+                      </span>
+                      <span className="text-center mt-2">
+                        Your payment could not be processed. Please try again.
+                      </span>
+                    </div>
+                    <div className="p-8 pt-30 flex gap-3">
+                      <button
+                        onClick={() => {
+                          setStatus("");
+                          handleBuy();
+                        }}
+                        className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium"
+                      >
+                        Try Again
+                      </button>
+                      <form method="dialog">
+                        <button className="py-3 w-full px-6 rounded-md bg-gray-300 font-medium">
+                          Cancel
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {step === "EXPIRED" && (
+                  <div className="-m-6">
+                    <div className="bg-yellow-100 w-full flex flex-col items-center justify-center py-40">
+                      <FaExclamationCircle className="w-20 h-20 text-yellow-600" />
+                      <span className="text-2xl font-semibold mt-6">
+                        Payment expired
+                      </span>
+                      <span className="text-center mt-2">
+                        Your payment time has expired. Please create a new order
+                        to continue.
+                      </span>
+                    </div>
+                    <div className="p-8 pt-30 flex gap-3">
+                      <button
+                        onClick={() => {
+                          setStatus("");
+                          handleBuy();
+                        }}
+                        className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium"
+                      >
+                        Order Again
+                      </button>
+                      <form method="dialog">
+                        <button className="py-3 w-full px-6 rounded-md bg-gray-300 font-medium">
+                          Cancel
+                        </button>
+                      </form>
                     </div>
                   </div>
                 )}
@@ -477,7 +632,7 @@ const DetailProduct = () => {
           </Link>
           <button
             className={`${data?.stock === 0 ? "cursor-not-allowed" : "cursor-pointer"} w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center`}
-            onClick={handleBuy}
+            onClick={handleClickBuyNow}
             disabled={data?.stock === 0}
           >
             Buy now

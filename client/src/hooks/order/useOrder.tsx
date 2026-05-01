@@ -9,5 +9,9 @@ export const useOrder = (id?: string) => {
       return res.data.data;
     },
     enabled: !!id,
+    refetchInterval: (query) => {
+      return query.state.data?.status === "PENDING" ? 30000 : false;
+    },
+    refetchOnWindowFocus: true,
   });
 };

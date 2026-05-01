@@ -79,7 +79,7 @@ if (hiddenRoutes.some(route => location.pathname.startsWith(route))) {
                   >
                     <div className="flex items-center gap-2">
                       <div className="avatar">
-                        <div className="w-8 rounded-full">
+                        <div className="w-10 rounded-full">
                           <img
                             src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
                           />

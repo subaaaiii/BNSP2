@@ -172,5 +172,9 @@ func GetOrder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, order)
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Get order success",
+		Data:    order,
+	})
 }

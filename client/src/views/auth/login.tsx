@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useLogin } from "../../hooks/auth/useLogin";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -15,27 +16,29 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const submitLogin = () => {
     mutate(
-      {
-        username,
-        password,
-      },
+      { username, password },
       {
         onSuccess: () => {
-          navigate("/");
+          toast.success("Successfully logged in");
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
-          console.log("errornya nih", errors);
         },
       },
     );
   };
+
   return (
     <div className="flex w-full justify-center items-center mt-10">
-      <form onSubmit={handleLogin} className="flex w-full justify-center px-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          submitLogin();
+        }}
+        className="flex w-full justify-center px-4"
+      >
         <fieldset className="fieldset border-base-300 rounded-box flex flex-col w-full max-w-md md:w-lg">
           <div className="flex justify-center items-center">
             <legend className="fieldset-legend text-lg font-semi-bold mb-8 text-text">
@@ -106,12 +109,12 @@ const Login = () => {
               <span>{errors.Password}</span>
             </div>
           )}
-          <a
-            href="/forgot-password"
+          <Link
+            to="/forgot-password"
             className="flex w-full justify-end text-sm text-blue-500 hover:underline"
           >
             Forgot password?
-          </a>
+          </Link>
           <button
             type="submit"
             className="hidden md:block btn bg-[#C5A16F] mt-4 text-bg"
@@ -121,24 +124,25 @@ const Login = () => {
           <div className="flex justify-center gap-2 ">
             {" "}
             <span className="text-text">Don't have account?</span>
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="items-center text-sm text-blue-500 underline"
             >
               Register
-            </a>
+            </Link>
           </div>
         </fieldset>
         <div className="fixed bottom-0 left-0 w-full bg-bg border-t border-gray-300 p-4 md:hidden">
           <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
             <button
               className="col-span-1 w-full cursor-pointer md:w-auto font-bold p-4 md:p-3 rounded text-center border border-secondary1 md:border-none text-[#C5A16F] "
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/")}
             >
               Later
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={submitLogin}
               className="w-full md:w-auto bg-[#C5A16F] text-bg cursor-pointer font-medium p-4 md:p-3 rounded text-center"
             >
               {isPending ? "Loading..." : "Login"}

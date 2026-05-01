@@ -5,7 +5,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 //import react router dom
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate, useLocation } from "react-router";
 
 //import view home
 import Home from "../views/home/index.tsx";
@@ -34,6 +34,20 @@ import BrandProducts from "../views/product/brand.tsx";
 import DetailProduct from "../views/product/detail.tsx";
 import Chat from "../views/chat/index.tsx";
 
+const LoginWrapper = () => {
+  const location = useLocation();
+  const auth = useContext(AuthContext);
+
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+  const from = location.state?.from || "/";
+
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
+
+  return <Login />;
+};
+
 export default function AppRoutes() {
   const auth = useContext(AuthContext);
 
@@ -42,15 +56,13 @@ export default function AppRoutes() {
   const isVerified = auth?.user?.email_verified ?? false;
   const role = auth?.user?.role;
 
-  if (isLoading) {
-    return (
+  return (
+    <>
+    {isLoading && (
       <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-700 rounded-full animate-spin"></div>
       </div>
-    );
-  }
-
-  return (
+    )}
     <Routes>
       {/* route "/" */}
       <Route path="/" element={<Home />} />
@@ -69,7 +81,7 @@ export default function AppRoutes() {
       {/* route "/login" */}
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+        element={<LoginWrapper />}
       />
       <Route
         path="/forgot-password"
@@ -229,5 +241,6 @@ export default function AppRoutes() {
         }
       />
     </Routes>
+    </>
   );
 }
