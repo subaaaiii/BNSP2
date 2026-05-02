@@ -4,6 +4,7 @@ import { useCreateUpdateGame } from "../../../hooks/game/useCreateUpdateGame";
 import { useDeleteGame } from "../../../hooks/game/useDeleteGame";
 import { LiaCloudUploadAltSolid } from "react-icons/lia";
 import toast from "react-hot-toast";
+import TopNavbar from "../../../components/top_navbar";
 
 type GameFormData = {
   name: string;
@@ -221,7 +222,8 @@ const ManageGameForm = ({ data, id }: Props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-4 text-text">
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-4 text-text px-3 md:px-0">
+      <TopNavbar title={`${data ? "Edit Game" : "Create Game"}`}/>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">
           {data ? "Edit Game" : "Create Game"}

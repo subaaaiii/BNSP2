@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useGames } from "../../../hooks/game/useGames";
 import CardSkeleton from "../../../components/skeleton/Card";
 import GameCard from "../../../components/GameCard";
+import TopNavbar from "../../../components/top_navbar";
 
 const GameList = () => {
   const navigate = useNavigate();
@@ -10,7 +11,8 @@ const GameList = () => {
 
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto px-3 md:px-0">
+      <TopNavbar title={`Manage games`}/>
       <h1 className="text-2xl font-bold mb-6 text-text">Games</h1>
       <button
         type="submit"

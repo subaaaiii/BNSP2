@@ -56,7 +56,7 @@ const Home = () => {
   );
 
   return (
-    <div className="mb-2 rounded-5 -mt-20 w-full ">
+    <div className="rounded-5 -mt-20 w-full ">
       <div className="flex flex-col bg-gradient-to-b from-[#C5A16F] via-[#2d3330] to-[#1a1a19] px-3 md:px-0 ">
         <div className="pb-10">
           <div className="w-full max-w-6xl mx-auto relative pt-30 md:pt-40">
@@ -155,8 +155,13 @@ const Home = () => {
           </div>
           {/* {GAME favorite} */}
           <div className="max-w-6xl mx-auto mt-8">
-            <div className="text-2xl font-bold mb-4 text-white">
+            <div className="flex justify-between items-center">
+              <div className="text-2xl font-bold mb-4 text-white">
               Favorite Games
+            </div>
+            <button onClick={()=>navigate("/brands")} className="text-lg mb-4 text-white hover:underline cursor-pointer ">
+              See all
+            </button>
             </div>
             <div className="w-full ">
               <div className=" grid grid-cols-3 md:grid-cols-6 gap-5 w-full">
@@ -190,7 +195,7 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <div className=" grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
               {products?.map((product: any) => (
                 <Card
                   key={product.id}

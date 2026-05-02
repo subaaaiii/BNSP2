@@ -6,8 +6,10 @@ import (
 	"bnsp2/server/structs"
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -176,5 +178,63 @@ func GetOrder(c *gin.Context) {
 		Success: true,
 		Message: "Get order success",
 		Data:    order,
+	})
+}
+
+func GetOrders(c *gin.Context) {
+	var orders []models.Order
+	userId := c.MustGet("user_id").(uint)
+
+	query := database.DB.Model(&models.Order{}).Where("seller_id = ?", userId)
+	status := c.Query("status")
+
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+	var total int64
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to count orders",
+		})
+		return
+	}
+
+	if err := query.Preload("Product").Limit(limit).
+		Offset(offset).Find(&orders).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to fetch orders",
+		})
+		return
+	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Orders retrieved successfully",
+		"data":    orders,
+		"meta": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
 	})
 }

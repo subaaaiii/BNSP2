@@ -30,9 +30,11 @@ import ForgotPassword from "../views/forgot-password/index.tsx";
 import ResetPassword from "../views/forgot-password/reset.tsx";
 import ManageOffers from "../views/offers/index.tsx";
 import UserProfile from "../views/user/profile.tsx";
-import BrandProducts from "../views/product/brand.tsx";
+import BrandProducts from "../views/product/brand_product.tsx";
 import DetailProduct from "../views/product/detail.tsx";
 import Chat from "../views/chat/index.tsx";
+import Brand from "../views/product/brand.tsx";
+import Orders from "../views/orders/sold_order.tsx";
 
 const LoginWrapper = () => {
   const location = useLocation();
@@ -68,6 +70,8 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
 
       <Route path="/products" element={<BrandProducts />} />
+      <Route path="/brands" element={<Brand />} />
+      <Route path="/orders" element={<Orders/>} />
       <Route path="/products/detail/:id" element={<DetailProduct />} />
       <Route path="/chat" element={<Chat />} />
       <Route path="/chat/offer/:id" element={<Chat />} />

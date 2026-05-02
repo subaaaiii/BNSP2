@@ -74,13 +74,13 @@ const BottomNavbar = () => {
               className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-[#C5A16F] dark:border-text md:border-none text-[#C5A16F] dark:text-text "
               to="/become-seller"
             >
-              Start selling
+              Sign up
             </Link>
             <Link
               to="/login"
               className="w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center"
             >
-              Login/Register
+              Log in
             </Link>
           </div>
         )}

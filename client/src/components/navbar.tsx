@@ -49,7 +49,7 @@ if (hiddenRoutes.some(route => location.pathname.startsWith(route))) {
         <Link
           to="/"
           className={`text-xl font-bold ${
-            isTransparent ? "text-white" : "text-[#C5A16F]"
+            isTransparent ? "text-[#2d3330]" : "text-[#C5A16F]"
           }`}
         >
           SubGAME
@@ -98,24 +98,24 @@ if (hiddenRoutes.some(route => location.pathname.startsWith(route))) {
             ) : (
               <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
                 <Link
-                  className={`w-full md:w-auto font-medium p-4 md:p-3 rounded text-center border ${
+                  className={`w-full md:w-auto font-medium p-4 md:py-3 md:px-6 rounded-full text-center border ${
                     isTransparent
                       ? "border-[#2d3330] dark:border-[#C5A16F] bg-transparent text-[#2d3330] dark:text-[#C5A16F]"
                       : "border-[#C5A16F] text-[#C5A16F]"
                   }`}
-                  to="/become-seller"
+                  to="/register"
                 >
-                  Start selling
+                  Sign up
                 </Link>
                 <Link
                   to="/login"
-                  className={`w-full md:w-auto font-medium p-4 md:p-3 rounded text-center ${
+                  className={`w-full md:w-auto font-medium p-4 md:py-3 md:px-6 rounded-full text-center ${
                     isTransparent
                       ? "bg-[#2d3330] text-[#C5A16F] dark:text-[#2d3330]"
                       : "text-bg bg-[#C5A16F]  "
                   }`}
                 >
-                  Login/Register
+                  Log in
                 </Link>
               </div>
             )}
