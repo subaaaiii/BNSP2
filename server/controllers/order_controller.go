@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bnsp2/server/database"
+	"bnsp2/server/helpers"
 	"bnsp2/server/models"
 	"bnsp2/server/structs"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -93,6 +95,7 @@ func CreateOrder(c *gin.Context) {
 func PaymentCallback(c *gin.Context) {
 	var payload structs.CallbackRequest
 	var order models.Order
+	var orderLog models.OrderLog
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
@@ -149,7 +152,19 @@ func PaymentCallback(c *gin.Context) {
 		}
 
 		order.Status = payload.Status
-		return tx.Save(&order).Error
+		if err := tx.Save(&order).Error; err != nil {
+			return err
+		}
+
+		orderLog.OrderId = payload.OrderID
+		orderLog.Status = payload.Status
+		orderLog.Title = helpers.GenerateLogTitle(payload.Status)
+
+		if err := tx.Create(&orderLog).Error; err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	if err != nil {
@@ -169,7 +184,9 @@ func GetOrder(c *gin.Context) {
 
 	var order models.Order
 
-	if err := database.DB.First(&order, "id = ?", id).Error; err != nil {
+	if err := database.DB.Preload("Product").Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "name")
+	}).First(&order, "id = ?", id).Error; err != nil {
 		c.JSON(404, gin.H{"error": "Order not found"})
 		return
 	}
@@ -187,6 +204,7 @@ func GetOrders(c *gin.Context) {
 
 	query := database.DB.Model(&models.Order{}).Where("seller_id = ?", userId)
 	status := c.Query("status")
+	q := c.Query("q")
 
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -206,6 +224,9 @@ func GetOrders(c *gin.Context) {
 
 	if status != "" {
 		query = query.Where("status = ?", status)
+	}
+	if q != "" {
+		query = query.Where("LOWER(invoice) LIKE ?", "%"+strings.ToLower(q)+"%")
 	}
 
 	if err := query.Count(&total).Error; err != nil {

@@ -35,6 +35,7 @@ import DetailProduct from "../views/product/detail.tsx";
 import Chat from "../views/chat/index.tsx";
 import Brand from "../views/product/brand.tsx";
 import Orders from "../views/orders/sold_order.tsx";
+import OrderDetail from "../views/orders/detail.tsx";
 
 const LoginWrapper = () => {
   const location = useLocation();
@@ -72,6 +73,7 @@ export default function AppRoutes() {
       <Route path="/products" element={<BrandProducts />} />
       <Route path="/brands" element={<Brand />} />
       <Route path="/orders" element={<Orders/>} />
+      <Route path="/orders/detail/:id" element={<OrderDetail/>} />
       <Route path="/products/detail/:id" element={<DetailProduct />} />
       <Route path="/chat" element={<Chat />} />
       <Route path="/chat/offer/:id" element={<Chat />} />

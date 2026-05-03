@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Order struct {
-	Id        string `gorm:"primaryKey" json:"id"`
+	Id        string `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Invoice   string `gorm:"not null" json:"invoice"`
 	UserId    uint   `gorm:"not null" json:"user_id"`
 	SellerId  uint   `gorm:"not null" json:"seller_id"`
