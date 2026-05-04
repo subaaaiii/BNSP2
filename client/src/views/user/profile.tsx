@@ -56,6 +56,9 @@ const UserProfile = ({ onClose }: Props) => {
               <Link to="/offers">Manage offers</Link>
             </li>
             <li className="w-full px-1 py-2 text-text">
+              <Link to="/orders">Sold orders</Link>
+            </li>
+            <li className="w-full px-1 py-2 text-text">
               <Link to="/admin/review-sellers"> Review Sellers</Link>
             </li>
 

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Api from "../../services/api";
 
@@ -9,7 +9,6 @@ interface OrderRequest {
 }
 
 export const useCallBack = () => {
-//   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: OrderRequest) => {
       const token = Cookies.get("token");
@@ -20,9 +19,5 @@ export const useCallBack = () => {
         });
         return res.data.data;
     },
-    // onSuccess: (_, variables) => {
-    //   queryClient.invalidateQueries({ queryKey: ["orders"] })
-    //   queryClient.invalidateQueries({ queryKey: ["product", variables.product_id] })
-    // },
   });
 };

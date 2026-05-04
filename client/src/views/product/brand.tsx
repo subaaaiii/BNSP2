@@ -13,7 +13,7 @@ const Brand = () => {
   return (
     <div className="max-w-6xl mx-auto px-3 md:px-0">
       <TopNavbar title={`All brand games`}/>
-      <h1 className="text-2xl font-bold mb-6 text-text">All game brands</h1>
+      <h1 className="text-2xl font-bold  text-text mt-6 mb-4">All game brands</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading

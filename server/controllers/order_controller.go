@@ -4,6 +4,7 @@ import (
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/services"
 	"bnsp2/server/structs"
 	"errors"
 	"fmt"
@@ -118,6 +119,7 @@ func PaymentCallback(c *gin.Context) {
 		})
 		return
 	}
+	var shouldSendEmail bool
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		var product models.Product
@@ -131,6 +133,8 @@ func PaymentCallback(c *gin.Context) {
 		}
 
 		if payload.Status == StatusPaid {
+			shouldSendEmail = true
+
 			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 				First(&product, order.ProductId).Error; err != nil {
 				return err
@@ -151,8 +155,8 @@ func PaymentCallback(c *gin.Context) {
 			}
 		}
 
-		order.Status = payload.Status
-		if err := tx.Save(&order).Error; err != nil {
+		// order.Status = payload.Status
+		if err := tx.Model(&order).Update("status", payload.Status).Error; err != nil {
 			return err
 		}
 
@@ -172,9 +176,24 @@ func PaymentCallback(c *gin.Context) {
 		return
 	}
 
+	var user models.User
+	database.DB.Select("name", "email").First(&user, order.UserId)
+
+	var product models.Product
+	database.DB.Select("title").First(&product, order.ProductId)
+
+	if shouldSendEmail {
+		go func(order models.Order) {
+			buf, err := services.GenerateInvoiceBuffer(order, user.Name, product.Title)
+			if err == nil {
+				helpers.SendInvoiceEmail(user.Email, buf, order.Invoice)
+			}
+		}(order)
+	}
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
-		Message: "Order successfully created",
+		Message: "Order status updated",
 		Data:    order,
 	})
 }
@@ -184,11 +203,17 @@ func GetOrder(c *gin.Context) {
 
 	var order models.Order
 
-	if err := database.DB.Preload("Product").Preload("User", func(db *gorm.DB) *gorm.DB {
+	if err := database.DB.Preload("Product").Preload("Product.Game").Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id", "name")
+	}).Preload("OrderLog", func(db *gorm.DB) *gorm.DB {
+		return db.Order("created_at desc")
 	}).First(&order, "id = ?", id).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Order not found"})
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "order not found",
+		})
 		return
+
 	}
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
@@ -258,4 +283,60 @@ func GetOrders(c *gin.Context) {
 			"total_pages": totalPages,
 		},
 	})
+}
+
+func UpdateStatusOrder(c *gin.Context) {
+
+	var req structs.UpdateStatusRequest
+
+	var order models.Order
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+		})
+		return
+	}
+
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.First(&order, "id = ?", req.OrderID).Error; err != nil {
+			return err
+		}
+
+		order.Status = req.Status
+
+		orderLog := models.OrderLog{
+			OrderId: req.OrderID,
+			Status:  req.Status,
+			Title:   helpers.GenerateLogTitle(req.Status),
+		}
+
+		if err := tx.Save(&order).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&orderLog).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+
+		fmt.Printf("UpdateStatusOrder error: %v\n", err)
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to update status",
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Order status updated",
+	})
+
 }

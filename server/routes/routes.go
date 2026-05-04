@@ -68,5 +68,6 @@ func SetupRouter() *gin.Engine {
 	router.POST("/api/orders", middlewares.AuthMiddleware(), controllers.CreateOrder)
 	router.GET("/api/orders/:id", middlewares.AuthMiddleware(), controllers.GetOrder)
 	router.GET("/api/orders", middlewares.AuthMiddleware(), controllers.GetOrders)
+	router.POST("/api/orders/status", middlewares.AuthMiddleware(), controllers.UpdateStatusOrder)
 	return router
 }
