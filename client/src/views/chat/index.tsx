@@ -5,28 +5,46 @@ import Cookies from "js-cookie";
 import { AuthContext } from "../../context/AuthContext";
 import { useChatList } from "../../hooks/chat/useChatList";
 import Api from "../../services/api";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { CiSearch } from "react-icons/ci";
 import banner_hero from "../../assets/banner_hero.png";
 import { IoIosArrowBack, IoMdSend } from "react-icons/io";
 import { useDebounce } from "../../hooks/helpers/useDebounce";
 import { useTheme } from "../../context/ThemeContext";
 import { useGetProductById } from "../../hooks/product/useGetProductById";
+import toast from "react-hot-toast";
+import CardSimple from "../../components/card_simple";
+import { useProductBatch } from "../../hooks/product/useProductBatch";
+import { useOrderBatch } from "../../hooks/order/useOrderBatch";
 
 const Chat = () => {
   const { id } = useParams();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
-  const [targetUserId, setTargetUserId] = useState(""); 
+  const [targetUserId, setTargetUserId] = useState("");
   const { data } = useGetProductById(id);
 
-  useEffect(() => {
-  if (id && data && data.user.id !== targetUserId) {
-    setTargetUserId(data.user.id);
-  }
-}, [id, data]);
-
   const { user } = useContext(AuthContext)!;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!id || !data) return;
+
+    if (String(data.user.id) === String(user?.id)) {
+      toast.error("You cannot message yourself");
+      navigate("/chat");
+      return;
+    }
+
+    setTargetUserId(data.user.id);
+  }, [id, data, user]);
+
+  useEffect(() => {
+    if (!id) {
+      setTargetUserId("");
+    }
+  }, [id]);
+
   const token = Cookies.get("token");
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -34,7 +52,7 @@ const Chat = () => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const { theme, toggleTheme } = useTheme();
-  
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -58,7 +76,7 @@ const Chat = () => {
 
     const pusher = new Pusher("1445018101705e987746", {
       cluster: "ap1",
-      authEndpoint: "http://localhost:8080/pusher/auth",
+      authEndpoint: `${Api.defaults.baseURL}/pusher/auth`,
       auth: {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -71,50 +89,70 @@ const Chat = () => {
     channel.bind("new-message", (data: any) => {
       console.log("RECEIVED:", data);
       setMessages((prev) => {
-  if (!Array.isArray(prev)) return [data];
-  return [...prev, data];
-});
+        if (!Array.isArray(prev)) return [data];
+        return [...prev, data];
+      });
     });
 
     return () => {
       pusher.unsubscribe(`private-chat-${user.id}`);
       pusher.disconnect();
     };
-  }, [user?.id, token]); // 🔥 penting
+  }, [user?.id, token]);
+
+  const location = useLocation();
+
+const isProductChat = location.pathname.includes("/chat/offer");
+const [askProduct, SetAskProduct] = useState(false);
+useEffect (()=>{
+  if (isProductChat){
+    SetAskProduct(true);
+    setInput("May I know this offer available and how long delivery takes")
+  }
+}, [isProductChat])
+
+const isOrderChat = location.pathname.includes("/chat/order");
+const [askOrder, SetAskOrder] = useState(false);
+
+
+useEffect (()=>{
+  if (isOrderChat){
+    SetAskOrder(true);
+  }
+}, [isOrderChat])
 
   const sendMessage = async () => {
     if (!input || !targetUserId) return;
 
-    try {
-      console.log("hey ini target", targetUserId);
-      console.log("hey ini input", input);
+    const payload: any = {
+    to: targetUserId.toString(),
+    message: input,
+  };
 
-      const res = await axios.post(
-        "http://localhost:8080/api/chat/send",
-        {
-          to: targetUserId.toString(),
-          message: input,
-        },
+  if (askOrder) {
+    payload.order_id = id;
+  } 
+  if (askProduct) {
+    payload.product_id = id;
+  }
+
+    try {
+      await Api.post(
+        "/api/chat/send",payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-
-      console.log("SUCCESS:", res.data);
-
       setInput("");
     } catch (err: any) {
-      console.error("ERROR:", err);
-
-      // 🔥 ambil error dari backend kalau ada
       if (err.response) {
         console.error("Server error:", err.response.data);
         alert(err.response.data.error || "Server error");
       } else if (err.request) {
         console.error("No response:", err.request);
-        alert("Server tidak merespon");
+        alert("Server not resond");
       } else {
         console.error("Error:", err.message);
         alert(err.message);
@@ -130,25 +168,17 @@ const Chat = () => {
   useEffect(() => {
     if (!debouncedTarget) return;
 
-    axios
-      .get("http://localhost:8080/api/chat/messages", {
-        params: { target_id: debouncedTarget },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setMessages(Array.isArray(res.data) ? res.data : []);
-      });
+    Api.get("/api/chat/messages", {
+      params: { target_id: debouncedTarget },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((res) => {
+      setMessages(Array.isArray(res.data) ? res.data : []);
+    });
   }, [debouncedTarget]);
 
   const { data: chatList } = useChatList({ q: debouncedSearch });
-
-  
-
-  useEffect(() => {
-    console.log("messages", messages);
-  }, [messages]);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("id-ID", {
@@ -185,18 +215,39 @@ const Chat = () => {
   };
 
   const activeChat = Array.isArray(chatList)
-  ? chatList.find((c: any) => String(c.user_id) === String(targetUserId))
-  : null;
+    ? chatList.find((c: any) => String(c.user_id) === String(targetUserId))
+    : null;
 
+    const {data:product} = useGetProductById(id);
 
 useEffect(() => {
-    console.log("chatlist", activeChat)
-  }, [activeChat]);
+    console.log("messages", messages)
+  }, [messages]);  
+
+  const productIds = [
+  ...new Set(messages.map(m => m.product_id).filter((id): id is number => !!id))
+]
+
+const orderIds = [
+  ...new Set(messages.map(m => m.order_id).filter((id): id is string => !!id))
+]
+
+const {data:products} = useProductBatch(productIds);
+const {data:orders} = useOrderBatch(orderIds);
+
+const productMap = Object.fromEntries(
+  (products || []).map((p: any) => [p.id, p])
+)
+
+const orderMap = Object.fromEntries(
+  (orders || []).map((o: any) => [o.id, o])
+)
+
 
   return (
     <div className=" max-w-7xl mx-auto shadow grid grid-cols-4 -mt-20 -mb-20">
       <div
-        className={`${targetUserId ? "hidden md:block" : "block "} col-span-4 md:col-span-1 border-r border-gray-200`}
+        className={`${targetUserId ? "hidden md:block" : "block "} col-span-4 md:col-span-1 border-r border-gray-200 `}
       >
         <div className="flex justify-between py-6 items-center px-3">
           <Link
@@ -207,7 +258,6 @@ useEffect(() => {
             SubGAME
           </Link>
           <div className="relative" ref={dropdownRef}>
-            {/* Avatar */}
             <div
               className="avatar cursor-pointer"
               onClick={() => setOpen((prev) => !prev)}
@@ -220,7 +270,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Dropdown */}
             {open && (
               <div className="absolute right-0 mt-2 w-70 bg-surface rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.1),0_0_10px_rgba(0,0,0,0.05)] z-50 overflow-hidden">
                 <div className="flex flex-row items-center gap-3 p-3 border-b border-gray-300">
@@ -247,7 +296,12 @@ useEffect(() => {
                 </button>
                 <button className="w-full flex justify-between px-3  py-3 hover:bg-surface-hover text-sm text-text">
                   <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-                  <input type="checkbox" checked={theme == "dark"} className={ `toggle`} onClick={toggleTheme}/>
+                  <input
+                    type="checkbox"
+                    checked={theme == "dark"}
+                    className={`toggle`}
+                    onClick={toggleTheme}
+                  />
                 </button>
                 <button className="w-full px-3 text-left py-3 hover:bg-red-100 text-red-500 text-sm">
                   Logout
@@ -277,7 +331,7 @@ useEffect(() => {
               setTargetUserId(list.user_id);
             }}
           >
-            <div className="flex  gap-2 items-center">
+            <div className="flex gap-2 items-center min-w-0 overflow-hidden">
               <div className="">
                 <img
                   src={`${Api.defaults.baseURL}/images/users/${list.picture}`}
@@ -285,12 +339,12 @@ useEffect(() => {
                   className="w-12 h-12 object-cover rounded-full"
                 />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <div className="font-semibold text-text">{list.name}</div>
-                <div className="text-sm text-gray-500">{list.message}</div>
+                <span className="text-sm text-gray-500 truncate block">{list.message}</span>
               </div>
             </div>
-            <div className="text-text text-sm">
+            <div className="text-text text-sm flex-shrink-0">
               {formatDate(list.created_at)}
             </div>
           </div>
@@ -308,7 +362,7 @@ useEffect(() => {
               >
                 <IoIosArrowBack className="w-5 h-5" />
               </div>
-              {activeChat?.name || data?.user?.name} 
+              {activeChat?.name || data?.user?.name}
             </div>
             <hr className="border-gray-300" />
 
@@ -353,6 +407,13 @@ useEffect(() => {
                         ref={bottomRef}
                       >
                         <span className="mb-2 text-text ">{msg.message}</span>
+                        {msg.product_id && productMap[msg.product_id] && (
+      <CardSimple product={productMap[msg.product_id]} />
+    )}
+
+    {msg.order_id && orderMap[msg.order_id] && (
+      <div>Invoice: {orderMap[msg.order_id].invoice}</div>
+    )}
                         <span className="text-right text-xs text-gray-400">
                           {formatTime(msg.timestamp)}
                         </span>
@@ -363,9 +424,27 @@ useEffect(() => {
               })}
             </div>
 
-            {/*  input message */}
-            <div className="absolute bottom-0 left-0 right-0 bg-bg border-t border-gray-300 p-6 text-text">
-              <div className="max-w-7xl mx-auto flex gap-2">
+            <div className="absolute bottom-0 left-0 right-0 text-text p-4 ">
+              {askProduct && (
+                <div className="border rounded-t-lg border-gray-300">
+                  <div className="flex justify-between px-4 py-2">
+                    <div>
+                      <span className="font-semibold text-text">offer </span><span className="text-sm text-gray-500">(#{product.id})</span>
+                    </div>
+                    <button onClick={()=>SetAskProduct(false)}>x</button>
+                  </div>
+                  <hr className="border-gray-300"/>
+                  <div className="px-4">
+                    <CardSimple
+                  key={product.id}
+                  product={product}
+                  onClick={()=>navigate ('/products/detail/'+ product.id)}
+                />
+                  </div>
+                </div>
+              )
+              }
+              <div className="max-w-7xl mx-auto flex gap-2 bg-bg border border-gray-300 p-4 rounded-b-lg ">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -373,7 +452,10 @@ useEffect(() => {
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none   "
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={()=>{sendMessage
+                    SetAskProduct(false)
+                    SetAskOrder(false)
+                  }}
                   className="w-10 h-10 cursor-pointer text-white rounded-full bg-[#C5A16F] flex justify-center items-center "
                 >
                   <IoMdSend className="w-5 h-5" />

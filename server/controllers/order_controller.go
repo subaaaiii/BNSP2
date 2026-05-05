@@ -59,6 +59,14 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
+	if product.UserId == userId {
+		c.JSON(http.StatusForbidden, structs.ErrorResponse{
+			Success: false,
+			Message: "You are not allowed to buy your own product",
+		})
+		return
+	}
+
 	if product.Stock < req.Qty {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
@@ -339,4 +347,38 @@ func UpdateStatusOrder(c *gin.Context) {
 		Message: "Order status updated",
 	})
 
+}
+
+func GetOrderBatch(c *gin.Context) {
+	idsParam := c.Query("ids")
+	if idsParam == "" {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "ids is required",
+		})
+		return
+	}
+
+	ids := strings.Split(idsParam, ",")
+
+	var orders []models.Order
+
+	if err := database.DB.
+		Preload("Product").
+		Preload("Product.Game").
+		Where("id IN ?", ids).
+		Find(&orders).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to fetch orders",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Get order batch success",
+		Data:    orders,
+	})
 }

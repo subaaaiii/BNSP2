@@ -607,3 +607,53 @@ func ChangeProductStatus(c *gin.Context) {
 		Data:    products,
 	})
 }
+
+func GetProductBatch(c *gin.Context) {
+	idsParam := c.Query("ids")
+	if idsParam == "" {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "ids is required",
+		})
+		return
+	}
+
+	strIds := strings.Split(idsParam, ",")
+
+	var ids []uint
+	for _, s := range strIds {
+		id, err := strconv.Atoi(s)
+		if err != nil {
+			continue // skip kalau invalid
+		}
+		ids = append(ids, uint(id))
+	}
+
+	if len(ids) == 0 {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "no valid ids",
+		})
+		return
+	}
+
+	var products []models.Product
+
+	if err := database.DB.
+		Preload("Game").
+		Where("id IN ?", ids).
+		Find(&products).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to fetch products",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Get product batch success",
+		Data:    products,
+	})
+}

@@ -29,6 +29,8 @@ func GetMessages(c *gin.Context) {
 			From:      strconv.FormatUint(uint64(m.FromUserID), 10),
 			To:        strconv.FormatUint(uint64(m.ToUserID), 10),
 			Message:   m.Message,
+			ProductId: m.ProductId,
+			OrderId:   m.OrderId,
 			Timestamp: m.CreatedAt.Unix(),
 		})
 	}

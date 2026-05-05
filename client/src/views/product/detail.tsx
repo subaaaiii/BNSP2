@@ -110,8 +110,17 @@ const DetailProduct = () => {
           console.log("res", res);
           setStep("PENDING");
         },
-        onError: () => {
-          toast.error("Failed to make order ");
+        onError: (error: any) => {
+          const status = error?.response?.status;
+
+          if (status === 403) {
+            setStep("FORBIDDEN");
+            return;
+          }
+          const message =
+            error?.response?.data?.message || "Failed to make order";
+
+          toast.error(message);
         },
       },
     );
@@ -643,6 +652,29 @@ const DetailProduct = () => {
                       </div>
                     </div>
                   )}
+
+                  {step === "FORBIDDEN" && (
+                    <div className="-m-6">
+                      <div className="bg-red-100 w-full flex flex-col items-center justify-center py-30">
+                        <FaTimesCircle className="w-20 h-20 text-red-600" />
+                        <span className="text-2xl font-semibold mt-6">
+                          Action not allowed
+                        </span>
+                        <span className="text-center mt-2 px-6">
+                          You cannot buy your own product. Please choose another
+                          item.
+                        </span>
+                      </div>
+
+                      <div className="p-8 pt-30 flex gap-3">
+                        <form method="dialog" className="w-full">
+                          <button className="py-3 w-full px-6 rounded-md bg-gray-300 font-medium">
+                            Close
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </dialog>
             </div>
@@ -654,13 +686,13 @@ const DetailProduct = () => {
       </div>
       <div className="block md:hidden fixed w-full bg-bg bottom-0 left-0 p-4">
         <div className="flex w-full justify-between md:justify-end gap-4 px-4 items-center">
-          <Link
+          <div
             className="col-span-1 w-full md:w-auto font-bold p-4 md:p-3 rounded text-center border border-[#C5A16F] dark:border-text md:border-none text-[#C5A16F] dark:text-text flex items-center gap-3 justify-center"
-            to="/become-seller"
+            onClick={() => navigate("/chat/offer/" + data.id)}
           >
             <IoChatbubbles className="w-6 h-6" />
             <span>Chat</span>
-          </Link>
+          </div>
           <button
             className={`${data?.stock === 0 ? "cursor-not-allowed" : "cursor-pointer"} w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center`}
             onClick={handleClickBuyNow}

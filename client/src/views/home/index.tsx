@@ -199,16 +199,7 @@ const Home = () => {
               {products?.map((product: any) => (
                 <Card
                   key={product.id}
-                  brand={product.game.name}
-                  image={
-                    product.image
-                      ? `${Api.defaults.baseURL}/images/products/${product.image}`
-                      : `${Api.defaults.baseURL}/images/games/covers/${product.game.image}`
-                  }
-                  title={product.title}
-                  price={product.price}
-                  profile={`${Api.defaults.baseURL}/images/users/${product.user.picture}`}
-                  name_store={product.user.name}
+                  product={product}
                   onClick={()=>navigate ('/products/detail/'+ product.id)}
                 />
               ))}
