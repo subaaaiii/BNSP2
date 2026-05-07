@@ -9,7 +9,7 @@ import Api from "../../services/api";
 import ProductCardSkeleton from "../../components/skeleton/ProductCard";
 import CardSkeleton from "../../components/skeleton/Card";
 import GameCard from "../../components/GameCard";
-import banner_hero from "../../assets/banner_hero.png";
+import banner_hero from "../../assets/banner_hero2.png";
 import { SiAdguard } from "react-icons/si";
 import { FaCircleCheck } from "react-icons/fa6";
 import { BiSupport } from "react-icons/bi";
@@ -148,7 +148,7 @@ const Home = () => {
                 <img
                   src={banner_hero}
                   alt="banner hero"
-                  className="absolute md:static right-0 bottom-30 w-40 h-auto object-cover object-right opacity-40 md:opacity-100 md:w-90"
+                  className="absolute md:static right-0 bottom-30 w-50 h-auto object-cover object-right opacity-40 md:opacity-100 md:w-120"
                 />
               </div>
             </div>

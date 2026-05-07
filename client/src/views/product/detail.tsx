@@ -1,15 +1,15 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { AiFillHome, AiOutlineSafetyCertificate } from "react-icons/ai";
+import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { IoChatbubbles, IoTimerSharp } from "react-icons/io5";
 import { RiMedal2Line } from "react-icons/ri";
 import { IoMdThumbsUp } from "react-icons/io";
 import Footer from "../../components/footer";
 import { useGetProductById } from "../../hooks/product/useGetProductById";
-import { Link, useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import Api from "../../services/api";
 import { formattedPrice } from "../../helpers/formatted_price";
-import { FaChevronRight, FaStore } from "react-icons/fa6";
+import {  FaStore } from "react-icons/fa6";
 import TopNavbar from "../../components/top_navbar";
 import { useCreateOrder } from "../../hooks/order/useMakeOrder";
 import toast from "react-hot-toast";
@@ -25,6 +25,7 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 import { GoHome } from "react-icons/go";
+import { useSEO } from "../../hooks/helpers/useSEO";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
@@ -196,6 +197,11 @@ const DetailProduct = () => {
     }
     console.log("step", step);
   }, [orderData]);
+
+  useSEO({
+    title: `Buy ${data?.title}`,
+    description: `Cheap ${data?.game?.name} accounts with instant delivery`,
+  });
 
   if (isLoading) {
     return (

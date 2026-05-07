@@ -242,7 +242,7 @@ const Register = () => {
           )}
           <button
             type="submit"
-            className="hidden md:block btn bg-secondary1 mt-4"
+            className="hidden md:block p-3 rounded-md bg-secondary1 mt-4"
           >
             {isPending ? "Loading..." : "REGISTER"}
           </button>

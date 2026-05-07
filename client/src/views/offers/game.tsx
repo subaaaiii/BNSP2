@@ -6,6 +6,7 @@ import { FaAngleLeft } from "react-icons/fa6";
 import { IoIosInformationCircle } from "react-icons/io";
 import TopNavbar from "../../components/top_navbar";
 
+
 const SelectGameBrand = () => {
   const navigate = useNavigate();
   const [selected, setSelected] = useState("");

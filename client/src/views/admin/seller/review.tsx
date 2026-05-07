@@ -38,12 +38,16 @@ const ReviewSeller = () => {
     );
   };
 
+  const pendingSellers = sellers?.filter((s) => s.status === "pending") || [];
+
   return (
-    <div className="overflow-x-auto">
+    <div className="max-w-6xl mx-auto overflow-x-auto text-text">
       {!sellers?.some((seller) => seller.status === "pending") ? (
         <div className="flex flex-col items-center gap-4 py-10">
           <img src={noPendingImg} alt="No Pending Sellers" />
-          <h2 className="text-2xl font-semibold text-gray-400">No Pending Sellers Application</h2>
+          <h2 className="text-2xl font-semibold text-gray-400">
+            No Pending Sellers Application
+          </h2>
         </div>
       ) : (
         <table className="table table-auto">
@@ -53,13 +57,17 @@ const ReviewSeller = () => {
                 <label>
                   <input
                     type="checkbox"
-                    className="checkbox"
-                    checked={selected.length === sellers?.length}
+                    className="checkbox border border-text checked:bg-text"
+                    checked={
+                      selected.length ===
+                      (sellers?.filter((s) => s.status === "pending").length ||
+                        0)
+                    }
                     onChange={() =>
                       setSelected(
-                        selected.length === sellers?.length
+                        selected.length === pendingSellers.length
                           ? []
-                          : sellers?.map((s) => s.id) || [],
+                          : pendingSellers.map((s) => s.id),
                       )
                     }
                   />
@@ -77,12 +85,12 @@ const ReviewSeller = () => {
               .map((seller) => (
                 <tr
                   key={seller.id}
-                  className={selected.includes(seller.id) ? "bg-base-300" : ""}
+                  className={selected.includes(seller.id) ? "bg-surface" : ""}
                 >
                   <td>
                     <input
                       type="checkbox"
-                      className="checkbox"
+                      className="checkbox border-text checked:bg-text"
                       checked={selected.includes(seller.id)}
                       onChange={() => handleCheck(seller.id)}
                     />
@@ -150,7 +158,7 @@ const ReviewSeller = () => {
       )}
 
       {selected.length > 0 && (
-        <div className="fixed bottom-0 left-0 w-full bg-base-100 p-6 flex justify-center gap-4 items-center z-40 shadow-[0_-6px_10px_rgba(0,0,0,0.1)]">
+        <div className="fixed bottom-0 left-0 w-full bg-surface p-6 flex justify-center gap-4 items-center z-40 shadow-[0_-6px_10px_rgba(0,0,0,0.1)]">
           <span className="text-sm">{selected.length} selected</span>
 
           <div>

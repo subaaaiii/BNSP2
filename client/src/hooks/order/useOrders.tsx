@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 type filtersData = {
   status: string;
   q: string,
+  type: string,
 };
 
 export const useOrders = (filters: filtersData) => {

@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { useOrder } from "../../hooks/order/useOrder";
 import { formattedPrice } from "../../helpers/formatted_price";
 import { useContext, useEffect } from "react";
@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { AuthContext } from "../../context/AuthContext";
 import RestrictedPage from "../restricted";
 import { generateInvoice } from "../../helpers/create_invoice";
+import TopNavbar from "../../components/top_navbar";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -48,7 +49,9 @@ const OrderDetail = () => {
     );
   };
 
-  if (user?.id !== order?.seller_id && user?.id !== order?.user_id) {
+  
+
+  if (!isLoading && user?.id !== order?.seller_id && user?.id !== order?.user_id) {
   return <RestrictedPage />;
 }
 
@@ -61,7 +64,8 @@ const OrderDetail = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto px-3 md:px-0">
+      <TopNavbar title="Order detail"/>
       <div className="w-full mt-4">
         <div className="w-full flex justify-between py-3 mb-6">
           <div className="flex flex-col md:flex-row md:gap-3 md:items-center ">
@@ -205,21 +209,28 @@ const OrderDetail = () => {
                     <span className="text-xs">IDR</span>
                   </div>
 
-                  <div className="p-3 bg-secondary1 rounded-md text-bg flex gap-2 items-center">
+                  <Link className="p-3 bg-secondary1 rounded-md text-bg flex gap-2 items-center" to={"/chat/order/"+order.id}>
                     <IoChatbubbleEllipses />
                     chat
-                  </div>
+                  </Link>
                 </div>
-                <div className="mt-2 text-sm ">
+                {isSeller ? (
+                  <div className="mt-2 text-sm ">
                   bought by:{" "}
                   <span className="underline">{order.user.name}</span>
                 </div>
+                ) : (
+                  <div className="mt-2 text-sm ">
+                  Seller :{" "}
+                  <span className="underline">{order.seller.name}</span>
+                </div>
+                )}
               </div>
             </div>
             <div className="mt-4">
               <span className="text-2xl font-medium">Order summary</span>
-              <div className="grid grid-cols-2 mt-4 gap-3">
-                <div className="col-span-1 space-y-4">
+              <div className="md:grid md:grid-cols-2 mt-4 gap-3">
+                <div className="col-span-1 space-y-4 mb-4">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Brand game</span>
                     <span className="text-sm text-text">{order.product.game.name}</span>
@@ -255,7 +266,7 @@ const OrderDetail = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 mt-4 gap-3">
+              <div className="md:grid grid-cols-2 mt-4 gap-3">
                 <div className="col-span-1"></div>
                 <div className="col-span-1 bg-surface p-4 space-y-4">
                   <div className="flex justify-between">
@@ -272,15 +283,14 @@ const OrderDetail = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full shadow-[0_10px_20px_rgba(0,0,0,0.15)] p-5 mt-6 rounded-md mb-8 flex gap-3">
+            <div className="w-full shadow-[0_10px_20px_rgba(0,0,0,0.15)] p-5 mt-6 rounded-md mb-8 md:flex gap-3">
               <span>
                 Invoice available to download after payment has been released.{" "}
-                {"  "}
               </span>
-              <div className="flex items-center gap-1">
-                <FaDownload />
-                <button onClick={()=>generateInvoice(order, isSeller ? "seller" : "buyer")} className="underline">Download invoice</button>
-              </div>
+              <span className="inline-flex items-center gap-1">
+                <FaDownload className={`${order.status === "CONFIRMED" ? "" : "text-gray1"}`} />
+                <button disabled={order.status !== "CONFIRMED"} onClick={()=>generateInvoice(order, isSeller ? "seller" : "buyer")} className={`${order.status === "CONFIRMED" ? "cursor-pointer" : "text-gray1"} underline `}>Download invoice</button>
+              </span>
             </div>
           </>
         )}

@@ -117,7 +117,7 @@ const Login = () => {
           </Link>
           <button
             type="submit"
-            className="hidden md:block btn bg-[#C5A16F] mt-4 text-bg"
+            className="hidden md:block p-3 rounded-md bg-[#C5A16F] mt-4 text-bg"
           >
             {isPending ? "Loading..." : "LOGIN"}
           </button>

@@ -10,6 +10,7 @@
   --color-primary1: #2d3330;
   --color-primary2: #a6b6b2;
   --color-primary1-hover: #343a38;
+  --color-gray1: #6b7280;
 
   --color-secondary1: #C5A16F;
   --color-bgchat: #e3fbe7;
@@ -25,6 +26,8 @@
 
   --color-primary1: #f9fafb;
   --color-primary1-hover: #525957;
+  --color-gray1: #b8b8bd;
+
 
   /* --color-secondary1: #d4b486; */
   --color-bgchat: #2a6d65;

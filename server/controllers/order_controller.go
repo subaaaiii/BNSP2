@@ -213,6 +213,8 @@ func GetOrder(c *gin.Context) {
 
 	if err := database.DB.Preload("Product").Preload("Product.Game").Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id", "name")
+	}).Preload("Seller", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "name")
 	}).Preload("OrderLog", func(db *gorm.DB) *gorm.DB {
 		return db.Order("created_at desc")
 	}).First(&order, "id = ?", id).Error; err != nil {
@@ -235,7 +237,22 @@ func GetOrders(c *gin.Context) {
 	var orders []models.Order
 	userId := c.MustGet("user_id").(uint)
 
-	query := database.DB.Model(&models.Order{}).Where("seller_id = ?", userId)
+	query := database.DB.Model(&models.Order{})
+
+	orderType := c.DefaultQuery("type", "sold")
+
+	if orderType == "sold" {
+		query = query.Where("seller_id = ?", userId)
+	} else if orderType == "purchase" {
+		query = query.Where("user_id = ?", userId)
+	} else {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "invalid type (use 'sold' or 'purchase')",
+		})
+		return
+	}
+
 	status := c.Query("status")
 	q := c.Query("q")
 

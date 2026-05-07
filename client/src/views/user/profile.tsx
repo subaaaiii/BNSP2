@@ -11,6 +11,9 @@ type Props = {
 
 const UserProfile = ({ onClose }: Props) => {
   const { user, loading } = useContext(AuthContext)!;
+  const isAdmin = user?.role === "admin";
+  const isSeller = user?.role === "seller";
+  const isCustomer = user?.role === "customer";
   const logout = useLogout();
   return (
     <div className="w-full -mt-20 md:mt-0">
@@ -28,8 +31,12 @@ const UserProfile = ({ onClose }: Props) => {
               </div>
               <div>
                 <h2 className="font-medium text-text">{user.username}</h2>
-                <p className="text-sm text-gray-500 dark:text-white ">Type user: {user.role}</p>
-                <p className="text-sm text-gray-500 dark:text-white">Account ID: {user.id}</p>
+                <p className="text-sm text-gray-500 dark:text-white ">
+                  Type user: {user.role}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-white">
+                  Account ID: {user.id}
+                </p>
               </div>
             </div>
             <button className=" block md:hidden py-2 px-5 bg-neutral text-white rounded-md cursor-pointer">
@@ -44,23 +51,40 @@ const UserProfile = ({ onClose }: Props) => {
           >
             <li className="w-full px-1 py-2 text-text">
               <Link to="/settings">Settings</Link>
-            </li >
+            </li>
 
+            {isAdmin && (
+              <>
+                <li className="w-full px-1 py-2 text-text">
+                  <Link to="/admin/games"> Manage Games</Link>
+                </li>
+                <li className="w-full px-1 py-2 text-text">
+                  <Link to="/admin/review-sellers"> Review Sellers</Link>
+                </li>
+              </>
+            )}
+
+            {isSeller && (
+              <>
+                <li className="w-full px-1 py-2 text-text">
+                  <Link to="/offers/create">Create offers</Link>
+                </li>
+                <li className="w-full px-1 py-2 text-text">
+                  <Link to="/offers">Manage offers</Link>
+                </li>
+                <li className="w-full px-1 py-2 text-text">
+                  <Link to="/orders/sold">Sold orders</Link>
+                </li>
+              </>
+            )}
             <li className="w-full px-1 py-2 text-text">
-              <Link to="/admin/games"> Manage Games</Link>
+              <Link to="/orders/purchase">purchase orders</Link>
             </li>
-            <li className="w-full px-1 py-2 text-text">
-              <Link to="/offers/create">Create offers</Link>
-            </li>
-            <li className="w-full px-1 py-2 text-text">
-              <Link to="/offers">Manage offers</Link>
-            </li>
-            <li className="w-full px-1 py-2 text-text">
-              <Link to="/orders">Sold orders</Link>
-            </li>
-            <li className="w-full px-1 py-2 text-text">
-              <Link to="/admin/review-sellers"> Review Sellers</Link>
-            </li>
+            {isCustomer && (
+              <li className="w-full px-1 py-2 text-text">
+                <Link to="/become-seller">Start selling</Link>
+              </li>
+            )}
 
             <li className="w-full px-1 py-2 text-text">
               <button onClick={logout}>Logout</button>

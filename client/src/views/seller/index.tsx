@@ -1,17 +1,22 @@
 import { useNavigate } from "react-router";
+import { useSEO } from "../../hooks/helpers/useSEO";
 
 const BecomeSeller = () => {
   const navigate = useNavigate();
+  useSEO({
+      title: `Buy SubGAME official sellers`,
+      description: `Sell earn and grow with SubGAME together`,
+    });
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen bg-bg py-10 px-4">
+      <div className="max-w-4xl mx-auto bg-bg rounded-2xl shadow-lg p-8">
         
         {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
+        <h1 className="text-3xl font-bold text-text mb-4">
           Jadi Seller di Platform Kami 🚀
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray1 mb-6">
           Mulai jual akun game kamu dengan mudah dan jangkau lebih banyak
           pembeli tanpa ribet.
         </p>
@@ -22,7 +27,7 @@ const BecomeSeller = () => {
             Keuntungan Menjadi Seller
           </h2>
 
-          <ul className="list-disc pl-5 space-y-2 text-gray-700">
+          <ul className="list-disc pl-5 space-y-2 text-gray1">
             <li>Jangkauan pasar lebih luas</li>
             <li>Mudah mengelola produk & harga</li>
             <li>Sistem transaksi otomatis</li>
@@ -36,7 +41,7 @@ const BecomeSeller = () => {
             Persyaratan
           </h2>
 
-          <ul className="list-disc pl-5 space-y-2 text-gray-700">
+          <ul className="list-disc pl-5 space-y-2 text-gray1">
             <li>Memiliki akun aktif</li>
             <li>Produk yang dijual valid & tidak melanggar aturan</li>
             <li>Melengkapi data profil</li>
@@ -48,7 +53,7 @@ const BecomeSeller = () => {
         <div className="flex justify-end">
           <button
             onClick={() => navigate("/apply-seller")}
-            className="bg-neutral text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition cursor-pointer"
+            className="bg-secondary1 font-medium text-bg px-6 py-3 rounded-lg  transition cursor-pointer"
           >
             Ajukan Menjadi Seller
           </button>

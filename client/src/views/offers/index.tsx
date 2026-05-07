@@ -107,7 +107,14 @@ const ManageOffers = () => {
     setGameFilter("");
     setSelected([]);
   };
-  if (isLoading) return <div>Loading...</div>;
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-700 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-8 p-3 md:p-0 max-w-6xl mx-auto">

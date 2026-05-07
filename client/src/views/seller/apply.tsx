@@ -6,6 +6,7 @@ import { LiaCloudUploadAltSolid } from "react-icons/lia";
 import { useApplySeller } from "../../hooks/seller/useApplySeller";
 import { useCheckSeller } from "../../hooks/seller/useCheckSeller";
 import Api from "../../services/api";
+import { useSEO } from "../../hooks/helpers/useSEO";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -15,7 +16,6 @@ const SellerApply = () => {
   const navigate = useNavigate();
   const { data: sellerData } = useCheckSeller();
 
-  const [isEditing, setIsEditing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const { user } = useContext(AuthContext)!;
   const userId = user?.id;
@@ -59,7 +59,6 @@ const SellerApply = () => {
       });
     }
   }, [data]);
-
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -118,9 +117,14 @@ const SellerApply = () => {
       },
     );
   };
+
+  useSEO({
+    title: `Buy SubGAME official sellers`,
+    description: `Sell earn and grow with SubGAME together`,
+  });
   if (isLoading) {
     return (
-      <div className="mb-10 w-full rounded-2xl bg-white p-10 shadow-xl animate-pulse">
+      <div className="max-w-6xl mx-auto mb-10 w-full rounded-2xl bg-white p-10 shadow-xl animate-pulse">
         <div className="flex flex-col md:flex-row justify-between mb-5">
           <div className="space-y-4 w-full">
             <div className="h-10 bg-gray-200 rounded w-40"></div>
@@ -144,16 +148,18 @@ const SellerApply = () => {
   }
 
   return (
-    <div className="font-std mb-10 w-full rounded-2xl bg-white p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
+    <div className="max-w-6xl mx-auto font-std  w-full rounded-2xl bg-bg p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
       <div className="flex flex-col">
-        <h2 className="text-2xl font-bold text-blue-900">
+        <h2 className="text-2xl font-bold text-text">
           {sellerData ? "Seller Application Status" : "Apply as a Seller"}
         </h2>
 
-        <p className="mt-2 text-gray-600 leading-relaxed">
+        <p className="mt-2 text-gray1 leading-relaxed">
           {sellerData?.status === "pending"
             ? "Your application is currently under review. Please wait while our team verifies your information."
-            : sellerData?.status=="rejected"? "Your seller application has been rejected" : "Complete your profile and upload your identification documents to start selling."}
+            : sellerData?.status == "rejected"
+              ? "Your seller application has been rejected"
+              : "Complete your profile and upload your identification documents to start selling."}
         </p>
 
         <div
@@ -198,11 +204,11 @@ const SellerApply = () => {
             >
               <label
                 htmlFor="identity_number"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray1"
               >
                 Identity Image
               </label>
-              <div className="w-80 aspect-[1.6/1] border rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="w-80 aspect-[1.6/1] border border-gray1 rounded-lg flex items-center justify-center overflow-hidden">
                 {preview ? (
                   <img
                     src={preview}
@@ -210,13 +216,11 @@ const SellerApply = () => {
                   />
                 ) : (
                   <div className="flex flex-col items-center">
-                    <LiaCloudUploadAltSolid className="text-gray-700 text-4xl" />
-                    <p className="text-gray-700 text-sm font-medium">
+                    <LiaCloudUploadAltSolid className="text-gray1 text-4xl" />
+                    <p className="text-gray1 text-sm font-medium">
                       Upload Identity Image
                     </p>
-                    <p className="text-gray-700 text-xs">
-                      PNG or JPG (max 2MB)
-                    </p>
+                    <p className="text-gray1 text-xs">PNG or JPG (max 2MB)</p>
                   </div>
                 )}
               </div>
@@ -243,7 +247,7 @@ const SellerApply = () => {
           <div>
             <label
               htmlFor="identity_number"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray1"
             >
               Identity Number
             </label>
@@ -253,7 +257,7 @@ const SellerApply = () => {
               value={form.identity_number}
               onChange={handleChange}
               disabled={sellerData}
-              className={`${errors.IdentityNumber ? "input-error" : ""} w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
+              className={`${errors.IdentityNumber ? "input-error" : ""} w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 bg-surface text-text border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.IdentityNumber && (
               <div className="text-error">
@@ -264,7 +268,7 @@ const SellerApply = () => {
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray1"
             >
               Name
             </label>
@@ -274,7 +278,7 @@ const SellerApply = () => {
               value={form.name}
               onChange={handleChange}
               disabled={sellerData}
-              className={`${errors.Name ? "input-error" : ""} w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
+              className={`${errors.Name ? "input-error" : ""} w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 bg-surface text-text border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Name && (
               <div className="text-error">
@@ -285,7 +289,7 @@ const SellerApply = () => {
           <div>
             <label
               htmlFor="birthday"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray1"
             >
               Birthday
             </label>
@@ -295,7 +299,7 @@ const SellerApply = () => {
               value={form.birthday}
               onChange={handleChange}
               disabled={sellerData}
-              className={`${errors.Birthday ? "input-error" : ""}w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
+              className={`${errors.Birthday ? "input-error" : ""}w-full disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 bg-surface text-text border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Birthday && (
               <div className="text-error">
@@ -307,11 +311,11 @@ const SellerApply = () => {
           <div>
             <label
               htmlFor="gender"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray1"
             >
               Gender
             </label>
-            <div className="flex gap-4">
+            <div className="flex gap-4 text-gray1">
               <label>
                 <input
                   type="checkbox"
@@ -320,7 +324,7 @@ const SellerApply = () => {
                   checked={form.gender === "male"}
                   disabled={sellerData}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                  className="checkbox checkbox-sm"
+                  className="checkbox checkbox-sm border-gray1 checked:bg-text "
                 />
                 Male
               </label>
@@ -333,7 +337,7 @@ const SellerApply = () => {
                   checked={form.gender === "female"}
                   disabled={sellerData}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                  className="checkbox checkbox-sm"
+                  className="checkbox checkbox-sm border-gray1 checked:bg-text "
                 />
                 Female
               </label>
@@ -347,13 +351,13 @@ const SellerApply = () => {
           <div>
             <label
               htmlFor="address"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray1"
             >
               Address
             </label>
             <textarea
               placeholder="address"
-              className={`${errors.Name ? "input-error" : ""} w-full textarea textarea-md`}
+              className={`${errors.Name ? "input-error" : ""} w-full bg-surface text-text textarea textarea-md`}
               name="address"
               value={form.address}
               onChange={handleChange}
@@ -369,16 +373,8 @@ const SellerApply = () => {
           {!sellerData && (
             <div className="flex justify-end space-x-4">
               <button
-                type="button"
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </button>
-
-              <button
                 type="submit"
-                className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-700"
+                className="px-4 py-2 bg-secondary1 text-bg rounded-lg"
               >
                 {isPending ? "Loading..." : "Apply Now"}
               </button>

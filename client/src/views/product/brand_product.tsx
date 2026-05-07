@@ -1,6 +1,5 @@
 import { IoFilter, IoSearch } from "react-icons/io5";
 import { useGetProductsPublic } from "../../hooks/product/useGetProductPublic";
-import Api from "../../services/api";
 import { useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
 import Card from "../../components/card";
@@ -13,8 +12,11 @@ import Footer from "../../components/footer";
 import { useNavigate } from "react-router";
 import TopNavbar from "../../components/top_navbar";
 import { GoHome } from "react-icons/go";
+import { useSEO } from "../../hooks/helpers/useSEO";
+
 
 const BrandProducts = () => {
+  
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const game_id = searchParams.get("brand");
@@ -69,6 +71,11 @@ const BrandProducts = () => {
 
   const products = productData?.data;
   const meta = productData?.meta;
+
+  useSEO({
+  title: `Buy ${data?.name} Account | SubGAME`,
+  description: `Cheap ${data?.name} accounts with instant delivery`,
+});
 
   return (
     <div className="mt-4 md:mt-8">

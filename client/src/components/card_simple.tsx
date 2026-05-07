@@ -7,7 +7,7 @@ const CardSimple = ({ product, onClick }: any) => {
 
   return (
     <div
-      className="card flex flex-row bg-bg  rounded-md min-w-0 items-center"
+      className="card flex flex-row rounded-md min-w-0 items-center"
       onClick={onClick}
     >
       <img
@@ -22,7 +22,7 @@ const CardSimple = ({ product, onClick }: any) => {
       />
 
       <div className="flex flex-col flex-1 gap-1 px-3 md:px-6 py-1 md:py-3 cursor-pointer min-w-0">
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray1">
           {product.game.name}
         </span>
 
@@ -33,7 +33,7 @@ const CardSimple = ({ product, onClick }: any) => {
         <span className="text-sm font-semibold text-secondary1">
           Rp. {formattedPrice}
         </span>
-        <span className="text-sm">
+        <span className="text-sm text-text">
           ({product.stock} available)
         </span>
       </div>

@@ -12,6 +12,7 @@ type Order struct {
 	Total     int    `gorm:"not null" json:"total"`
 	Status    string `gorm:"not null" json:"status"`
 
+	Seller   User       `gorm:"foreignKey:SellerId" json:"seller"`
 	User     User       `gorm:"foreignKey:UserId" json:"user"`
 	Product  Product    `gorm:"foreignKey:ProductId" json:"product"`
 	OrderLog []OrderLog `gorm:"foreignKey:OrderID" json:"order_log"`

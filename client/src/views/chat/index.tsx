@@ -1,6 +1,5 @@
-import { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef, useMemo } from "react";
 import Pusher from "pusher-js";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { AuthContext } from "../../context/AuthContext";
 import { useChatList } from "../../hooks/chat/useChatList";
@@ -16,28 +15,79 @@ import toast from "react-hot-toast";
 import CardSimple from "../../components/card_simple";
 import { useProductBatch } from "../../hooks/product/useProductBatch";
 import { useOrderBatch } from "../../hooks/order/useOrderBatch";
+import { useOrder } from "../../hooks/order/useOrder";
+import OrderCardSimple from "../../components/order_card_simple";
 
 const Chat = () => {
   const { id } = useParams();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [targetUserId, setTargetUserId] = useState("");
-  const { data } = useGetProductById(id);
+
+  const location = useLocation();
+
+  const isProductChat = location.pathname.includes("/chat/offer");
+
+  const [askProduct, SetAskProduct] = useState(false);
+  useEffect(() => {
+    if (isProductChat) {
+      SetAskProduct(true);
+      setInput("May I know this offer available and how long delivery takes");
+    }
+  }, [isProductChat]);
+
+  const isOrderChat = location.pathname.includes("/chat/order");
+  const [askOrder, SetAskOrder] = useState(false);
+
+  useEffect(() => {
+    if (isOrderChat) {
+      SetAskOrder(true);
+      setInput("Let's talk about this order");
+    }
+  }, [isOrderChat]);
+
+  const idFetchOder = isOrderChat ? id : undefined;
+
+  const { data: orderData } = useOrder(idFetchOder);
+
+  const idFetchProduct = isProductChat ? id : undefined;
+
+  const { data: product } = useGetProductById(idFetchProduct);
 
   const { user } = useContext(AuthContext)!;
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!id || !data) return;
+    if (!id || !product) return;
 
-    if (String(data.user.id) === String(user?.id)) {
+    if (String(product.user.id) === String(user?.id)) {
       toast.error("You cannot message yourself");
       navigate("/chat");
       return;
     }
 
-    setTargetUserId(data.user.id);
-  }, [id, data, user]);
+    setTargetUserId(product.user.id);
+  }, [id, product, user]);
+
+  useEffect(() => {
+    if (!id || !orderData || !user?.id) return;
+
+    let targetId = "";
+
+    if (String(user.id) === String(orderData.user_id)) {
+      targetId = orderData.seller_id;
+    } else if (String(user.id) === String(orderData.seller_id)) {
+      targetId = orderData.user_id;
+    }
+
+    if (!targetId) return;
+
+    setTargetUserId(String(targetId));
+  }, [id, orderData, user]);
+
+  useEffect(() => {
+    console.log("data order", orderData);
+  }, [orderData]);
 
   useEffect(() => {
     if (!id) {
@@ -89,8 +139,8 @@ const Chat = () => {
     channel.bind("new-message", (data: any) => {
       console.log("RECEIVED:", data);
       setMessages((prev) => {
-        if (!Array.isArray(prev)) return [data];
-        return [...prev, data];
+        const newMessages = [...prev, data];
+        return newMessages;
       });
     });
 
@@ -100,52 +150,36 @@ const Chat = () => {
     };
   }, [user?.id, token]);
 
-  const location = useLocation();
-
-const isProductChat = location.pathname.includes("/chat/offer");
-const [askProduct, SetAskProduct] = useState(false);
-useEffect (()=>{
-  if (isProductChat){
-    SetAskProduct(true);
-    setInput("May I know this offer available and how long delivery takes")
-  }
-}, [isProductChat])
-
-const isOrderChat = location.pathname.includes("/chat/order");
-const [askOrder, SetAskOrder] = useState(false);
-
-
-useEffect (()=>{
-  if (isOrderChat){
-    SetAskOrder(true);
-  }
-}, [isOrderChat])
-
   const sendMessage = async () => {
     if (!input || !targetUserId) return;
 
     const payload: any = {
-    to: targetUserId.toString(),
-    message: input,
-  };
+      to: targetUserId.toString(),
+      message: input,
+    };
 
-  if (askOrder) {
-    payload.order_id = id;
-  } 
-  if (askProduct) {
-    payload.product_id = id;
-  }
+    if (askOrder) {
+      payload.order_id = id;
+    }
+    if (askProduct) {
+      payload.product_id = id;
+    }
 
     try {
-      await Api.post(
-        "/api/chat/send",payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      await Api.post("/api/chat/send", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
       setInput("");
+      SetAskProduct(false);
+      SetAskOrder(false);
+      const refreshed = await Api.get("/api/chat/messages", {
+  params: { target_id: targetUserId },
+  headers: { Authorization: `Bearer ${token}` },
+});
+
+setMessages(Array.isArray(refreshed.data) ? refreshed.data : []);
     } catch (err: any) {
       if (err.response) {
         console.error("Server error:", err.response.data);
@@ -218,31 +252,38 @@ useEffect (()=>{
     ? chatList.find((c: any) => String(c.user_id) === String(targetUserId))
     : null;
 
-    const {data:product} = useGetProductById(id);
+  useEffect(() => {
+    console.log("messages", messages);
+  }, [messages]);
 
-useEffect(() => {
-    console.log("messages", messages)
-  }, [messages]);  
+  const productIds = useMemo(() => {
+    return [
+      ...new Set(
+        messages.map((m) => m.product_id).filter((id): id is number => !!id),
+      ),
+    ];
+  }, [messages]);
 
-  const productIds = [
-  ...new Set(messages.map(m => m.product_id).filter((id): id is number => !!id))
-]
+  const orderIds = useMemo(() => {
+    return [
+      ...new Set(
+        messages.map((m) => m.order_id).filter((id): id is string => !!id),
+      ),
+    ];
+  }, [messages]);
 
-const orderIds = [
-  ...new Set(messages.map(m => m.order_id).filter((id): id is string => !!id))
-]
+  const { data: products } = useProductBatch(productIds);
+  const { data: orders } = useOrderBatch(orderIds);
 
-const {data:products} = useProductBatch(productIds);
-const {data:orders} = useOrderBatch(orderIds);
+  const productMap = Object.fromEntries(
+    (products || []).map((p: any) => [p.id, p]),
+  );
 
-const productMap = Object.fromEntries(
-  (products || []).map((p: any) => [p.id, p])
-)
+  const orderMap = Object.fromEntries(
+    (orders || []).map((o: any) => [o.id, o]),
+  );
 
-const orderMap = Object.fromEntries(
-  (orders || []).map((o: any) => [o.id, o])
-)
-
+  
 
   return (
     <div className=" max-w-7xl mx-auto shadow grid grid-cols-4 -mt-20 -mb-20">
@@ -329,6 +370,9 @@ const orderMap = Object.fromEntries(
             className={`space-y-3 flex justify-between items-center hover:bg-surface-hover px-3 py-2 cursor-pointer ${list.user_id === activeChat?.user_id ? "bg-surface" : ""}`}
             onClick={() => {
               setTargetUserId(list.user_id);
+              SetAskOrder(false);
+              SetAskProduct(false);
+              setInput("");
             }}
           >
             <div className="flex gap-2 items-center min-w-0 overflow-hidden">
@@ -341,7 +385,9 @@ const orderMap = Object.fromEntries(
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-text">{list.name}</div>
-                <span className="text-sm text-gray-500 truncate block">{list.message}</span>
+                <span className="text-sm text-gray-500 truncate block">
+                  {list.message}
+                </span>
               </div>
             </div>
             <div className="text-text text-sm flex-shrink-0">
@@ -362,7 +408,7 @@ const orderMap = Object.fromEntries(
               >
                 <IoIosArrowBack className="w-5 h-5" />
               </div>
-              {activeChat?.name || data?.user?.name}
+              {activeChat?.name || product?.user?.name}
             </div>
             <hr className="border-gray-300" />
 
@@ -383,7 +429,7 @@ const orderMap = Object.fromEntries(
                   <div key={i}>
                     {showDate && (
                       <div className="flex justify-center my-3 relative">
-                        <span className="text-xs bg-surface z-4 text-gray-600 px-5 py-1 rounded-full">
+                        <span className="text-xs bg-surface z-4 text-gray1 px-5 py-1 rounded-full">
                           {formatDateGroup(msg.timestamp)}
                         </span>
                         <hr className="h-[1px] w-full bg-gray-200 border-0 absolute top-1/2 translate-y-1/2 z-2" />
@@ -392,31 +438,81 @@ const orderMap = Object.fromEntries(
 
                     {/*  message */}
                     <div
-                      className={`mb-2 flex ${
+                      className={`mb-2 flex w-full ${
                         String(msg.from) === String(user?.id)
                           ? "justify-end"
                           : "justify-start"
                       }`}
                     >
-                      <div
-                        className={`w-fit min-w-20 flex flex-col px-3 py-2 rounded-lg ${
-                          String(msg.from) === String(user?.id)
-                            ? "bg-bgchat"
-                            : "bg-surface"
-                        }`}
-                        ref={bottomRef}
-                      >
-                        <span className="mb-2 text-text ">{msg.message}</span>
-                        {msg.product_id && productMap[msg.product_id] && (
-      <CardSimple product={productMap[msg.product_id]} />
-    )}
+                      <div className="min-w-20 max-w-[80%] ">
+                        <div className="mb-2">
+                          {msg.product_id && productMap[msg.product_id] && (
+                            <div
+                              className={`px-3 py-2 rounded-lg ${
+                                String(msg.from) === String(user?.id)
+                                  ? "bg-bgchat"
+                                  : "bg-surface"
+                              }`}
+                            >
+                              <div className="py-2">
+                                <span className="font-semibold text-text">
+                                  offer{" "}
+                                </span>
+                                <span className="text-sm text-gray1">
+                                  (#{msg.product_id})
+                                </span>
+                              </div>
+                              <hr className="border-gray-300 -mx-3" />
+                              {msg.product_id && (
+                                <div>
+                                  {productMap[msg.product_id] ? (
+                                    <CardSimple
+                                      product={productMap[msg.product_id]}
+                                    />
+                                  ) : (
+                                    <div className="text-xs text-gray-400">
+                                      Loading product...
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
 
-    {msg.order_id && orderMap[msg.order_id] && (
-      <div>Invoice: {orderMap[msg.order_id].invoice}</div>
-    )}
-                        <span className="text-right text-xs text-gray-400">
-                          {formatTime(msg.timestamp)}
-                        </span>
+                          {msg.order_id && orderMap[msg.order_id] && (
+                            <div
+                              className={`px-3 py-2 rounded-lg ${
+                                String(msg.from) === String(user?.id)
+                                  ? "bg-bgchat"
+                                  : "bg-surface"
+                              }`}
+                            >
+                              <div className="py-2">
+                                <span className="font-semibold text-text">
+                                  order{" "}
+                                </span>
+                                <span className="text-sm text-gray1">
+                                  (#{orderMap[msg.order_id].invoice})
+                                </span>
+                              </div>
+                              <hr className="border-gray-300 -mx-3" />
+                              <OrderCardSimple order={orderMap[msg.order_id]} />
+                            </div>
+                          )}
+                        </div>
+                        <div
+                          className={`flex flex-col px-3 py-2 rounded-lg ${
+                            String(msg.from) === String(user?.id)
+                              ? "bg-bgchat"
+                              : "bg-surface"
+                          }`}
+                          ref={bottomRef}
+                        >
+                          <span className="mb-2 text-text ">{msg.message}</span>
+                          <span className="text-right text-xs text-gray-400">
+                            {formatTime(msg.timestamp)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -426,24 +522,57 @@ const orderMap = Object.fromEntries(
 
             <div className="absolute bottom-0 left-0 right-0 text-text p-4 ">
               {askProduct && (
-                <div className="border rounded-t-lg border-gray-300">
+                <div className="border rounded-t-lg border-gray-300 bg-bg">
                   <div className="flex justify-between px-4 py-2">
                     <div>
-                      <span className="font-semibold text-text">offer </span><span className="text-sm text-gray-500">(#{product.id})</span>
+                      <span className="font-semibold text-text">offer </span>
+                      <span className="text-sm text-gray-500">
+                        (#{product.id})
+                      </span>
                     </div>
-                    <button onClick={()=>SetAskProduct(false)}>x</button>
+                    <button
+                      onClick={() => {
+                        SetAskProduct(false);
+                        setInput("");
+                      }}
+                    >
+                      x
+                    </button>
                   </div>
-                  <hr className="border-gray-300"/>
+                  <hr className="border-gray-300" />
                   <div className="px-4">
                     <CardSimple
-                  key={product.id}
-                  product={product}
-                  onClick={()=>navigate ('/products/detail/'+ product.id)}
-                />
+                      key={product.id}
+                      product={product}
+                      onClick={() => navigate("/products/detail/" + product.id)}
+                    />
                   </div>
                 </div>
-              )
-              }
+              )}
+              {askOrder && (
+                <div className="border rounded-t-lg border-gray-300 bg-bg">
+                  <div className="flex justify-between px-4 py-2">
+                    <div>
+                      <span className="font-semibold text-text">order </span>
+                      <span className="text-sm text-gray-500">
+                        (#{orderData.invoice})
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        SetAskOrder(false);
+                        setInput("");
+                      }}
+                    >
+                      x
+                    </button>
+                  </div>
+                  <hr className="border-gray-300" />
+                  <div className="px-4">
+                    <OrderCardSimple order={orderData} />
+                  </div>
+                </div>
+              )}
               <div className="max-w-7xl mx-auto flex gap-2 bg-bg border border-gray-300 p-4 rounded-b-lg ">
                 <input
                   value={input}
@@ -452,10 +581,7 @@ const orderMap = Object.fromEntries(
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none   "
                 />
                 <button
-                  onClick={()=>{sendMessage
-                    SetAskProduct(false)
-                    SetAskOrder(false)
-                  }}
+                  onClick={sendMessage}
                   className="w-10 h-10 cursor-pointer text-white rounded-full bg-[#C5A16F] flex justify-center items-center "
                 >
                   <IoMdSend className="w-5 h-5" />

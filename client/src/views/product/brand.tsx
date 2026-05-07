@@ -4,12 +4,16 @@ import { useGames } from "../../hooks/game/useGames";
 import CardSkeleton from "../../components/skeleton/Card";
 import GameCard from "../../components/GameCard";
 import TopNavbar from "../../components/top_navbar";
+import { useSEO } from "../../hooks/helpers/useSEO";
 
 const Brand = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useGames({page:1, limit:1000});
 
-
+useSEO({
+  title: `Buy Game Account | SubGAME`,
+  description: `Cheap game accounts with instant delivery`,
+});
   return (
     <div className="max-w-6xl mx-auto px-3 md:px-0">
       <TopNavbar title={`All brand games`}/>

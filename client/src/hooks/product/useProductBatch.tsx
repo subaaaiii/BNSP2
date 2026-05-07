@@ -3,7 +3,7 @@ import Api from "../../services/api";
 
 export const useProductBatch = (productIds: number[]) => {
   return useQuery({
-    queryKey: ["products", productIds.sort()], 
+     queryKey: ["products", productIds], 
     queryFn: async () => {
       const res = await Api.get(`/api/products/batch`, {
         params: { ids: productIds.join(",") },
