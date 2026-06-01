@@ -7,7 +7,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// LoadEnv membaca file .env
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
@@ -15,7 +14,6 @@ func LoadEnv() {
 	}
 }
 
-// GetEnv mengambil nilai dari environment variable
 func GetEnv(key string, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
@@ -24,6 +22,10 @@ func GetEnv(key string, defaultValue string) string {
 	return value
 }
 
-func GetJWTKey() []byte {
-	return []byte(GetEnv("JWT_SECRET", "jwt_secret"))
+func GetJWTAccessKey() []byte {
+	return []byte(GetEnv("JWT_ACCESS_SECRET", "secret"))
+}
+
+func GetJWTRefreshKey() []byte {
+	return []byte(GetEnv("JWT_REFRESH_SECRET", "secret2"))
 }

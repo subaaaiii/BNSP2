@@ -14,7 +14,11 @@ const UserProfile = ({ onClose }: Props) => {
   const isAdmin = user?.role === "admin";
   const isSeller = user?.role === "seller";
   const isCustomer = user?.role === "customer";
-  const logout = useLogout();
+  const { mutate } = useLogout();
+
+  const logout = () => {
+  mutate();
+};
   return (
     <div className="w-full -mt-20 md:mt-0">
       {loading ? null : user ? (

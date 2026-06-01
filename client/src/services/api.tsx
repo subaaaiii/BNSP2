@@ -1,34 +1,34 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 
 const Api = axios.create({
-  baseURL: "http://localhost:8080", // sesuaikan
+  baseURL: "http://localhost:8080",
+  withCredentials: true,
 });
 
-// 🔥 AUTO ATTACH TOKEN
-Api.interceptors.request.use((config) => {
-  const token = Cookies.get("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
-// 🔥 AUTO LOGOUT kalau 401
 Api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      Cookies.remove("token");
 
-      // optional: redirect paksa
-      window.location.href = "/login";
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== "/api/auth/refresh"
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        await Api.post("/api/auth/refresh");
+
+        return Api(originalRequest);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default Api;

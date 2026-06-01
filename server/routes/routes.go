@@ -15,10 +15,11 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders: []string{"Content-Length"},
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
 	}))
 
 	// route register
@@ -26,6 +27,8 @@ func SetupRouter() *gin.Engine {
 	router.POST("/api/register", controllers.Register)
 	router.GET("/api/me", middlewares.AuthMiddleware(), controllers.Me)
 	router.POST("/api/login", controllers.Login)
+	router.POST("/api/logout", controllers.Logout)
+	router.POST("/api/auth/refresh", handlers.Refresh)
 	// router.GET("/api/users", controllers.FindUsers)
 	router.GET("/api/users", middlewares.AuthMiddleware(), middlewares.AdminOnly(), controllers.FindUsers)
 	router.GET("/api/users/:id", middlewares.AuthMiddleware(), middlewares.OwnerOrAdmin(), controllers.FindUserById)

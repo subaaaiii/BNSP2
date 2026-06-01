@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
 
 import Api from "../../services/api";
 
@@ -18,7 +18,7 @@ export const useLogin = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      Cookies.set("token", data.data.token);
+      // Cookies.set("token", data.data.token);
       queryClient.setQueryData(["me"], data.data);
       queryClient.invalidateQueries({ queryKey: ["me"] });
     },

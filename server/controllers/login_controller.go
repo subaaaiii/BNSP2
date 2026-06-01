@@ -13,11 +13,9 @@ import (
 
 func Login(c *gin.Context) {
 
-	// Inisialisasi struct untuk menampung data dari request
 	var req = structs.UserLoginRequest{}
 	var user = models.User{}
 
-	// Validasi input dari request body menggunakan ShouldBindJSON
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
 			Success: false,
@@ -27,8 +25,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Cari user berdasarkan username yang diberikan di database
-	// Jika tidak ditemukan, kirimkan respons error Unauthorized
 	if err := database.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
 			Success: false,
@@ -38,8 +34,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Bandingkan password yang dimasukkan dengan password yang sudah di-hash di database
-	// Jika tidak cocok, kirimkan respons error Unauthorized
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
 			Success: false,
@@ -51,10 +45,29 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Jika login berhasil, generate token untuk user
-	token := helpers.GenerateToken(user.Id, user.Role)
+	accessToken := helpers.GenerateAccessToken(user.Id, user.Role)
+	refreshToken := helpers.GenerateRefreshToken(user.Id, user.Role)
 
-	// Kirimkan response sukses dengan status OK dan data user serta token
+	c.SetCookie(
+		"access_token",
+		accessToken,
+		900,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.SetCookie(
+		"refresh_token",
+		refreshToken,
+		604800,
+		"/api/auth/refresh",
+		"",
+		false,
+		true,
+	)
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Login Success",
@@ -65,9 +78,36 @@ func Login(c *gin.Context) {
 			Email:     user.Email,
 			CreatedAt: user.CreatedAt.String(),
 			UpdatedAt: user.UpdatedAt.String(),
-			Token:     &token,
 			Role:      user.Role,
 			Picture:   user.Picture,
 		},
+	})
+}
+
+func Logout(c *gin.Context) {
+
+	c.SetCookie(
+		"access_token",
+		"",
+		-1,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.SetCookie(
+		"refresh_token",
+		"",
+		-1,
+		"/api/auth/refresh",
+		"",
+		false,
+		true,
+	)
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Logout success",
 	})
 }

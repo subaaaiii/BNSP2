@@ -3,44 +3,44 @@ package middlewares
 import (
 	"bnsp2/server/config"
 	"bnsp2/server/helpers"
-	"net/http"
-	"strconv"
-	"strings"
-
+	"bnsp2/server/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
+	"strconv"
 )
 
-var jwtKey = config.GetJWTKey()
+var accessKey = config.GetJWTAccessKey()
 
 func AuthMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
-		tokenString := c.GetHeader("Authorization")
+		tokenString, err := c.Cookie("access_token")
 
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Token is required",
-			})
-			c.Abort()
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, structs.ErrorResponse{
+				Success: false,
+				Message: "unauthorized",
+			},
+			)
 			return
 		}
 
-		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-
 		claims := &helpers.JWTClaims{}
 
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-
-			return jwtKey, nil
-		})
+		token, err := jwt.ParseWithClaims(
+			tokenString,
+			claims,
+			func(token *jwt.Token) (interface{}, error) {
+				return accessKey, nil
+			})
 
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid token",
+			c.AbortWithStatusJSON(http.StatusUnauthorized, structs.ErrorResponse{
+				Success: false,
+				Message: "Invalid token",
 			})
-			c.Abort()
 			return
 		}
 
@@ -56,8 +56,9 @@ func AdminOnly() gin.HandlerFunc {
 
 		roleValue, exists := c.Get("role")
 		if !exists {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Role not found",
+			c.JSON(http.StatusForbidden, structs.ErrorResponse{
+				Success: false,
+				Message: "Role not found",
 			})
 			c.Abort()
 			return
@@ -65,8 +66,9 @@ func AdminOnly() gin.HandlerFunc {
 
 		role, ok := roleValue.(string)
 		if !ok || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Access denied. Admin only.",
+			c.JSON(http.StatusForbidden, structs.ErrorResponse{
+				Success: false,
+				Message: "Action forbidden",
 			})
 			c.Abort()
 			return
@@ -85,7 +87,10 @@ func OwnerOrAdmin() gin.HandlerFunc {
 		role, _ := c.Get("role")
 
 		if role != "admin" && uint(id) != user_id.(uint) {
-			c.JSON(403, gin.H{"error": "Forbidden"})
+			c.JSON(http.StatusForbidden, structs.ErrorResponse{
+				Success: false,
+				Message: "Action forbidden",
+			})
 			c.Abort()
 			return
 		}

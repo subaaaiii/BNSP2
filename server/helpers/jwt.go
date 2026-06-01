@@ -7,16 +7,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Nilai secret diambil dari environment variable JWT_SECRET
-var jwtKey = config.GetJWTKey()
+var accessKey = config.GetJWTAccessKey()
+var refreshKey = config.GetJWTRefreshKey()
 
-func GenerateToken(user_id uint, role string) string {
+func GenerateAccessToken(user_id uint, role string) string {
 
-	// Mengatur waktu kedaluwarsa token, di sini kita set 60 menit dari waktu sekarang
-	expirationTime := time.Now().Add(60 * time.Minute)
+	expirationTime := time.Now().Add(15 * time.Minute)
 
-	// Membuat klaim (claims) JWT
-	// Subject berisi , dan ExpiresAt menentukan waktu expired token
 	claims := &JWTClaims{
 		UserId: user_id,
 		Role:   role,
@@ -26,21 +23,32 @@ func GenerateToken(user_id uint, role string) string {
 		},
 	}
 
-	// Membuat token baru dengan klaim yang telah dibuat
-	// Menggunakan algoritma HS256 untuk menandatangani token
-	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtKey)
+	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(accessKey)
 
-	// Mengembalikan token dalam bentuk string
 	return token
 }
 
+func GenerateRefreshToken(user_id uint, role string) string {
+
+	expirationTime := time.Now().Add(7 * 24 * time.Hour)
+
+	claims := &JWTClaims{
+		UserId: user_id,
+		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(refreshKey)
+
+	return token
+}
 func GenerateResetToken(user_id uint) string {
 
-	// Mengatur waktu kedaluwarsa token, di sini kita set 10 menit dari waktu sekarang
 	expirationTime := time.Now().Add(10 * time.Minute)
 
-	// Membuat klaim (claims) JWT
-	// Subject berisi , dan ExpiresAt menentukan waktu expired token
 	claims := &JWTClaims{
 		UserId: user_id,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -49,10 +57,7 @@ func GenerateResetToken(user_id uint) string {
 		},
 	}
 
-	// Membuat token baru dengan klaim yang telah dibuat
-	// Menggunakan algoritma HS256 untuk menandatangani token
-	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtKey)
+	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(refreshKey)
 
-	// Mengembalikan token dalam bentuk string
 	return token
 }
