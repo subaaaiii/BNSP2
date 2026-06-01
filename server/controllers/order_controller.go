@@ -287,7 +287,8 @@ func GetOrders(c *gin.Context) {
 		return
 	}
 
-	if err := query.Preload("Product").Limit(limit).
+	if err := query.Preload("Product").
+		Order("created_at DESC").Limit(limit).
 		Offset(offset).Find(&orders).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,

@@ -23,7 +23,7 @@ import Footer from "../../components/footer";
 const Home = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { data } = useGames({ page: 1, limit: 3 });
+  const { data } = useGames({ page: 1, limit: 999 });
   const { data: favoriteGames } = useGames({ page: 1, limit: 6 });
   const navigate = useNavigate();
   const { data: productData, isLoading } = useGetProductsPublic({
@@ -105,7 +105,7 @@ const Home = () => {
                       </div>
                       <div className="flex">
                         {filtered.length > 0 ? (
-                          filtered.map((item: any) => (
+                          filtered.slice(0, 3).map((item: any) => (
                             <div
                               key={item.id}
                               className="ml-4 mb-8 mt-2 text-xs md:text-sm px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-200 cursor-pointer"

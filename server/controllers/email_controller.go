@@ -43,7 +43,7 @@ func SendEmailOTP(c *gin.Context) {
 
 	// simpan OTP ke database
 	user.EmailOTP = otp
-	user.OTPExpiresAt = expired
+	user.OTPExpiresAt = &expired
 
 	database.DB.Save(&user)
 
@@ -102,7 +102,7 @@ func VerifyEmailOTP(c *gin.Context) {
 	}
 
 	// cek expired
-	if time.Now().After(user.OTPExpiresAt) {
+	if user.OTPExpiresAt == nil || time.Now().After(*user.OTPExpiresAt) {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
 			Message: "OTP expired",
@@ -112,7 +112,7 @@ func VerifyEmailOTP(c *gin.Context) {
 
 	// update email (optional tergantung flow)
 	user.EmailOTP = ""
-	user.OTPExpiresAt = time.Time{} // reset
+	user.OTPExpiresAt = nil // reset
 	user.EmailVerified = true
 
 	if err := database.DB.Save(&user).Error; err != nil {
@@ -151,7 +151,7 @@ func SendChangeEmailOTP(c *gin.Context) {
 
 	// simpan OTP ke database
 	user.EmailOTP = otp
-	user.OTPExpiresAt = expired
+	user.OTPExpiresAt = &expired
 
 	database.DB.Save(&user)
 
@@ -197,7 +197,7 @@ func VerifyChangeEmailOTP(c *gin.Context) {
 	}
 
 	// cek expired
-	if time.Now().After(user.OTPExpiresAt) {
+	if user.OTPExpiresAt == nil || time.Now().After(*user.OTPExpiresAt) {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
 			Message: "OTP expired",

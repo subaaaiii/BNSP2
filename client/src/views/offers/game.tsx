@@ -10,7 +10,7 @@ import TopNavbar from "../../components/top_navbar";
 const SelectGameBrand = () => {
   const navigate = useNavigate();
   const [selected, setSelected] = useState("");
-  const { data: games } = useGames({ page: 1, limit: 6 });
+  const { data: games } = useGames({ page: 1, limit: 999 });
   const [showInfo, setShowInfo] = useState(false);
 
   return (

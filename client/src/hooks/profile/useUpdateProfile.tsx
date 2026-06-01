@@ -37,9 +37,9 @@ export const useUpdateProfile = () => {
       //mengembalikan response data
       return response.data;
     },
-    onSuccess: (data, variables) => {
-      queryClient.setQueryData(["me"], data);
-      queryClient.setQueryData(["user", variables.id], data);
-    },
+    onSuccess: (response, variables) => {
+  queryClient.setQueryData(["me"], response.data);
+  queryClient.setQueryData(["user", variables.id], response.data);
+},
   });
 };

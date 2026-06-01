@@ -6,7 +6,7 @@ import { useChatList } from "../../hooks/chat/useChatList";
 import Api from "../../services/api";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { CiSearch } from "react-icons/ci";
-import banner_hero from "../../assets/banner_hero.png";
+import banner_hero from "../../assets/banner_hero2.png";
 import { IoIosArrowBack, IoMdSend } from "react-icons/io";
 import { useDebounce } from "../../hooks/helpers/useDebounce";
 import { useTheme } from "../../context/ThemeContext";

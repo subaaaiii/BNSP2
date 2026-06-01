@@ -90,14 +90,16 @@ func UpdateUser(c *gin.Context) {
 	gender := c.PostForm("gender")
 	birthday := c.PostForm("birthday")
 
+	updates := map[string]interface{}{}
+
 	if name != "" {
-		user.Name = name
+		updates["name"] = name
 	}
 	if address != "" {
-		user.Address = address
+		updates["address"] = address
 	}
 	if gender != "" {
-		user.Gender = gender
+		updates["gender"] = gender
 	}
 	if birthday != "" {
 		parsedDate, err := time.Parse("2006-01-02", birthday)
@@ -107,7 +109,7 @@ func UpdateUser(c *gin.Context) {
 				Message: "Invalid date format"})
 			return
 		}
-		user.Birthday = parsedDate
+		updates["birthday"] = parsedDate
 	}
 
 	file, err := c.FormFile("picture")
@@ -139,12 +141,11 @@ func UpdateUser(c *gin.Context) {
 			})
 			return
 		}
-
-		user.Picture = filename
+		updates["picture"] = filename
 	}
 
 	// save database
-	if err := database.DB.Save(&user).Error; err != nil {
+	if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
 			Message: "Failed to update user",

@@ -262,7 +262,7 @@ const DetailProduct = () => {
               <div className="p-4">
                 <p
                   ref={textRef}
-                  className={`text-text ${expanded ? "" : "line-clamp-5"}`}
+                  className={`text-text  whitespace-pre-line ${expanded ? "" : "line-clamp-5"}`}
                 >
                   {data.description}
                 </p>
@@ -591,7 +591,7 @@ const DetailProduct = () => {
                         </span>
                       </div>
                       <div className="p-8 pt-30">
-                        <button className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium">
+                        <button className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium" onClick={()=>navigate("/orders/detail/"+ order!.id)}>
                           Go to order page
                         </button>
                       </div>

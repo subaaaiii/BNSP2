@@ -12,6 +12,7 @@ interface ValidationErrors {
 const Profile = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditProfile, setIsEditProfile] = useState(false);
   const { user } = useContext(AuthContext)!;
   const userId = user?.id;
   const { data, isLoading } = useUser(userId);
@@ -118,6 +119,14 @@ const Profile = () => {
                 Update Profile
               </button>
             )}
+            {!isEditing && user?.role === "seller" && (
+              <button
+                onClick={() => setIsEditProfile(true)}
+                className="bg-surface text-text px-4 py-2 rounded-lg text-text"
+              >
+                Update Profile
+              </button>
+            )}
           </div>
 
           {/* AVATAR */}
@@ -134,7 +143,7 @@ const Profile = () => {
               />
             )}
 
-            {isEditing && (
+            {isEditing || isEditProfile && (
               <>
                 <input
                   type="file"
@@ -144,7 +153,7 @@ const Profile = () => {
                 />
                 <label
                   htmlFor="upload_profile"
-                  className="cursor-pointer text-sm text-indigo-700 bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors duration-300 ring ring-gray-300 hover:ring-indigo-300"
+                  className="cursor-pointer text-sm bg-secondary1 text-white px-4 py-2 rounded-lg transition-colors duration-300 ring ring-gray-300 hover:ring-indigo-300"
                 >
                   Change Profile Picture
                 </label>
@@ -165,7 +174,7 @@ const Profile = () => {
               name="name"
               value={form.name}
               onChange={handleChange}
-              disabled={!isEditing}
+              disabled={!isEditing && !isEditProfile}
               className={`bg-surface text-text ${errors.Name ? "input-error" : ""} w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500`}
             />
             {errors.Name && (
@@ -244,19 +253,22 @@ const Profile = () => {
             )}
           </div>
 
-          {isEditing && (
+          {isEditing || isEditProfile && (
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {setIsEditing(false)
+                  setIsEditProfile(false)
+                }
+                }
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-700"
+                className="px-4 py-2 bg-secondary1 text-white rounded-lg "
               >
                 {isPending ? "Loading..." : "Save Changes"}
               </button>

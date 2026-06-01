@@ -124,7 +124,7 @@ const ManageOffers = () => {
       </h2>
       <Link
         to="/offers/create"
-        className="flex w-full md:w-fit btn bg-secondary1 mb-6"
+        className="flex w-full md:w-fit btn bg-secondary1 mb-6 text-bg"
       >
         <IoAddCircle className="w-5 h-5 mr-2 text-bg" />
         Add New Offer
@@ -184,7 +184,7 @@ const ManageOffers = () => {
           <div>
             <input
               type="checkbox"
-              className="checkbox border-text bg-text checked:border-text checked:bg-text checked:text-bg"
+              className="checkbox border-text bg-bg checked:border-text checked:bg-bg checked:text-text"
               checked={
                 selected.length === products?.length && products?.length != 0
               }
@@ -236,7 +236,7 @@ const ManageOffers = () => {
                   <div>
                     <input
                       type="checkbox"
-                      className="checkbox border-text bg-text checked:border-text checked:bg-text checked:text-bg"
+                      className="checkbox border-text bg-bg checked:border-text checked:bg-bg checked:text-text"
                       checked={selected.includes(product.id)}
                       onChange={() => handleCheck(product.id)}
                     />
