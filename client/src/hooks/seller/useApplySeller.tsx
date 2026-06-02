@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Api from "../../services/api";
-import Cookies from "js-cookie";
 
 type ApplySellerRequest = {
   name: string;
@@ -12,9 +11,8 @@ type ApplySellerRequest = {
 };
 
 export const useApplySeller = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
-    // mutation untuk
     mutationFn: async (data: ApplySellerRequest) => {
       const formData = new FormData();
 
@@ -27,15 +25,8 @@ export const useApplySeller = () => {
       if (data.identity_image) {
         formData.append("identity_image", data.identity_image);
       }
-      const token = Cookies.get("token");
-      //menggunakan service API untuk register
-      const response = await Api.post(`/api/sellers/register`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await Api.post(`/api/sellers/register`, formData);
 
-      //mengembalikan response data
       return response.data;
     },
     onSuccess: () => {

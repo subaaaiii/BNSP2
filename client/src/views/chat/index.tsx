@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState, useRef, useMemo } from "react";
 import Pusher from "pusher-js";
-import Cookies from "js-cookie";
 import { AuthContext } from "../../context/AuthContext";
 import { useChatList } from "../../hooks/chat/useChatList";
 import Api from "../../services/api";
@@ -95,8 +94,6 @@ const Chat = () => {
     }
   }, [id]);
 
-  const token = Cookies.get("token");
-
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const [open, setOpen] = useState(false);
@@ -122,16 +119,11 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (!user?.id || !token) return;
+    if (!user?.id) return;
 
     const pusher = new Pusher("1445018101705e987746", {
       cluster: "ap1",
       authEndpoint: `${Api.defaults.baseURL}/pusher/auth`,
-      auth: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
     });
 
     const channel = pusher.subscribe(`private-chat-${user.id}`);
@@ -148,7 +140,7 @@ const Chat = () => {
       pusher.unsubscribe(`private-chat-${user.id}`);
       pusher.disconnect();
     };
-  }, [user?.id, token]);
+  }, [user?.id]);
 
   const sendMessage = async () => {
     if (!input || !targetUserId) return;
@@ -166,20 +158,15 @@ const Chat = () => {
     }
 
     try {
-      await Api.post("/api/chat/send", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await Api.post("/api/chat/send", payload);
       setInput("");
       SetAskProduct(false);
       SetAskOrder(false);
       const refreshed = await Api.get("/api/chat/messages", {
-  params: { target_id: targetUserId },
-  headers: { Authorization: `Bearer ${token}` },
-});
+        params: { target_id: targetUserId }
+      });
 
-setMessages(Array.isArray(refreshed.data) ? refreshed.data : []);
+      setMessages(Array.isArray(refreshed.data) ? refreshed.data : []);
     } catch (err: any) {
       if (err.response) {
         console.error("Server error:", err.response.data);
@@ -203,10 +190,7 @@ setMessages(Array.isArray(refreshed.data) ? refreshed.data : []);
     if (!debouncedTarget) return;
 
     Api.get("/api/chat/messages", {
-      params: { target_id: debouncedTarget },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      params: { target_id: debouncedTarget }
     }).then((res) => {
       setMessages(Array.isArray(res.data) ? res.data : []);
     });
@@ -282,8 +266,6 @@ setMessages(Array.isArray(refreshed.data) ? refreshed.data : []);
   const orderMap = Object.fromEntries(
     (orders || []).map((o: any) => [o.id, o]),
   );
-
-  
 
   return (
     <div className=" max-w-7xl mx-auto shadow grid grid-cols-4 -mt-20 -mb-20">

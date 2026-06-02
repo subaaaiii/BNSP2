@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Api from "../../services/api";
-import Cookies from "js-cookie";
 
 interface VerifyEmailRequest {
   otp: string;
@@ -8,28 +7,18 @@ interface VerifyEmailRequest {
 }
 
 export const useVerifyChangeEmailOTP = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ otp, newEmail }: VerifyEmailRequest) => {
-      const token = Cookies.get("token");
-      const response = await Api.post(
-        "/verify-otp-change-email",
-        {
-          otp: otp,
-          new_email: newEmail,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await Api.post("/verify-otp-change-email", {
+        otp: otp,
+        new_email: newEmail,
+      });
 
       return response.data;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["me"], data.data);
     },
-
   });
 };

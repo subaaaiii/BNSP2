@@ -9,13 +9,10 @@ interface VerifyEmailRequest {
 export const useVerifyEmail = () => {
   return useMutation({
     mutationFn: async ({ otp, email }: VerifyEmailRequest) => {
-      const response = await Api.post(
-        "/verify-email",
-        {
-          otp,
-           email,
-        },
-      );
+      const response = await Api.post("/verify-email", {
+        otp,
+        email,
+      });
 
       return response.data;
     },

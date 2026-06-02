@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 import Api from "../../services/api";
-import Cookies from "js-cookie";
 import { useQueryClient } from "@tanstack/react-query";
 
 type UpdateProfileData = {
@@ -16,7 +15,6 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: UpdateProfileData) => {
-      const token = Cookies.get("token");
       const formData = new FormData();
 
       formData.append("name", data.name);
@@ -27,19 +25,13 @@ export const useUpdateProfile = () => {
       if (data.picture) {
         formData.append("picture", data.picture);
       }
-      const response = await Api.patch(`/api/users/${data.id}`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await Api.patch(`/api/users/${data.id}`, formData);
 
-      //mengembalikan response data
       return response.data;
     },
     onSuccess: (response, variables) => {
-  queryClient.setQueryData(["me"], response.data);
-  queryClient.setQueryData(["user", variables.id], response.data);
-},
+      queryClient.setQueryData(["me"], response.data);
+      queryClient.setQueryData(["user", variables.id], response.data);
+    },
   });
 };

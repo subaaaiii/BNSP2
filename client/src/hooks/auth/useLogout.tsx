@@ -17,10 +17,10 @@ export const useLogout = () => {
     onSuccess: () => {
       queryClient.setQueryData(["me"], null);
 
-    queryClient.removeQueries({ queryKey: ["me"] });
+      queryClient.removeQueries({ queryKey: ["me"] });
 
-    toast.success("Logout berhasil");
-    navigate("/login");
+      toast.success("Logout berhasil");
+      navigate("/login");
     },
   });
 };

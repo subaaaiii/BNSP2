@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"bnsp2/server/services"
@@ -13,9 +14,8 @@ func AuthHandler(c *gin.Context) {
 	userID := c.MustGet("user_id").(uint)
 	userIDStr := strconv.FormatUint(uint64(userID), 10)
 
-	// 🔥 Pusher kirim form-data
 	if err := c.Request.ParseForm(); err != nil {
-		c.JSON(400, gin.H{"error": "Bad request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
@@ -28,19 +28,18 @@ func AuthHandler(c *gin.Context) {
 	expected := "private-chat-" + userIDStr
 
 	if channelName != expected {
-		c.JSON(403, gin.H{"error": "Forbidden"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		return
 	}
 
-	// 🚀 INI YANG BENAR: pakai raw body lagi
 	body := c.Request.PostForm.Encode()
 
 	authResponse, err := services.Client.AuthorizePrivateChannel([]byte(body))
 	if err != nil {
 		log.Println("auth error:", err)
-		c.JSON(500, gin.H{"error": "Auth failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Auth failed"})
 		return
 	}
 
-	c.Data(200, "application/json", authResponse)
+	c.Data(http.StatusOK, "application/json", authResponse)
 }

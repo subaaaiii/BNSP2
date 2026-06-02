@@ -13,7 +13,6 @@ import {  FaStore } from "react-icons/fa6";
 import TopNavbar from "../../components/top_navbar";
 import { useCreateOrder } from "../../hooks/order/useMakeOrder";
 import toast from "react-hot-toast";
-import Cookies from "js-cookie";
 import OrderCard from "../../components/order_card";
 import { AuthContext } from "../../context/AuthContext";
 import qrCode from "../../assets/qr-code.png";
@@ -83,8 +82,7 @@ const DetailProduct = () => {
   const [order, setOrder] = useState<Order | null>(null);
 
   const handleBuy = () => {
-    const token = Cookies.get("token");
-    if (!token) {
+    if (!user) {
       toast.error("Silakan login terlebih dahulu");
       navigate("/login");
       return;
@@ -128,8 +126,7 @@ const DetailProduct = () => {
   };
 
   const handleClickBuyNow = () => {
-    const token = Cookies.get("token");
-    if (!token) {
+    if (!user) {
       toast.error("Silakan login terlebih dahulu");
       navigate("/login", {
         state: { from: location.pathname },

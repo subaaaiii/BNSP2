@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Cookies from "js-cookie";
 import Api from "../../services/api";
 
 interface CreateProductRequest {
@@ -18,8 +17,6 @@ export const useCreateAndUpdateProduct = (id?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateProductRequest) => {
-      const token = Cookies.get("token");
-
       const formData = new FormData();
 
       formData.append("title", data.title);
@@ -37,19 +34,11 @@ export const useCreateAndUpdateProduct = (id?: string) => {
       }
 
       if (id) {
-        const res = await Api.put(`/api/products/${id}`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await Api.put(`/api/products/${id}`, formData);
         return res.data;
       } else {
-      formData.append("game_id", data.gameId);
-        const res = await Api.post(`/api/products`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        formData.append("game_id", data.gameId);
+        const res = await Api.post(`/api/products`, formData);
         return res.data;
       }
     },

@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import Api from "../../services/api";
-import Cookies from "js-cookie";
 const DEFAULT_FIELD_NAMES = ["title", "description", "price", "cover"];
 
 export const useGame = (id?: string) => {
@@ -8,12 +7,7 @@ export const useGame = (id?: string) => {
     queryKey: ["game", id],
     enabled: !!id,
     queryFn: async () => {
-      const token = Cookies.get("token");
-      const res = await Api.get(`/api/admin/games/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await Api.get(`/api/admin/games/${id}`);
       const game = res.data.data;
       const mappedFields = game.fields.map((field: any) => ({
         id: crypto.randomUUID(),

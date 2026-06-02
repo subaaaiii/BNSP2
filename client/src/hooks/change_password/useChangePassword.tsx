@@ -1,25 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
-import Cookies from "js-cookie";
 import Api from "../../services/api";
 
 interface PasswordChangeRequest {
-    newPassword: string;
+  newPassword: string;
 }
 
 export const useChangePassword = () => {
   return useMutation({
-    mutationFn: async ( data: PasswordChangeRequest) => {
-      const token = Cookies.get("token");
-
-      const res = await Api.post(
-        "/change-password",
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    mutationFn: async (data: PasswordChangeRequest) => {
+      const res = await Api.post("/change-password", data);
 
       return res.data;
     },
