@@ -1,0 +1,15 @@
+# binary hasil compile
+*.exe
+*.out
+*.test
+
+# folder build
+bin/
+dist/
+tmp/
+
+.air.toml
+tmp/
+
+.env
+.env.*
