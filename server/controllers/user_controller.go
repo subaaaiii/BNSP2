@@ -4,7 +4,10 @@ import (
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/redis"
 	"bnsp2/server/structs"
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -205,6 +208,25 @@ func Me(c *gin.Context) {
 		return
 	}
 
+	cacheKey := fmt.Sprintf("user:%v", userID)
+
+	ctx := context.Background()
+
+	cached, err := redis.RedisClient.Get(ctx, cacheKey).Result()
+	if err == nil && cached != "" {
+		var res structs.UserResponse
+
+		if err := json.Unmarshal([]byte(cached), &res); err == nil {
+			c.JSON(http.StatusOK, structs.SuccessResponse{
+				Success: true,
+				Message: "Data user",
+				Data:    res,
+			})
+			fmt.Println("cache user hit", res)
+			return
+		}
+	}
+
 	var user models.User
 
 	if err := database.DB.First(&user, userID).Error; err != nil {
@@ -215,20 +237,32 @@ func Me(c *gin.Context) {
 		return
 	}
 
+	res := structs.UserResponse{
+		Id:            user.Id,
+		Name:          user.Name,
+		Username:      user.Username,
+		Email:         user.Email,
+		Picture:       user.Picture,
+		Role:          user.Role,
+		EmailVerified: user.EmailVerified,
+		CreatedAt:     user.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     user.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
+
+	jsonData, err := json.Marshal(res)
+	if err == nil {
+		_ = redis.RedisClient.Set(
+			ctx,
+			cacheKey,
+			jsonData,
+			10*time.Minute,
+		).Err()
+	}
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Data user",
-		Data: structs.UserResponse{
-			Id:            user.Id,
-			Name:          user.Name,
-			Username:      user.Username,
-			Email:         user.Email,
-			Picture:       user.Picture,
-			Role:          user.Role,
-			EmailVerified: user.EmailVerified,
-			CreatedAt:     user.CreatedAt.Format("2006-01-02 15:04:05"),
-			UpdatedAt:     user.UpdatedAt.Format("2006-01-02 15:04:05"),
-		},
+		Data:    res,
 	})
 }
 
