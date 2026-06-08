@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import { useVerifyChangeEmailOTP } from "../../../hooks/change_email/verify_email";
 import { useSendChangeEmailOTP } from "../../../hooks/change_email/send_email";
@@ -30,7 +30,7 @@ const Security = () => {
     useChangePassword();
   const { mutate: verifyPasswordMutation, isPending: isVerifyingPassword } =
     useVerifyPassword();
-  const { mutate: sendOtpMutation2, isPending: isSendingOtp } = useSendOTP();
+  const { mutate: sendOtpMutation2, } = useSendOTP();
 
   const [password, setPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");

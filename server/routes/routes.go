@@ -4,6 +4,7 @@ import (
 	"bnsp2/server/controllers"
 	"bnsp2/server/handlers"
 	"bnsp2/server/middlewares"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -15,12 +16,23 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:4173"},
 		AllowMethods:     []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
+
+	router.Use(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/images/") {
+			c.Header(
+				"Cache-Control",
+				"public, max-age=31536000, immutable",
+			)
+		}
+
+		c.Next()
+	})
 
 	// route register
 	router.Static("/images", "./images")

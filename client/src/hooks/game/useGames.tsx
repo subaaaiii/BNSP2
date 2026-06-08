@@ -14,7 +14,8 @@ export const useGames = (filters: {
       const res = await Api.get("/api/admin/games", {
         params,
       });
-      return res.data.data;
+      return res.data;
     },
+    placeholderData: (previousData) => previousData,
   });
 };

@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useUpdateProductStatus } from "../../hooks/product/useUpdateStatusProduct";
 import { IoSearchOutline } from "react-icons/io5";
 import ImageNoData from "./../../assets/no_data.png";
-import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
+import Pagination from "../../components/pagination";
 
 const ManageOffers = () => {
   const { mutate } = useDeleteProduct();
@@ -446,29 +446,13 @@ const ManageOffers = () => {
             ))}
 
             {/* PAGINATION */}
-            <div className="flex gap-2 mt-4 items-center w-full justify-center">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
-              >
-                <MdNavigateBefore />
-                <span>Prev</span>
-              </button>
-
-              <span>
-                Page {meta.page} of {meta.total_pages}
-              </span>
-
-              <button
-                disabled={page === meta.total_pages}
-                onClick={() => setPage((p) => p + 1)}
-                className="bg-neutral text-white py-1 px-3 rounded-md flex gap-1 items-center"
-              >
-                <span>Next</span>
-                <MdNavigateNext className="w-6 h-6" />
-              </button>
-            </div>
+            <Pagination
+                    page={page}
+                    totalPages={meta?.total_pages ?? 1}
+                    total={meta?.total ?? 0}
+                    limit={limit}
+                    onPageChange={setPage}
+                  />
           </div>
         )}
       </div>

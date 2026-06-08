@@ -4,7 +4,6 @@ import { useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
 import Card from "../../components/card";
 import { useGame } from "../../hooks/game/useGame";
-import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
 import ImageNoData from "./../../assets/no_data.png";
 import ProductCardSkeleton from "../../components/skeleton/ProductCard";
 import Skeleton from "react-loading-skeleton";
@@ -13,6 +12,7 @@ import { useNavigate } from "react-router";
 import TopNavbar from "../../components/top_navbar";
 import { GoHome } from "react-icons/go";
 import { useSEO } from "../../hooks/helpers/useSEO";
+import Pagination from "../../components/pagination";
 
 
 const BrandProducts = () => {
@@ -246,31 +246,13 @@ const BrandProducts = () => {
                     />
                   ))}
                   {/* PAGINATION */}
-                  {meta?.total >= limit ? (
-                    <div className="flex gap-2 mt-4 items-center w-full justify-center">
-                      <button
-                        disabled={page === 1}
-                        onClick={() => setPage((p) => p - 1)}
-                        className="border border-gray-400 text-white py-3 px-2 rounded-md flex gap-1 items-center"
-                      >
-                        <MdNavigateBefore className="w-6 h-6 text-gray-400" />
-                      </button>
-
-                      <span>
-                        Page {meta?.page} of {meta?.total_pages}
-                      </span>
-
-                      <button
-                        disabled={page === meta?.total_pages}
-                        onClick={() => setPage((p) => p + 1)}
-                        className="border border-gray-400 text-white py-3 px-2 rounded-md flex gap-1 items-center"
-                      >
-                        <MdNavigateNext className="w-6 h-6 text-gray-400" />
-                      </button>
-                    </div>
-                  ) : (
-                    ""
-                  )}
+                  <Pagination
+                          page={page}
+                          totalPages={meta?.total_pages ?? 1}
+                          total={meta?.total ?? 0}
+                          limit={limit}
+                          onPageChange={setPage}
+                        />
                 </div>
               )}
             </div>

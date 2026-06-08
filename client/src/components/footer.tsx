@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { LiaFacebookF } from "react-icons/lia";
 import { IoLogoInstagram } from "react-icons/io5";
 import { FaLinkedinIn } from "react-icons/fa";

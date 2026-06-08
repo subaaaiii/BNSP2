@@ -20,10 +20,8 @@ import (
 
 func FindUsers(c *gin.Context) {
 
-	// Inisialisasi slice untuk menampung data user
 	var users []models.User
 
-	// Ambil data user dari database
 	if err := database.DB.Find(&users).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -32,7 +30,6 @@ func FindUsers(c *gin.Context) {
 		return
 	}
 
-	// Kirimkan response sukses dengan data user
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Lists Data Users",
@@ -42,13 +39,10 @@ func FindUsers(c *gin.Context) {
 
 func FindUserById(c *gin.Context) {
 
-	// Ambil ID user dari parameter URL
 	id := c.Param("id")
 
-	// Inisialisasi user
 	var user models.User
 
-	// Cari user berdasarkan ID
 	if err := database.DB.First(&user, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -57,7 +51,6 @@ func FindUserById(c *gin.Context) {
 		return
 	}
 
-	// Kirimkan response sukses dengan data user
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "User Found",
@@ -78,7 +71,6 @@ func UpdateUser(c *gin.Context) {
 
 	var user models.User
 
-	// cek user
 	if err := database.DB.First(&user, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -87,7 +79,6 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// ambil data dari form
 	name := c.PostForm("name")
 	address := c.PostForm("address")
 	gender := c.PostForm("gender")
@@ -126,7 +117,6 @@ func UpdateUser(c *gin.Context) {
 			}
 		}
 
-		// buat nama file unik
 		filename := fmt.Sprintf(
 			"user-%s-%d%s",
 			id,
@@ -136,7 +126,6 @@ func UpdateUser(c *gin.Context) {
 
 		path := "images/users/" + filename
 
-		// simpan file
 		if err := c.SaveUploadedFile(file, path); err != nil {
 			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 				Success: false,
@@ -147,7 +136,6 @@ func UpdateUser(c *gin.Context) {
 		updates["picture"] = filename
 	}
 
-	// save database
 	if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
@@ -165,13 +153,10 @@ func UpdateUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 
-	// Ambil ID user dari parameter URL
 	id := c.Param("id")
 
-	// Inisialisasi user
 	var user models.User
 
-	// Cari user berdasarkan ID
 	if err := database.DB.First(&user, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -181,7 +166,6 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	// Hapus user dari database
 	if err := database.DB.Delete(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
@@ -191,7 +175,6 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	// Kirimkan response sukses
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "User deleted successfully",
@@ -269,7 +252,6 @@ func Me(c *gin.Context) {
 func VerifyPassword(c *gin.Context) {
 	var req structs.VerifyPasswordRequest
 
-	// bind request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
 			Success: false,
@@ -279,12 +261,10 @@ func VerifyPassword(c *gin.Context) {
 		return
 	}
 
-	// ambil user dari context (misalnya dari middleware JWT)
 	userID := c.MustGet("user_id").(uint)
 
 	var user models.User
 
-	// ambil user dari database
 	if err := database.DB.First(&user, userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -293,7 +273,6 @@ func VerifyPassword(c *gin.Context) {
 		return
 	}
 
-	// compare password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
 			Success: false,
@@ -314,7 +293,6 @@ func VerifyPassword(c *gin.Context) {
 func ChangePassword(c *gin.Context) {
 	var req structs.ChangePasswordRequest
 
-	// bind request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
 			Success: false,
@@ -324,12 +302,10 @@ func ChangePassword(c *gin.Context) {
 		return
 	}
 
-	// ambil user dari context (misalnya dari middleware JWT)
 	userID := c.MustGet("user_id").(uint)
 
 	var user models.User
 
-	// ambil user dari database
 	if err := database.DB.First(&user, userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Profile from "./profile";
 import Security from "./security";
-import { useNavigate } from "react-router";
 import TopNavbar from "../../components/top_navbar";
 
 const Settings = () => {

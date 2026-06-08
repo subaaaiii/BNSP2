@@ -62,11 +62,12 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:block w-full">
-            <ul className="flex justify-between md:justify-end w-full items-center gap-2 px-1 p-4 md:p-0">
+            <div className="flex justify-between md:justify-end w-full items-center gap-2 px-1 p-4 md:p-0">
               {loading ? null : user ? (
                 <div className="flex items-center gap-3">
                   <Link
                     to="/chat"
+                    aria-label="Open chat"
                     className={`p-2 rounded-full ${
                       isTransparent
                         ? "border border-[#2d3330] text-[#2d3330] bg-transparent"
@@ -109,12 +110,14 @@ const Navbar = () => {
                         : "border-[#C5A16F] text-[#C5A16F]"
                     }`}
                     to="/register"
+                    aria-label="Sign up"
                   >
                     Sign up
                   </Link>
 
                   <Link
                     to="/login"
+                    aria-label="Login"
                     className={`w-full md:w-auto font-medium p-4 md:py-3 md:px-6 rounded-full text-center ${
                       isTransparent
                         ? "bg-[#2d3330] text-[#C5A16F] dark:text-[#2d3330]"
@@ -125,7 +128,7 @@ const Navbar = () => {
                   </Link>
                 </div>
               )}
-            </ul>
+            </div>
           </div>
         </div>
       </div>

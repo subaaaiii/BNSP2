@@ -13,6 +13,7 @@ const GameCard = ({ image, name, onClick }: DataType) => {
       <img
         src={image}
         alt={name}
+        loading="lazy"
         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-300"
       />
 

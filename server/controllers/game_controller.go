@@ -15,7 +15,9 @@ import (
 	"time"
 
 	"bnsp2/server/database"
+	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/redis"
 	"bnsp2/server/structs"
 
 	"github.com/gin-gonic/gin"
@@ -25,13 +27,11 @@ func CreateGame(c *gin.Context) {
 
 	errors := map[string]string{}
 
-	// ambil name
 	name := c.PostForm("name")
 	if name == "" {
 		errors["Name"] = "Name is required"
 	}
 
-	// ambil fields (optional)
 	fieldsStr := c.PostForm("fields")
 
 	var fields []map[string]interface{}
@@ -100,11 +100,23 @@ func CreateGame(c *gin.Context) {
 		return
 	}
 
+	ctx := c.Request.Context()
+
+	helpers.DeleteByPattern(
+		ctx,
+		"games:*",
+	)
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Game successfully created",
 		Data:    game,
 	})
+}
+
+type GameResponse struct {
+	Data []models.Game `json:"data"`
+	Meta gin.H         `json:"meta"`
 }
 
 func GetGames(c *gin.Context) {
@@ -121,8 +133,30 @@ func GetGames(c *gin.Context) {
 	if page < 1 {
 		page = 1
 	}
-	if limit < 1 {
+	if limit < 0 {
 		limit = 10
+	}
+
+	ctx := c.Request.Context()
+
+	cacheable := page == 1 && q == ""
+
+	var key string
+	if cacheable {
+		key = fmt.Sprintf("games:limit:%v", limit)
+		var cachedResp GameResponse
+		if cached, err := redis.RedisClient.Get(ctx, key).Result(); err == nil {
+			if err := json.Unmarshal([]byte(cached), &cachedResp); err == nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": true,
+					"message": "Games retrieved from cache",
+					"data":    cachedResp.Data,
+					"meta":    cachedResp.Meta,
+				})
+				fmt.Printf("cache games hit | key=%s\n", key)
+				return
+			}
+		}
 	}
 
 	offset := (page - 1) * limit
@@ -139,6 +173,7 @@ func GetGames(c *gin.Context) {
 		})
 		return
 	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 
 	if err := query.Limit(limit).
 		Offset(offset).Find(&games).Error; err != nil {
@@ -148,7 +183,22 @@ func GetGames(c *gin.Context) {
 		})
 		return
 	}
-	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	resp := GameResponse{
+		Data: games,
+		Meta: gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
+	}
+
+	if cacheable {
+		if data, err := json.Marshal(resp); err == nil {
+			redis.RedisClient.Set(ctx, key, data, 24*time.Hour)
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -163,10 +213,36 @@ func GetGames(c *gin.Context) {
 	})
 }
 
+type GameByIdResponse struct {
+	ID     uint                     `json:"id"`
+	Name   string                   `json:"name"`
+	Image  string                   `json:"image"`
+	Fields []map[string]interface{} `json:"fields"`
+}
+
 func GetGameByID(c *gin.Context) {
 	id := c.Param("id")
 
 	var game models.Game
+
+	ctx := c.Request.Context()
+
+	var key string
+	key = fmt.Sprintf("game:%v", id)
+	var cachedResp GameByIdResponse
+	if cached, err := redis.RedisClient.Get(ctx, key).Result(); err == nil {
+		if err := json.Unmarshal([]byte(cached), &cachedResp); err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"message": "Game retrieved from cache",
+				"data":    cachedResp,
+			})
+			fmt.Printf("cache game hit | key=%s\n", key)
+			return
+		}
+		redis.RedisClient.Del(ctx, key)
+	}
+
 	if err := database.DB.First(&game, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -175,18 +251,23 @@ func GetGameByID(c *gin.Context) {
 		return
 	}
 
-	// parse JSON schema biar enak di frontend
 	var fields []map[string]interface{}
 	json.Unmarshal(game.FieldSchema, &fields)
 
+	resp := GameByIdResponse{
+		ID:     game.ID,
+		Name:   game.Name,
+		Image:  game.Image,
+		Fields: fields,
+	}
+
+	if data, err := json.Marshal(resp); err == nil {
+		redis.RedisClient.Set(ctx, key, data, 24*time.Hour)
+	}
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
-		Data: gin.H{
-			"id":     game.ID,
-			"name":   game.Name,
-			"image":  game.Image,
-			"fields": fields,
-		},
+		Data:    resp,
 	})
 }
 
@@ -196,7 +277,6 @@ func UpdateGame(c *gin.Context) {
 
 	var game models.Game
 
-	// cek game
 	if err := database.DB.First(&game, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -205,7 +285,6 @@ func UpdateGame(c *gin.Context) {
 		return
 	}
 
-	// ambil name
 	name := c.PostForm("name")
 	if name == "" {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
@@ -216,7 +295,6 @@ func UpdateGame(c *gin.Context) {
 	}
 	game.Name = name
 
-	// ambil fields (optional)
 	fieldsStr := c.PostForm("fields")
 
 	var fields []map[string]interface{}
@@ -263,7 +341,6 @@ func UpdateGame(c *gin.Context) {
 		game.Image = filename
 	}
 
-	// save database
 	if err := database.DB.Save(&game).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
@@ -271,6 +348,13 @@ func UpdateGame(c *gin.Context) {
 		})
 		return
 	}
+
+	ctx := c.Request.Context()
+
+	helpers.DeleteByPattern(
+		ctx,
+		"games:*",
+	)
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
@@ -299,6 +383,12 @@ func DeleteGame(c *gin.Context) {
 			Message: "Failed to delete game, server error",
 		})
 	}
+	ctx := c.Request.Context()
+
+	helpers.DeleteByPattern(
+		ctx,
+		"games:*",
+	)
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Game deleted successfully",

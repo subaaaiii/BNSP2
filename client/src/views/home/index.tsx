@@ -19,12 +19,18 @@ import { LuSendHorizontal } from "react-icons/lu";
 import { HiOutlineBadgeCheck } from "react-icons/hi";
 import { paymentLogos } from "../../assets/payment";
 import Footer from "../../components/footer";
+import { useDebounce } from "../../hooks/helpers/useDebounce";
 
 const Home = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { data } = useGames({ page: 1, limit: 999 });
-  const { data: favoriteGames } = useGames({ page: 1, limit: 6 });
+  const debouncedSearch = useDebounce(query, 500);
+  const { data, isLoading: loadingGame } = useGames({
+    page: 1,
+    q: debouncedSearch,
+    limit: 3,
+  });
+  const { data: favorite } = useGames({ page: 1, limit: 6 });
   const navigate = useNavigate();
   const { data: productData, isLoading } = useGetProductsPublic({
     game_id: "",
@@ -33,6 +39,7 @@ const Home = () => {
     limit: 8,
     sort: "most_recent",
   });
+
   // const [delayedLoading, setDelayedLoading] = useState(true);
 
   // useEffect(() => {
@@ -49,11 +56,9 @@ const Home = () => {
   //   return () => clearTimeout(timer);
   // }, [isLoading]);
   // const loading = delayedLoading;
+  const recentGames = data?.data;
+  const favoriteGames = favorite?.data;
   const products = productData?.data;
-
-  const filtered = data?.filter((item: any) =>
-    item.name.toLowerCase().includes(query.toLowerCase()),
-  );
 
   return (
     <div className="rounded-5 -mt-20 w-full ">
@@ -103,27 +108,33 @@ const Home = () => {
                       <div className="px-4 text-gray-500 mt-6">
                         {query ? "Search result" : "Recent added Game"}
                       </div>
-                      <div className="flex">
-                        {filtered.length > 0 ? (
-                          filtered.slice(0, 3).map((item: any) => (
-                            <div
-                              key={item.id}
-                              className="ml-4 mb-8 mt-2 text-xs md:text-sm px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-200 cursor-pointer"
-                              onClick={() => {
-                                setQuery(item.name);
-                                setOpen(false);
-                                navigate("/products?brand=" + item.id);
-                              }}
-                            >
-                              {item.name}
+                      {loadingGame ? (
+                        <div className="px-4 py-3 text-gray-500">
+                          Searching...
+                        </div>
+                      ) : (
+                        <div className="flex">
+                          {recentGames.length > 0 ? (
+                            recentGames.slice(0, 3).map((item: any) => (
+                              <div
+                                key={item.id}
+                                className="ml-4 mb-8 mt-2 text-xs md:text-sm px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-200 cursor-pointer"
+                                onClick={() => {
+                                  setQuery(item.name);
+                                  setOpen(false);
+                                  navigate("/products?brand=" + item.id);
+                                }}
+                              >
+                                {item.name}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-gray-500">
+                              No results
                             </div>
-                          ))
-                        ) : (
-                          <div className="px-4 py-3 text-gray-500">
-                            No results
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -148,6 +159,8 @@ const Home = () => {
                 <img
                   src={banner_hero}
                   alt="banner hero"
+                  fetchPriority="high"
+                  loading="eager"
                   className="absolute md:static right-0 bottom-30 w-50 h-auto object-cover object-right opacity-40 md:opacity-100 md:w-120"
                 />
               </div>
@@ -157,11 +170,14 @@ const Home = () => {
           <div className="max-w-6xl mx-auto mt-8">
             <div className="flex justify-between items-center">
               <div className="text-2xl font-bold mb-4 text-white">
-              Favorite Games
-            </div>
-            <button onClick={()=>navigate("/brands")} className="text-lg mb-4 text-white hover:underline cursor-pointer ">
-              See all
-            </button>
+                Favorite Games
+              </div>
+              <button
+                onClick={() => navigate("/brands")}
+                className="text-lg mb-4 text-white hover:underline cursor-pointer "
+              >
+                See all
+              </button>
             </div>
             <div className="w-full ">
               <div className=" grid grid-cols-3 md:grid-cols-6 gap-5 w-full">
@@ -200,7 +216,7 @@ const Home = () => {
                 <Card
                   key={product.id}
                   product={product}
-                  onClick={()=>navigate ('/products/detail/'+ product.id)}
+                  onClick={() => navigate("/products/detail/" + product.id)}
                 />
               ))}
             </div>
@@ -276,7 +292,7 @@ const Home = () => {
               key={item.name}
               className="px-4 py-2 flex items-center justify-center rounded-sm shadow-sm bg-base-100"
             >
-              <img src={item.logo} alt={item.name} className="w-12 h-10" />
+              <img src={item.logo} alt={item.name} className="w-12 h-10" loading="lazy" />
             </div>
           ))}
         </div>

@@ -4,6 +4,7 @@ import (
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/redis"
 	"bnsp2/server/services"
 	"bnsp2/server/structs"
 	"errors"
@@ -128,6 +129,8 @@ func PaymentCallback(c *gin.Context) {
 		return
 	}
 	var shouldSendEmail bool
+	var affectedProduct models.Product
+	var shouldInvalidateProductCache bool
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		var product models.Product
@@ -161,12 +164,17 @@ func PaymentCallback(c *gin.Context) {
 			if err := tx.Save(&product).Error; err != nil {
 				return err
 			}
+
+			affectedProduct = product
+
+			shouldInvalidateProductCache = true
+
 		}
 
-		// order.Status = payload.Status
 		if err := tx.Model(&order).Update("status", payload.Status).Error; err != nil {
 			return err
 		}
+		order.Status = payload.Status
 
 		orderLog.OrderId = payload.OrderID
 		orderLog.Status = payload.Status
@@ -180,8 +188,44 @@ func PaymentCallback(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			c.JSON(http.StatusNotFound, structs.ErrorResponse{
+				Success: false,
+				Message: "Order not found",
+			})
+		case err.Error() == "stock not enough":
+			c.JSON(http.StatusConflict, structs.ErrorResponse{
+				Success: false,
+				Message: "stock not enough",
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "Internal server error",
+			})
+		}
 		return
+	}
+
+	if shouldInvalidateProductCache {
+		ctx := c.Request.Context()
+
+		redis.RedisClient.Del(
+			ctx,
+			fmt.Sprintf("product:%d", affectedProduct.Id),
+		)
+		redis.RedisClient.Del(ctx, "products_all_recent")
+
+		helpers.DeleteByPattern(
+			ctx,
+			fmt.Sprintf("products_public:game:%d:*", affectedProduct.GameId),
+		)
+
+		helpers.DeleteByPattern(
+			ctx,
+			fmt.Sprintf("products:user:%d:*", affectedProduct.UserId),
+		)
 	}
 
 	var user models.User

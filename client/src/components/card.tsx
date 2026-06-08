@@ -17,6 +17,7 @@ const Card = ({ product, onClick }: any) => {
             : `${Api.defaults.baseURL}/images/games/covers/${product.game.image}`
         }
         alt={product.title}
+        loading="lazy"
         className="w-32 h-32 md:w-full md:h-auto 
              aspect-square md:aspect-[1.8/1] 
              object-cover rounded-md md:rounded-t-md "

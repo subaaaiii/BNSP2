@@ -16,6 +16,7 @@ import (
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/redis"
 	"bnsp2/server/structs"
 
 	"github.com/gin-gonic/gin"
@@ -24,16 +25,14 @@ import (
 
 func CreateProduct(c *gin.Context) {
 	errors := make(map[string]string)
-	// ambil title
+
 	title := c.PostForm("title")
 	if title == "" {
 		errors["Title"] = "title is required"
 	}
 
-	// ambil description
 	description := c.PostForm("description")
 
-	// ambil price
 	priceStr := c.PostForm("price")
 	var price int
 
@@ -77,7 +76,6 @@ func CreateProduct(c *gin.Context) {
 		guarantee = g
 	}
 
-	// ambil game_id
 	gameIdStr := c.PostForm("game_id")
 	gameIdInt, err := strconv.Atoi(gameIdStr)
 	if err != nil {
@@ -100,7 +98,6 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	// setelah ambil game
 	fieldValuesStr := c.PostForm("field_values")
 
 	var fieldValues map[string]interface{}
@@ -119,12 +116,11 @@ func CreateProduct(c *gin.Context) {
 		fieldValues = make(map[string]interface{})
 	}
 
-	// VALIDATION DARI HELPER
 	fieldErrors := helpers.ValidateFieldValues(game.FieldSchema, fieldValues)
 	for k, v := range fieldErrors {
 		errors[k] = v
 	}
-	// ambil file (optional)
+
 	file, err := c.FormFile("image")
 	var filename string
 	if err == nil {
@@ -170,11 +166,30 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
+	ctx := c.Request.Context()
+
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products:user:%d:*", userId),
+	)
+
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products_public:game:%v:", gameId),
+	)
+	redis.RedisClient.Del(ctx, fmt.Sprintf("products_all_recent"))
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Product successfully created",
 		Data:    product,
 	})
+
+}
+
+type ProductResponse struct {
+	Data []models.Product `json:"data"`
+	Meta gin.H            `json:"meta"`
 }
 
 func GetProducts(c *gin.Context) {
@@ -221,37 +236,78 @@ func GetProducts(c *gin.Context) {
 		})
 		return
 	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	key := fmt.Sprintf(
+		"products:user:%v:status:%v:game:%v:page:%v:limit:%v",
+		userId,
+		status,
+		game_id,
+		page,
+		limit,
+	)
+
+	ctx := c.Request.Context()
+
+	if page == 1 && q == "" {
+		var cachedResp ProductResponse
+		if cached, err := redis.RedisClient.Get(ctx, key).Result(); err == nil {
+			if err := json.Unmarshal([]byte(cached), &cachedResp); err == nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": true,
+					"message": "Products retrieved from cache",
+					"data":    cachedResp.Data,
+					"meta":    cachedResp.Meta,
+				})
+				return
+			}
+		}
+	}
 
 	if err := query.
-		Preload("Game").Limit(limit).
+		Preload("Game").
+		Limit(limit).
 		Offset(offset).
-		Order("created_at DESC").Find(&products).Error; err != nil {
+		Order("created_at DESC").
+		Find(&products).Error; err != nil {
+
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
-			Message: err.Error(),
+			Message: "Internal server error",
 		})
 		return
 	}
-	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Products retrieved successfully",
-		"data":    products,
-		"meta": gin.H{
+	resp := ProductResponse{
+		Data: products,
+		Meta: gin.H{
 			"page":        page,
 			"limit":       limit,
 			"total":       total,
 			"total_pages": totalPages,
 		},
+	}
+
+	if page == 1 && q == "" {
+		if data, err := json.Marshal(resp); err == nil {
+			redis.RedisClient.Set(ctx, key, data, 10*time.Minute)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Products retrieved successfully",
+		"data":    products,
+		"meta":    resp.Meta,
 	})
+	return
 }
 
 func GetProductsPublic(c *gin.Context) {
 
 	game_id := c.Query("game_id")
 	q := c.Query("q")
-	sort := c.Query("sort")
+	sort := c.DefaultQuery("sort", "most_recent")
 
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -271,6 +327,41 @@ func GetProductsPublic(c *gin.Context) {
 	var total int64
 
 	var products []models.Product
+	var key string
+	cacheable := page == 1 && q == ""
+	isHomepage := page == 1 && q == "" && game_id == "" && sort == "most_recent"
+	if isHomepage {
+		key = "products_all_recent"
+
+	} else if cacheable {
+		key = fmt.Sprintf(
+			"products_public:game:%v:sort:%v:page:%v:limit:%v",
+			game_id,
+			sort,
+			page,
+			limit,
+		)
+	}
+
+	ctx := c.Request.Context()
+
+	if cacheable {
+		var cachedResp ProductResponse
+		if cached, err := redis.RedisClient.Get(ctx, key).Result(); err == nil {
+			if err := json.Unmarshal([]byte(cached), &cachedResp); err == nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": true,
+					"message": "Products retrieved from cache",
+					"data":    cachedResp.Data,
+					"meta":    cachedResp.Meta,
+				})
+				fmt.Println("cache products public hit")
+				return
+			}
+
+		}
+	}
+
 	query := database.DB.Model(&models.Product{}).Where("status = ?", "available")
 
 	if game_id != "" {
@@ -279,20 +370,18 @@ func GetProductsPublic(c *gin.Context) {
 	if q != "" {
 		query = query.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(q)+"%")
 	}
-	if sort != "" {
-		switch sort {
-		case "most_recent":
-			query = query.Order("created_at DESC")
-		case "lowest_price":
-			query = query.Order("price ASC")
-		case "highest_price":
-			query = query.Order("price DESC")
-		default:
-			query = query.Order("created_at DESC") // fallback
-		}
-	} else {
-		query = query.Order("created_at DESC") // default
+
+	switch sort {
+	case "most_recent":
+		query = query.Order("created_at DESC")
+	case "lowest_price":
+		query = query.Order("price ASC")
+	case "highest_price":
+		query = query.Order("price DESC")
+	default:
+		query = query.Order("created_at DESC")
 	}
+
 	if err := query.Count(&total).Error; err != nil {
 		log.Println("ERROR:", err)
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
@@ -301,6 +390,7 @@ func GetProductsPublic(c *gin.Context) {
 		})
 		return
 	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 
 	if err := query.
 		Preload("Game").
@@ -312,22 +402,36 @@ func GetProductsPublic(c *gin.Context) {
 		Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
-			Message: err.Error(),
+			Message: "Internal server error",
 		})
 		return
 	}
-	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Products retrieved successfully",
-		"data":    products,
-		"meta": gin.H{
+	resp := ProductResponse{
+		Data: products,
+		Meta: gin.H{
 			"page":        page,
 			"limit":       limit,
 			"total":       total,
 			"total_pages": totalPages,
 		},
+	}
+
+	if isHomepage {
+		if data, err := json.Marshal(resp); err == nil {
+			redis.RedisClient.Set(ctx, key, data, 1*time.Minute)
+		}
+	} else if cacheable {
+		if data, err := json.Marshal(resp); err == nil {
+			redis.RedisClient.Set(ctx, key, data, 10*time.Minute)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Products retrieved successfully",
+		"data":    products,
+		"meta":    resp.Meta,
 	})
 }
 
@@ -344,6 +448,23 @@ func GetProductByID(c *gin.Context) {
 	}
 
 	var product models.Product
+
+	key := fmt.Sprintf("product:%v", id)
+
+	ctx := c.Request.Context()
+	if cached, err := redis.RedisClient.Get(ctx, key).Result(); err == nil {
+		if err := json.Unmarshal([]byte(cached), &product); err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"message": "Product retrieved from cache",
+				"data":    product,
+			})
+			fmt.Println("cache product id hit", product)
+			return
+		}
+		redis.RedisClient.Del(ctx, key)
+	}
+
 	if err := database.DB.Preload("Game").Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id", "name", "picture")
 	}).First(&product, id).Error; err != nil {
@@ -352,6 +473,10 @@ func GetProductByID(c *gin.Context) {
 			Message: "Product not found",
 		})
 		return
+	}
+
+	if data, err := json.Marshal(product); err == nil {
+		redis.RedisClient.Set(ctx, key, data, 10*time.Minute)
 	}
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
@@ -447,7 +572,6 @@ func UpdateProduct(c *gin.Context) {
 			fieldValues = make(map[string]interface{})
 		}
 
-		// validasi pakai helper
 		fieldErrors := helpers.ValidateFieldValues(game.FieldSchema, fieldValues)
 
 		for k, v := range fieldErrors {
@@ -518,10 +642,21 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	// hapus image lama kalau ada
 	if oldImage != "" {
 		_ = os.Remove("./images/products/" + oldImage)
 	}
+
+	ctx := c.Request.Context()
+
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products_public:game:%v:*", product.GameId),
+	)
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products:user:%v:*", product.UserId),
+	)
+	redis.RedisClient.Del(ctx, fmt.Sprintf("product:%d", product.Id))
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
@@ -552,8 +687,24 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 	if product.Image != "" {
-		_ = os.Remove("./images/products/" + product.Image)
+		if err := os.Remove("./images/products/" + product.Image); err != nil {
+			log.Printf("failed remove image: %v", err)
+		}
 	}
+
+	ctx := c.Request.Context()
+
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products_public:game:%v:*", product.GameId),
+	)
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products:user:%v:*", product.UserId),
+	)
+	redis.RedisClient.Del(ctx, fmt.Sprintf("product:%d", product.Id))
+	redis.RedisClient.Del(ctx, fmt.Sprintf("products_all_recent"))
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Product successfully deleted",
@@ -575,8 +726,14 @@ func ChangeProductStatus(c *gin.Context) {
 
 	userId := c.MustGet("user_id").(uint)
 
-	if err := database.DB.Where("id IN ? AND user_id = ?", req.Ids, userId).
-		Find(&products).Error; err != nil {
+	if err := database.DB.Where("id IN ? AND user_id = ?", req.Ids, userId).Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Internal server error",
+		})
+		return
+	}
+	if len(products) == 0 {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
 			Message: "Product not found",
@@ -591,15 +748,44 @@ func ChangeProductStatus(c *gin.Context) {
 		})
 		return
 	}
+
+	if err := database.DB.Model(&models.Product{}).
+		Where("id IN ? AND user_id = ?", req.Ids, userId).
+		Update("status", status).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "failed to update product status",
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	gameIds := make(map[uint]struct{})
+
 	for _, product := range products {
-		product.Status = status
-		if err := database.DB.Save(&product).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
-				Success: false,
-				Message: "failed to update product status",
-			})
-			return
-		}
+		gameIds[product.GameId] = struct{}{}
+
+		redis.RedisClient.Del(
+			ctx,
+			fmt.Sprintf("product:%d", product.Id),
+		)
+	}
+
+	for gameId := range gameIds {
+		helpers.DeleteByPattern(
+			ctx,
+			fmt.Sprintf("products_public:game:%d:*", gameId),
+		)
+	}
+	helpers.DeleteByPattern(
+		ctx,
+		fmt.Sprintf("products:user:%v:*", userId),
+	)
+	redis.RedisClient.Del(ctx, fmt.Sprintf("product:%d", userId))
+	redis.RedisClient.Del(ctx, fmt.Sprintf("products_all_recent"))
+	for i := range products {
+		products[i].Status = status
 	}
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
@@ -624,7 +810,7 @@ func GetProductBatch(c *gin.Context) {
 	for _, s := range strIds {
 		id, err := strconv.Atoi(s)
 		if err != nil {
-			continue // skip kalau invalid
+			continue
 		}
 		ids = append(ids, uint(id))
 	}
