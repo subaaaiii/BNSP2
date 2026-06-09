@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { useLogin } from "../../hooks/auth/useLogin";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -15,16 +16,39 @@ const Login = () => {
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
 
   const submitLogin = () => {
+    if (captchaRequired && !captchaToken) {
+      toast.error("Please complete captcha");
+      return;
+    }
+
     mutate(
-      { username, password },
+      { username, password, captchaToken },
       {
         onSuccess: () => {
           toast.success("Successfully logged in");
         },
         onError: (error: any) => {
-          setErrors(error.response.data.errors);
+          const data = error.response?.data;
+
+          if (data?.errors) {
+            setErrors(data.errors);
+            if (data?.errors?.captcha) {
+            setCaptchaRequired(true);
+          }
+          }else{
+            toast.error(data?.message)
+          }
+
+          // setErrors(error.response.data.errors);
+          // if (error.response?.data?.errors?.captcha) {
+          //   setCaptchaRequired(true);
+          // }
+          // console.log("error", error.response.data.errors);
+          // console.log("setCaptchaRequired", setCaptchaRequired);
         },
       },
     );
@@ -109,6 +133,18 @@ const Login = () => {
               <span>{errors.Password}</span>
             </div>
           )}
+
+          {captchaRequired && (
+            <div className="mt-4 flex justify-center">
+              <Turnstile
+                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => {
+                  setCaptchaToken(token);
+                }}
+              />
+            </div>
+          )}
+
           <Link
             to="/forgot-password"
             className="flex w-full justify-end text-sm text-blue-500 hover:underline"

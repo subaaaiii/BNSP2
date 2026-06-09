@@ -4,8 +4,13 @@ import (
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/redis"
 	"bnsp2/server/structs"
+	"context"
+	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -68,6 +73,33 @@ func Register(c *gin.Context) {
 	})
 }
 
+func handleFailedLogin(ctx context.Context, ip string, username string) {
+	key := fmt.Sprintf(
+		"login_fail:%s:%s",
+		ip,
+		username,
+	)
+
+	count, _ := redis.RedisClient.Incr(ctx, key).Result()
+
+	if count == 1 {
+		redis.RedisClient.Expire(ctx, key, 15*time.Minute)
+	}
+
+	if count >= 3 {
+		redis.RedisClient.Set(
+			ctx,
+			fmt.Sprintf(
+				"captcha_required:%s:%s",
+				ip,
+				username,
+			),
+			"1",
+			15*time.Minute,
+		)
+	}
+}
+
 func Login(c *gin.Context) {
 
 	var req = structs.UserLoginRequest{}
@@ -81,7 +113,51 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-	println("hey")
+
+	ctx := c.Request.Context()
+	ip := c.ClientIP()
+
+	key := fmt.Sprintf(
+		"captcha_required:%s:%s",
+		ip,
+		req.Username,
+	)
+	captchaRequired, err := redis.RedisClient.Exists(
+		ctx,
+		key,
+	).Result()
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	if captchaRequired > 0 {
+		if req.CaptchaToken == "" {
+			c.JSON(http.StatusForbidden, structs.ErrorResponse{
+				Success: false,
+				Message: "Captcha required",
+				Errors: map[string]string{
+					"Error":   "Captcha required",
+					"captcha": "Captcha required",
+				},
+			})
+			return
+		}
+
+		valid, err := helpers.VerifyTurnstile(req.CaptchaToken)
+
+		if err != nil || !valid {
+			c.JSON(http.StatusForbidden, structs.ErrorResponse{
+				Success: false,
+				Message: "Invalid captcha",
+				Errors: map[string]string{
+					"Error":   "Invalid captcha",
+					"captcha": "Invalid captcha",
+				},
+			})
+			return
+		}
+	}
 
 	if err := database.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, structs.ErrorResponse{
@@ -91,7 +167,7 @@ func Login(c *gin.Context) {
 				"Error": "Wrong username or password",
 			},
 		})
-		println("hey")
+		handleFailedLogin(ctx, ip, req.Username)
 		return
 	}
 
@@ -103,8 +179,23 @@ func Login(c *gin.Context) {
 				"Error": "Wrong username or password",
 			},
 		})
+		handleFailedLogin(ctx, ip, req.Username)
 		return
 	}
+
+	redis.RedisClient.Del(
+		ctx,
+		fmt.Sprintf(
+			"login_fail:%s:%s",
+			ip,
+			req.Username,
+		),
+	)
+
+	redis.RedisClient.Del(
+		ctx,
+		key,
+	)
 
 	accessToken := helpers.GenerateAccessToken(user.Id, user.Role)
 	refreshToken := helpers.GenerateRefreshToken(user.Id, user.Role)

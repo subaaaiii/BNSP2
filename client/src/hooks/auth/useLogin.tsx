@@ -6,6 +6,7 @@ import Api from "../../services/api";
 interface LoginRequest {
   username: string;
   password: string;
+  captchaToken: string;
 }
 
 export const useLogin = () => {

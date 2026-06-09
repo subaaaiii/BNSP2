@@ -5,6 +5,7 @@ import (
 	"bnsp2/server/handlers"
 	"bnsp2/server/middlewares"
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4173"},
+		AllowOrigins:     []string{"http://localhost:4173", "http://localhost:5173"},
 		AllowMethods:     []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -38,7 +39,7 @@ func SetupRouter() *gin.Engine {
 	router.Static("/images", "./images")
 	router.POST("/api/register", controllers.Register)
 	router.GET("/api/me", middlewares.AuthMiddleware(), controllers.Me)
-	router.POST("/api/login", controllers.Login)
+	router.POST("/api/login", middlewares.RateLimit(5, time.Minute), controllers.Login)
 	router.POST("/api/logout", controllers.Logout)
 	router.POST("/api/auth/refresh", handlers.Refresh)
 	// router.GET("/api/users", controllers.FindUsers)

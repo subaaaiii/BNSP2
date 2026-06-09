@@ -46,8 +46,9 @@ type UserUpdateRequest struct {
 
 // Struct ini digunakan saat user melakukan proses login
 type UserLoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username     string `json:"username" binding:"required"`
+	Password     string `json:"password" binding:"required"`
+	CaptchaToken string `json:"captchaToken"`
 }
 
 type VerifyPasswordRequest struct {
