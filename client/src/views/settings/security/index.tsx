@@ -1,12 +1,14 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../../../context/AuthContext";
-import { useVerifyChangeEmailOTP } from "../../../hooks/change_email/verify_email";
+import { useVerifyOTP } from "../../../hooks/change_email/verify_otp";
 import { useSendChangeEmailOTP } from "../../../hooks/change_email/send_email";
 import { useChangePassword } from "../../../hooks/change_password/useChangePassword";
 import { useVerifyPassword } from "../../../hooks/change_password/useVerifyPassword";
 import { useNavigate } from "react-router";
 import { useSendOTP } from "../../../hooks/auth/useSendOTP";
 import { MdModeEdit } from "react-icons/md";
+import { useChangeEmail } from "../../../hooks/change_email/change_email";
+import toast from "react-hot-toast";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -15,22 +17,30 @@ interface ValidationErrors {
 const Security = () => {
   const navigate = useNavigate();
   const { user, loading: isLoading } = useContext(AuthContext)!;
+  const [error, setError] = useState("");
 
-  const [step, setStep] = useState<"send" | "verify">("send");
+  const [step, setStep] = useState<"verify_password" | "change" | "verify_otp">(
+    "verify_password",
+  );
   const [passwordStep, setPasswordStep] = useState<"verify" | "change">(
     "verify",
   );
   const [otp, setOtp] = useState("");
   const [newEmail, setNewEmail] = useState("");
 
-  const sendOtpMutation = useSendChangeEmailOTP();
-  const verifyOtpMutation = useVerifyChangeEmailOTP();
+  const { mutate: sendOtpMutation, isPending: isSendingOTP } =
+    useSendChangeEmailOTP();
+  const { mutate: verifyOTPMutation, isPending: isVerifyingOTP } =
+    useVerifyOTP();
+  const { mutate: changeEmailMutation, isPending: isChangingEmail } =
+    useChangeEmail();
+  // const verifyOtpMutation = useVerifyChangeEmailOTP();
   // const changePasswordMutation = useChangePassword();
   const { mutate: changePasswordMutation, isPending: isChangingPassword } =
     useChangePassword();
   const { mutate: verifyPasswordMutation, isPending: isVerifyingPassword } =
     useVerifyPassword();
-  const { mutate: sendOtpMutation2, } = useSendOTP();
+  const { mutate: sendOtpMutation2 } = useSendOTP();
 
   const [password, setPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -57,11 +67,13 @@ const Security = () => {
     };
   };
 
-  const loading = sendOtpMutation.isPending || verifyOtpMutation.isPending;
+  const loading = isChangingEmail || isVerifyingOTP;
+
+  // const loading = sendOtpMutation.isPending || verifyOtpMutation.isPending;
   if (isLoading || !user) return <div>Loading...</div>;
 
   const openModal = () => {
-    setStep("send");
+    setStep("verify_password");
     setOtp("");
     setNewEmail("");
 
@@ -82,36 +94,55 @@ const Security = () => {
   };
 
   const sendOTP = () => {
-    sendOtpMutation.mutate(undefined, {
-      onSuccess: () => {
-        setStep("verify");
+    sendOtpMutation(
+      { email: newEmail, purpose: "change_email" },
+      {
+        onSuccess: () => {
+          setStep("verify_otp");
+          setError("")
+        },
+        onError: (error: any) => {
+          setError(error.response?.data?.message || "OTP Failed to send");
+        },
       },
-    });
+    );
   };
 
   const verifyOTP = () => {
-    verifyOtpMutation.mutate(
+    verifyOTPMutation(
       {
         otp,
-        newEmail,
+        email: newEmail,
+        purpose: "change_email",
       },
       {
-        onSuccess: () => {
-          // // update AuthContext
-          // setUser((prev: any) => ({
-          //   ...prev,
-          //   email: newEmail,
-          // }));
-          alert("Email berhasil diubah");
+        onSuccess: (res) => {
+          changeEmailMutation(
+            {
+              new_email: newEmail,
+              verification_token: res.data.verification_token,
+            },
+            {
+              onSuccess: (res) => {
+                toast.success(res.message || "Change email success");
+                setOtp("");
+                setNewEmail("");
+                const modal = document.getElementById(
+                  "change_email_modal",
+                ) as HTMLDialogElement | null;
 
-          setOtp("");
-          setNewEmail("");
-
-          const modal = document.getElementById(
-            "change_email_modal",
-          ) as HTMLDialogElement | null;
-
-          modal?.close();
+                modal?.close();
+              },
+              onError: (error: any) => {
+                setError(
+                  error.response?.data?.message || "Change email failed",
+                );
+              },
+            },
+          );
+        },
+        onError: (error: any) => {
+          setError(error.response?.data?.message || "OTP Failed to verify");
         },
       },
     );
@@ -126,7 +157,10 @@ const Security = () => {
       },
       {
         onSuccess: () => {
+          setStep("change");
           setPasswordStep("change");
+          setError("")
+          setPassword("");
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
@@ -183,7 +217,7 @@ const Security = () => {
       <div className="flex flex-row">
         <div className="flex flex-col mb-5 items-start w-full ">
           <h2 className="mb-5 text-4xl font-bold text-text">Security</h2>
-          
+
           {/* EMAIL */}
           <div className="flex justify-between w-full items-center py-4">
             <div>
@@ -263,28 +297,79 @@ const Security = () => {
           <h3 className="font-bold text-lg mb-4">Change Email</h3>
 
           {/* STEP 1 */}
-          {step === "send" && (
+          {step === "verify_password" && (
             <div className="space-y-4">
               <p className="text-sm text-gray-500">
-                Kami akan mengirim OTP ke email Anda untuk verifikasi.
+                Insert your password to verify it's you.
               </p>
-
-              <button
-                onClick={sendOTP}
-                className="btn btn-neutral w-full"
-                disabled={loading}
-              >
-                {loading ? "Sending..." : "Send OTP"}
-              </button>
+              <form onSubmit={handleVerifyPassword}>
+                <div className="form-control">
+                  <div className="relative">
+                    <input
+                      placeholder="Enter current password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={`input input-bordered w-full pr-12 ${
+                        errors.password ? "input-error" : ""
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2  text-sm text-gray-500 cursor-pointer hover:text-gray-700"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
+                {errors.Password && (
+                  <div className="text-error text-sm">
+                    <span>{errors.Password}</span>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  className="py-1 bg-secondary1 w-full mt-2"
+                  disabled={isVerifyingPassword}
+                >
+                  {isVerifyingPassword ? "Verifying..." : "Verify Password"}
+                </button>
+              </form>
             </div>
           )}
 
           {/* STEP 2 */}
-          {step === "verify" && (
+          {step === "change" && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                Masukkan OTP yang dikirim ke email.
-              </p>
+              <p className="text-sm text-gray-500">Enter your new email.</p>
+
+              <input
+                type="email"
+                placeholder="example@gmail.com"
+                className="input input-bordered w-full"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+
+              {error && (
+                <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+              )}
+
+              <button
+                onClick={sendOTP}
+                className="py-1 bg-secondary1 w-full"
+                disabled={isSendingOTP}
+              >
+                {isSendingOTP ? "Sending OTP..." : "Send OTP Verification"}
+              </button>
+            </div>
+          )}
+
+          {/* STEP 3 */}
+          {step === "verify_otp" && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">Enter OTP.</p>
 
               <input
                 type="text"
@@ -294,27 +379,32 @@ const Security = () => {
                 onChange={(e) => setOtp(e.target.value)}
               />
 
-              <input
-                type="email"
-                placeholder="New Email"
-                className="input input-bordered w-full"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-              />
+              {error && (
+                <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+              )}
 
               <button
                 onClick={verifyOTP}
-                className="btn btn-primary w-full"
+                className="py-1 bg-secondary1 w-full"
                 disabled={loading}
               >
-                {loading ? "Verifying..." : "Verify & Change Email"}
+                {loading ? "Verifying..." : "Verify"}
               </button>
             </div>
           )}
 
           <div className="modal-action">
             <form method="dialog">
-              <button className="btn">Close</button>
+              <button
+                className="btn"
+                onClick={() => {
+                  setOtp("");
+                  setNewEmail("");
+                  setPassword("");
+                }}
+              >
+                Cancel
+              </button>
             </form>
           </div>
         </div>
@@ -470,10 +560,12 @@ const Security = () => {
               </div>
 
               <div className="modal-action">
-                <button className="btn" type="button">
+               <form method="dialog">
+                <button className="btn">
                   Cancel
                 </button>
-
+               </form>
+                
                 <button
                   type="submit"
                   className="btn btn-primary"

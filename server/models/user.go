@@ -8,7 +8,7 @@ type User struct {
 	Username            string     `gorm:"size:100;uniqueIndex;not null" json:"username"`
 	Email               string     `gorm:"size:100;uniqueIndex;not null" json:"email"`
 	Password            string     `gorm:"size:255;not null" json:"password"`
-	Birthday            time.Time  `gorm:"type:date" json:"birthday"`
+	Birthday            *time.Time `gorm:"type:date" json:"birthday"`
 	Gender              string     `gorm:"size:20" json:"gender"`
 	AccountNumber       string     `gorm:"size:50" json:"account_number"`
 	Bank                string     `gorm:"size:50" json:"bank"`
@@ -20,7 +20,7 @@ type User struct {
 	OTPExpiresAt        *time.Time `json:"otp_expires_at"`
 	Products            []Product  `json:"products,omitempty"`
 	ResetToken          string     `gorm:"size:255" json:"reset_token"`
-	ResetTokenExpiresAt time.Time  `json:"reset_token_expires_at"`
+	ResetTokenExpiresAt *time.Time `json:"reset_token_expires_at"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

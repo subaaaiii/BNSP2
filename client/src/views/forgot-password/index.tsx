@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useSendResetPasswordEmail } from "../../hooks/forgot_password/useSendResetPasswordEmail";
-import { toast } from "react-hot-toast/headless";
+import toast from "react-hot-toast";
+
 
 interface ValidationErrors {
   [key: string]: string;
@@ -12,23 +13,20 @@ const ForgotPassword = () => {
 
   const [email, setEmail] = useState<string>("");
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const {mutate, isPending} = useSendResetPasswordEmail();
+  const { mutate, isPending } = useSendResetPasswordEmail();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    mutate(
-      email,
-      {
-        onSuccess: () => {
-          toast.success("Email reset password berhasil dikirim!");
+    mutate(email, {
+      onSuccess: () => {
+        toast.success("Password reset email sent successfully!");
           navigate("/login");
-        },
-        onError: (error: any) => {
-          setErrors({ Email: error.message });
-        }
-      }
-    );
-
+        
+      },
+      onError: (error: any) => {
+        setErrors({ Email: error.response?.data.message });
+      },
+    });
   };
 
   return (

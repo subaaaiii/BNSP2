@@ -3,6 +3,7 @@ import { AuthContext } from "../context/AuthContext";
 import { Routes, Route, Navigate, useLocation } from "react-router";
 import AuthGuard from "./guard.tsx";
 import PageLoader from "../components/PageLoader";
+import VerifyUser from "../views/auth/verify_user.tsx";
 const Home = lazy(() => import("../views/home/index.tsx"));
 const Register = lazy(() => import("../views/auth/register.tsx"));
 const Login = lazy(() => import("../views/auth/login.tsx"));
@@ -100,12 +101,20 @@ export default function AppRoutes() {
         <Route
           path="/verify-email"
           element={
-            !isAuthenticated ? (
-              <Navigate to="/login" replace />
-            ) : isVerified ? (
+             isVerified ? (
               <Navigate to="/" replace />
             ) : (
               <VerifyEmail />
+            )
+          }
+        />
+        <Route
+          path="/verify-user"
+          element={
+             isVerified ? (
+              <Navigate to="/" replace />
+            ) : (
+              <VerifyUser />
             )
           }
         />

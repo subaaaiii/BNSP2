@@ -7,6 +7,7 @@ import (
 	"bnsp2/server/redis"
 	"bnsp2/server/structs"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +16,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type RegisterTemp struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	OTP      string `json:"otp"`
+}
 
 func Register(c *gin.Context) {
 	var req = structs.UserCreateRequest{}
@@ -29,12 +38,136 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	user := models.User{
+	var emailExists bool
+	var usernameExists bool
+
+	database.DB.
+		Model(&models.User{}).
+		Where("email = ?", req.Email).
+		Select("count(*) > 0").
+		Find(&emailExists)
+
+	database.DB.
+		Model(&models.User{}).
+		Where("username = ?", req.Username).
+		Select("count(*) > 0").
+		Find(&usernameExists)
+
+	errors := map[string]string{}
+
+	if emailExists {
+		errors["Email"] = "Email already exists"
+	}
+
+	if usernameExists {
+		errors["Username"] = "Username already exists"
+	}
+
+	if len(errors) > 0 {
+		c.JSON(http.StatusConflict, structs.ErrorResponse{
+			Success: false,
+			Message: "Duplicate entry",
+			Errors:  errors,
+		})
+		return
+	}
+
+	otp := helpers.GenerateOTP()
+
+	data := RegisterTemp{
 		Name:     req.Name,
 		Username: req.Username,
 		Email:    req.Email,
 		Password: helpers.HashPassword(req.Password),
-		Picture:  "default.png",
+		OTP:      otp,
+	}
+
+	jsonData, _ := json.Marshal(data)
+
+	ctx := c.Request.Context()
+
+	key := fmt.Sprintf("register:%s", req.Email)
+
+	exists, _ := redis.RedisClient.Exists(ctx, key).Result()
+
+	if exists > 0 {
+		c.JSON(http.StatusConflict, structs.ErrorResponse{
+			Success: false,
+			Message: "Verification already pending",
+		})
+		return
+	}
+
+	redis.RedisClient.Set(
+		ctx,
+		fmt.Sprintf("register:%s", req.Email),
+		jsonData,
+		10*time.Minute,
+	)
+
+	helpers.SendOTPEmail(req.Email, otp)
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "otp sent",
+	})
+}
+
+type CreateRequest struct {
+	Email string `json:"email"`
+	OTP   string `json:"otp"`
+}
+
+func CreateUser(c *gin.Context) {
+	var req = CreateRequest{}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	key := fmt.Sprintf("register:%s", req.Email)
+	ctx := c.Request.Context()
+
+	result, err := redis.RedisClient.Get(ctx, key).Result()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Registration data expired",
+		})
+		return
+	}
+
+	var temp RegisterTemp
+
+	if err := json.Unmarshal([]byte(result), &temp); err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to read registration data",
+		})
+		return
+	}
+
+	if temp.OTP != req.OTP {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid OTP",
+		})
+		return
+	}
+
+	user := models.User{
+		Name:          temp.Name,
+		Username:      temp.Username,
+		Email:         temp.Email,
+		Password:      temp.Password,
+		Picture:       "default.png",
+		EmailVerified: true,
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
@@ -57,6 +190,8 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	redis.RedisClient.Del(ctx, key)
+
 	c.JSON(http.StatusCreated, structs.SuccessResponse{
 		Success: true,
 		Message: "User created successfully",
@@ -71,6 +206,73 @@ func Register(c *gin.Context) {
 			UpdatedAt: user.UpdatedAt.Format("2006-01-02 15:04:05"),
 		},
 	})
+}
+
+type ResendOTPRequest struct {
+	Email string `json:"email"`
+}
+
+func ResendOTPRegister(c *gin.Context) {
+	var req = ResendOTPRequest{}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+	key := fmt.Sprintf("register:%s", req.Email)
+	ctx := c.Request.Context()
+
+	result, err := redis.RedisClient.Get(ctx, key).Result()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Registration data expired",
+		})
+		return
+	}
+
+	var temp RegisterTemp
+
+	if err := json.Unmarshal([]byte(result), &temp); err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to read registration data",
+		})
+		return
+	}
+
+	otp := helpers.GenerateOTP()
+
+	temp.OTP = otp
+
+	jsonData, err := json.Marshal(temp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to encode registration data",
+		})
+		return
+	}
+
+	redis.RedisClient.Set(
+		ctx,
+		key,
+		jsonData,
+		10*time.Minute,
+	)
+
+	helpers.SendOTPEmail(req.Email, otp)
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "OTP Resent",
+	})
+
 }
 
 func handleFailedLogin(ctx context.Context, ip string, username string) {

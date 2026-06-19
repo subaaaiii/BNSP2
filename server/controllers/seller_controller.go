@@ -71,7 +71,7 @@ func RegisterSeller(c *gin.Context) {
 		if err != nil {
 			errors["Birthday"] = "Birthday must be in the format YYYY-MM-DD"
 		}
-		user.Birthday = parsedDate
+		user.Birthday = &parsedDate
 	}
 
 	if len(errors) > 0 {
@@ -146,7 +146,7 @@ func RegisterSeller(c *gin.Context) {
 				Name:     user.Name,
 				Address:  user.Address,
 				Gender:   user.Gender,
-				Birthday: user.Birthday.Format("2006-01-02"),
+				Birthday: helpers.FormatBirthday(user.Birthday),
 			},
 		},
 	})
@@ -185,7 +185,7 @@ func GetSellerByUserId(c *gin.Context) {
 				Name:     seller.User.Name,
 				Address:  seller.User.Address,
 				Gender:   seller.User.Gender,
-				Birthday: seller.User.Birthday.Format("2006-01-02"),
+				Birthday: helpers.FormatBirthday(seller.User.Birthday),
 			},
 		},
 	})
@@ -216,7 +216,7 @@ func GetSellers(c *gin.Context) {
 				Name:     seller.User.Name,
 				Address:  seller.User.Address,
 				Gender:   seller.User.Gender,
-				Birthday: seller.User.Birthday.Format("2006-01-02"),
+				Birthday: helpers.FormatBirthday(seller.User.Birthday),
 			},
 		})
 	}

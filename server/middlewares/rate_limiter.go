@@ -12,12 +12,24 @@ import (
 
 func RateLimit(maxRequest int64, duration time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ip := c.ClientIP()
-		key := fmt.Sprintf(
-			"rate_limit:%s:%s",
-			c.FullPath(),
-			ip,
-		)
+
+		userID, exists := c.Get("user_id")
+		var key string
+
+		if exists {
+			uid := userID.(uint)
+			key = fmt.Sprintf(
+				"rate_limit:%s:user:%d",
+				c.FullPath(),
+				uid,
+			)
+		} else {
+			key = fmt.Sprintf(
+				"rate_limit:%s:ip:%s",
+				c.FullPath(),
+				c.ClientIP(),
+			)
+		}
 		ctx := c.Request.Context()
 
 		count, err := redis.RedisClient.Incr(ctx, key).Result()
@@ -36,6 +48,8 @@ func RateLimit(maxRequest int64, duration time.Duration) gin.HandlerFunc {
 				Success: false,
 				Message: "Too many requests, wait a moments",
 			})
+			return
 		}
+		c.Next()
 	}
 }

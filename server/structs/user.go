@@ -15,11 +15,11 @@ type UserResponse struct {
 }
 
 type UserProfileResponse struct {
-	Name     string `json:"name"`
-	Birthday string `json:"birthday"`
-	Gender   string `json:"gender"`
-	Address  string `json:"address"`
-	Picture  string `json:"picture"`
+	Name     string  `json:"name"`
+	Birthday *string `json:"birthday"`
+	Gender   string  `json:"gender"`
+	Address  string  `json:"address"`
+	Picture  string  `json:"picture"`
 }
 
 // Struct ini digunakan untuk menerima data saat proses create user

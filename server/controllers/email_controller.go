@@ -4,11 +4,16 @@ import (
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
+	"bnsp2/server/redis"
 	"bnsp2/server/structs"
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func SendEmailOTP(c *gin.Context) {
@@ -128,46 +133,166 @@ func VerifyEmailOTP(c *gin.Context) {
 	})
 }
 
-func SendChangeEmailOTP(c *gin.Context) {
+type SendOTPRequest struct {
+	Email   string `json:"email" binding:"required,email"`
+	Purpose string `json:"purpose" binding:"required"`
+}
 
-	userID := c.MustGet("user_id").(uint)
+type OTPData struct {
+	Email   string `json:"email"`
+	OTP     string `json:"otp"`
+	Purpose string `json:"purpose"`
+}
 
-	var user models.User
+func SendOTP(c *gin.Context) {
+	var req = SendOTPRequest{}
 
-	// ambil user dari database
-	if err := database.DB.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
 			Success: false,
-			Message: "User not found",
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
 		})
 		return
 	}
 
-	// generate OTP
+	if req.Purpose == "change_email" {
+		var existing models.User
+
+		err := database.DB.
+			Where("email = ?", req.Email).
+			First(&existing).Error
+
+		if err == nil {
+			c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+				Success: false,
+				Message: "Email already registered",
+			})
+			return
+		}
+	}
+
+	key := fmt.Sprintf("otp:%s:%s", req.Purpose, req.Email)
+
+	ctx := c.Request.Context()
 	otp := helpers.GenerateOTP()
 
-	// set expired OTP
-	expired := time.Now().Add(5 * time.Minute)
+	otpData := OTPData{
+		Email:   req.Email,
+		OTP:     otp,
+		Purpose: req.Purpose,
+	}
 
-	// simpan OTP ke database
-	user.EmailOTP = otp
-	user.OTPExpiresAt = &expired
+	jsonData, _ := json.Marshal(otpData)
 
-	database.DB.Save(&user)
+	redis.RedisClient.Set(
+		ctx,
+		key,
+		jsonData,
+		10*time.Minute,
+	)
 
-	// kirim OTP ke email lama
-	err := helpers.SendOTPEmail(user.Email, otp)
+	helpers.SendOTPEmail(req.Email, otp)
+
+	log.Println(key)
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "OTP Resent",
+	})
+
+}
+
+type VerifyRequest struct {
+	Email   string `json:"email" binding:"required,email"`
+	OTP     string `json:"otp" binding:"required"`
+	Purpose string `json:"purpose" binding:"required"`
+}
+
+func VerifyOTP(c *gin.Context) {
+	var req = VerifyRequest{}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	key := fmt.Sprintf("otp:%s:%s", req.Purpose, req.Email)
+
+	log.Println(key)
+
+	ctx := c.Request.Context()
+
+	result, err := redis.RedisClient.Get(ctx, key).Result()
 	if err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "OTP expired",
+		})
+		return
+	}
+
+	var otpData OTPData
+
+	if err := json.Unmarshal([]byte(result), &otpData); err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
-			Message: "Failed to send OTP",
+			Message: "Failed to read otp data",
 		})
+		return
+	}
+
+	if otpData.OTP != req.OTP {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid OTP",
+		})
+		return
+	}
+	redis.RedisClient.Del(ctx, key)
+
+	if req.Purpose == "change_email" {
+		verificationToken := uuid.NewString()
+
+		key := fmt.Sprintf(
+			"verified:change_email:%s",
+			req.Email,
+		)
+
+		err := redis.RedisClient.Set(
+			ctx,
+			key,
+			verificationToken,
+			10*time.Minute,
+		).Err()
+
+		log.Println(key)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+				Success: false,
+				Message: "Failed to set cache",
+			})
+		}
+
+		c.JSON(http.StatusOK, structs.SuccessResponse{
+			Success: true,
+			Message: "Verify OTP success",
+			Data: gin.H{
+				"verification_token": verificationToken,
+			},
+		})
+
 		return
 	}
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
-		Message: "OTP Sent",
+		Message: "Valid OTP",
 	})
 }
 

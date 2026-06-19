@@ -70,8 +70,8 @@ const ResetPassword = () => {
     mutate(
       { token, password: form.password },
       {
-        onSuccess: () => {
-          toast.success("Password berhasil direset, silahkan login kembali!");
+        onSuccess: (res) => {
+          toast.success(res.message || "Successfully reset password , please login again!");
           navigate("/login");
         },
         onError: (error: any) => {
@@ -81,7 +81,6 @@ const ResetPassword = () => {
             // validation error
             setErrors(res.errors);
           } else {
-            // general error
             setErrors({ general: res.message });
           }
         },
@@ -90,7 +89,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex justify-center mt-16 bg-gray-100">
+    <div className="flex justify-center mt-16 ">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-xl shadow-md w-96"
@@ -129,29 +128,29 @@ const ResetPassword = () => {
           </button>
         </div>
         {isPasswordFocused ? (
-          <div className="text-sm space-y-1">
+          <div className="text-sm space-y-1 mt-4">
             {!passwordRules.minLength ? (
-              <p className="text-gray-400">• Minimal 8 karakter</p>
+              <p className="text-gray-400">• Minimum 8 character</p>
             ) : (
               ""
             )}
             {!passwordRules.hasUpper ? (
-              <p className="text-gray-400">• Mengandung huruf besar</p>
+              <p className="text-gray-400">• Contains uppercase letters </p>
             ) : (
               ""
             )}
             {!passwordRules.hasLower ? (
-              <p className="text-gray-400">• Mengandung huruf kecil</p>
+              <p className="text-gray-400">• Contains lowercase letters</p>
             ) : (
               ""
             )}
             {!passwordRules.hasNumber ? (
-              <p className="text-gray-400">• Mengandung angka</p>
+              <p className="text-gray-400">• Contains number</p>
             ) : (
               ""
             )}
             {!passwordRules.hasSymbol ? (
-              <p className="text-gray-400">• Mengandung simbol</p>
+              <p className="text-gray-400">• Contains symbol</p>
             ) : (
               ""
             )}
@@ -165,7 +164,7 @@ const ResetPassword = () => {
             <span>{errors.Password}</span>
           </div>
         )}
-        <label className="label mt-4">Konfirmasi Password</label>
+        <label className="label mt-4">Confirm Password</label>
 
         <div className="relative">
           <input
@@ -175,7 +174,7 @@ const ResetPassword = () => {
               setForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
             }
             className="input w-full pr-12"
-            placeholder="Konfirmasi Password"
+            placeholder="Confirm Password"
           />
 
           <button

@@ -18,6 +18,7 @@ const Profile = () => {
   const { data, isLoading } = useUser(userId);
   const { mutate, isPending } = useUpdateProfile();
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const isSeller = user?.role === "seller";
 
   const [form, setForm] = useState({
     name: "",
@@ -111,18 +112,18 @@ const Profile = () => {
         <div className="flex flex-col md:flex-row justify-between mb-5 items-start">
           <div>
             <h2 className="mb-5 text-4xl font-bold text-text ">Profile</h2>
-            {!isEditing && user?.email_verified === false && (
+            {!isEditing && !isSeller && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-surface text-text px-4 py-2 rounded-lg text-text"
+                className="bg-secondary1 text-text px-4 py-2 rounded-lg text-white"
               >
                 Update Profile
               </button>
             )}
-            {!isEditing && user?.role === "seller" && (
+            {!isEditing && isSeller && (
               <button
                 onClick={() => setIsEditProfile(true)}
-                className="bg-surface text-text px-4 py-2 rounded-lg text-text"
+                className="bg-secondary1 text-text px-4 py-2 rounded-lg text-white"
               >
                 Update Profile
               </button>
@@ -143,7 +144,7 @@ const Profile = () => {
               />
             )}
 
-            {isEditing || isEditProfile && (
+            {(isEditing || isEditProfile) && (
               <>
                 <input
                   type="file"
@@ -183,7 +184,6 @@ const Profile = () => {
               </div>
             )}
           </div>
-
 
           <div>
             <label
@@ -252,16 +252,15 @@ const Profile = () => {
               </div>
             )}
           </div>
-
-          {isEditing || isEditProfile && (
+          {(isEditing || isEditProfile) && (
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                onClick={() => {setIsEditing(false)
-                  setIsEditProfile(false)
-                }
-                }
+                onClick={() => {
+                  setIsEditing(false);
+                  setIsEditProfile(false);
+                }}
               >
                 Cancel
               </button>

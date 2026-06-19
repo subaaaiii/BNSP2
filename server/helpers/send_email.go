@@ -16,7 +16,7 @@ func SendOTPEmail(to string, otp string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", "Kode Verifikasi Email")
 
-	body := fmt.Sprintf("Kode OTP untuk mengubah email adalah: %s", otp)
+	body := fmt.Sprintf("Kode OTP anda adalah: %s", otp)
 
 	m.SetBody("text/plain", body)
 

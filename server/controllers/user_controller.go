@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,23 @@ func FindUserById(c *gin.Context) {
 
 	var user models.User
 
+	key := fmt.Sprintf("user_profile:%v", id)
+
+	ctx := c.Request.Context()
+	var cachedResp structs.UserProfileResponse
+	if cached, err := redis.RedisClient.Get(ctx, key).Result(); err == nil {
+		if err := json.Unmarshal([]byte(cached), &cachedResp); err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"message": "user retrieved from cache",
+				"data":    cachedResp,
+			})
+			fmt.Println("cache user id hit", cachedResp)
+			return
+		}
+		redis.RedisClient.Del(ctx, key)
+	}
+
 	if err := database.DB.First(&user, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
@@ -51,16 +69,22 @@ func FindUserById(c *gin.Context) {
 		return
 	}
 
+	resp := structs.UserProfileResponse{
+		Name:     user.Name,
+		Birthday: helpers.FormatBirthday(user.Birthday),
+		Gender:   user.Gender,
+		Address:  user.Address,
+		Picture:  user.Picture,
+	}
+
+	if data, err := json.Marshal(resp); err == nil {
+		redis.RedisClient.Set(ctx, key, data, time.Hour)
+	}
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "User Found",
-		Data: structs.UserProfileResponse{
-			Name:     user.Name,
-			Birthday: user.Birthday.Format("2006-01-02"),
-			Gender:   user.Gender,
-			Address:  user.Address,
-			Picture:  user.Picture,
-		},
+		Data:    resp,
 	})
 
 }
@@ -144,6 +168,11 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	ctx := c.Request.Context()
+
+	redis.RedisClient.Del(ctx, fmt.Sprintf("user:%v", user.Id))
+	redis.RedisClient.Del(ctx, fmt.Sprintf("user_profile:%v", user.Id))
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: false,
 		Message: "User updated successfully",
@@ -174,6 +203,11 @@ func DeleteUser(c *gin.Context) {
 		})
 		return
 	}
+
+	ctx := c.Request.Context()
+
+	redis.RedisClient.Del(ctx, fmt.Sprintf("user:%v", user.Id))
+	redis.RedisClient.Del(ctx, fmt.Sprintf("user_profile:%v", user.Id))
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
@@ -352,12 +386,15 @@ func SendResetPasswordEmail(c *gin.Context) {
 	}
 
 	token := helpers.GenerateResetToken(user.Id)
-	user.ResetToken = token
-	user.ResetTokenExpiresAt = time.Now().Add(10 * time.Minute)
-	if err := database.DB.Save(&user).Error; err != nil {
+
+	ctx := c.Request.Context()
+	key := fmt.Sprintf("reset_token:%v", token)
+
+	err := redis.RedisClient.Set(ctx, key, user.Id, 10*time.Minute).Err()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
 			Success: false,
-			Message: "Failed to generate reset token",
+			Message: "Failed to set token",
 		})
 		return
 	}
@@ -391,27 +428,48 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 
+	ctx := c.Request.Context()
+	key := fmt.Sprintf("reset_token:%v", req.Token)
+
+	result, err := redis.RedisClient.Get(ctx, key).Result()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Token expired",
+		})
+		return
+	}
+
+	userId, err := strconv.ParseUint(result, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to parse user id",
+		})
+		return
+	}
+
 	var user models.User
 
-	if err := database.DB.Where("reset_token = ?", req.Token).First(&user).Error; err != nil {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+	if err := database.DB.Where("id = ?", userId).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
 			Success: false,
-			Message: "Invalid reset token",
+			Message: "User not found",
 		})
 		return
 	}
 
-	if time.Now().After(user.ResetTokenExpiresAt) {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err == nil {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
-			Message: "Reset Password token has expired",
+			Errors: map[string]string{
+				"Password": "New password cannot be the same as the old password.",
+			},
 		})
 		return
 	}
-
 	user.Password = helpers.HashPassword(req.Password)
-	user.ResetToken = ""
-	user.ResetTokenExpiresAt = time.Time{}
 
 	if err := database.DB.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
@@ -423,7 +481,84 @@ func ResetPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
-		Message: "Password reset successfully",
+		Message: "Password reset successfully, please login again",
 	})
 
+}
+
+type ChangeEmailRequest struct {
+	NewEmail          string `json:"new_email" binding:"required,email"`
+	VerificationToken string `json:"verification_token" binding:"required"`
+}
+
+func ChangeEmail(c *gin.Context) {
+	var req ChangeEmailRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	userID := c.GetUint("user_id")
+
+	ctx := c.Request.Context()
+
+	key := fmt.Sprintf("verified:change_email:%s", req.NewEmail)
+
+	token, err := redis.RedisClient.Get(ctx, key).Result()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Email verification required",
+		})
+		return
+	}
+
+	if token != req.VerificationToken {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Invalid verification token",
+		})
+		return
+	}
+
+	var existing models.User
+
+	err = database.DB.
+		Where("email = ?", req.NewEmail).
+		First(&existing).Error
+
+	if err == nil {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
+			Success: false,
+			Message: "Email already registered",
+		})
+		return
+	}
+
+	if err := database.DB.
+		Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("email", req.NewEmail).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to update email",
+		})
+		return
+	}
+
+	redis.RedisClient.Del(ctx, key)
+	redis.RedisClient.Del(ctx, fmt.Sprintf("user:%v", userID))
+	redis.RedisClient.Del(ctx, fmt.Sprintf("user_profile:%v", userID))
+
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "Email updated successfully",
+	})
 }

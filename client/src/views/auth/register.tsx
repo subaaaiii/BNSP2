@@ -64,7 +64,7 @@ const Register = () => {
       },
       {
         onSuccess: () => {
-          navigate("/verify-email");
+          navigate(`/verify-user?email=${encodeURIComponent(email)}`);
         },
         onError: (error: any) => {
           setErrors(error.response.data.errors);
