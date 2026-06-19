@@ -19,6 +19,10 @@ const Login = () => {
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
 
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:8080/auth/google";
+  };
+
   const submitLogin = () => {
     if (captchaRequired && !captchaToken) {
       toast.error("Please complete captcha");
@@ -37,10 +41,10 @@ const Login = () => {
           if (data?.errors) {
             setErrors(data.errors);
             if (data?.errors?.captcha) {
-            setCaptchaRequired(true);
-          }
-          }else{
-            toast.error(data?.message)
+              setCaptchaRequired(true);
+            }
+          } else {
+            toast.error(data?.message);
           }
 
           // setErrors(error.response.data.errors);
@@ -157,6 +161,27 @@ const Login = () => {
           >
             {isPending ? "Loading..." : "LOGIN"}
           </button>
+          <button
+            className="p-3 rounded-md bg-[#C5A16F] mt-4 text-bg"
+            onClick={handleGoogleLogin}
+          >
+            Login Google
+          </button>
+          {/* <GoogleLogin
+            onSuccess={() => {
+              // if (!credentialResponse.credential) return;
+              // mutateGoogle(credentialResponse.credential,{
+              //   onSuccess: ()=>{
+              //     toast.success("Successfully logged in");
+              //     navigate("/")
+              //   }
+              // });
+              window.location.href = "http://localhost:8080/auth/google";
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          /> */}
           <div className="flex justify-center gap-2 ">
             {" "}
             <span className="text-text">Don't have account?</span>
@@ -191,3 +216,6 @@ const Login = () => {
 };
 
 export default Login;
+// function useLoginGoogle() {
+//   throw new Error("Function not implemented.");
+// }

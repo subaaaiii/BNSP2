@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import Api from "../services/api";
+import { getProfileImage } from "../helpers/get_profile_image";
 
 const BottomNavbar = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const BottomNavbar = () => {
                   <div className="w-8 rounded-full">
                     <img
                       alt="avatar"
-                      src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
+                      src={getProfileImage(user.picture)}
                     />
                   </div>
                 </div>

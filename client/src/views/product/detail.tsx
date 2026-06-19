@@ -25,6 +25,7 @@ import {
 } from "react-icons/fa";
 import { GoHome } from "react-icons/go";
 import { useSEO } from "../../hooks/helpers/useSEO";
+import { getProfileImage } from "../../helpers/get_profile_image";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
@@ -304,7 +305,7 @@ const DetailProduct = () => {
               <div className="w-full flex justify-between items-center">
                 <div className="flex gap-2 items-center">
                   <img
-                    src={`${Api.defaults.baseURL}/images/users/${data.user.picture}`}
+                    src={getProfileImage(data.user.picture)}
                     alt=""
                     className="w-16 h-16 rounded-full"
                   />

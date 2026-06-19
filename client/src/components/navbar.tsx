@@ -5,6 +5,7 @@ import Api from "../services/api";
 import UserProfile from "../views/user/profile";
 import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import logo from "../../public/logo.png"
+import { getProfileImage } from "../helpers/get_profile_image";
 
 const Navbar = () => {
   const { user, loading } = useContext(AuthContext)!;
@@ -86,7 +87,7 @@ const Navbar = () => {
                         <div className="avatar">
                           <div className="w-10 rounded-full">
                             <img
-                              src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
+                              src={getProfileImage(user.picture)}
                               alt="profile"
                             />
                           </div>

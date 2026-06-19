@@ -62,3 +62,7 @@ type ChangePasswordRequest struct {
 type UserVerifyEmailRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
+
+type GoogleLoginRequest struct {
+	Credential string `json:"credential" binding:"required"`
+}

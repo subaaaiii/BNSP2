@@ -4,6 +4,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { Link } from "react-router";
 import { useLogout } from "../../hooks/auth/useLogout";
 import BottomNavbar from "../../components/bottom_navbar";
+import { getProfileImage } from "../../helpers/get_profile_image";
 
 type Props = {
   onClose?: () => void;
@@ -29,7 +30,7 @@ const UserProfile = ({ onClose }: Props) => {
                 <div className="w-9 rounded-full">
                   <img
                     alt="avatar"
-                    src={`${Api.defaults.baseURL}/images/users/${user.picture}`}
+                    src={getProfileImage(user.picture)}
                   />
                 </div>
               </div>

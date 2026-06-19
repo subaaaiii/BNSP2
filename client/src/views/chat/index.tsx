@@ -16,6 +16,7 @@ import { useProductBatch } from "../../hooks/product/useProductBatch";
 import { useOrderBatch } from "../../hooks/order/useOrderBatch";
 import { useOrder } from "../../hooks/order/useOrder";
 import OrderCardSimple from "../../components/order_card_simple";
+import { getProfileImage } from "../../helpers/get_profile_image";
 
 const Chat = () => {
   const { id } = useParams();
@@ -288,7 +289,7 @@ const Chat = () => {
               <div className="w-9 rounded-full">
                 <img
                   alt="avatar"
-                  src={`${Api.defaults.baseURL}/images/users/${user?.picture}`}
+                  src={getProfileImage(user?.picture)}
                 />
               </div>
             </div>
@@ -300,7 +301,7 @@ const Chat = () => {
                     <div className="w-9 rounded-full">
                       <img
                         alt="avatar"
-                        src={`${Api.defaults.baseURL}/images/users/${user?.picture}`}
+                        src={getProfileImage(user?.picture)}
                       />
                     </div>
                   </div>
@@ -360,7 +361,7 @@ const Chat = () => {
             <div className="flex gap-2 items-center min-w-0 overflow-hidden">
               <div className="">
                 <img
-                  src={`${Api.defaults.baseURL}/images/users/${list.picture}`}
+                  src={getProfileImage(list.picture)}
                   alt={list.picture}
                   className="w-12 h-12 object-cover rounded-full"
                 />

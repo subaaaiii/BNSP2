@@ -12,6 +12,8 @@ func main() {
 
 	//load config .env
 	config.LoadEnv()
+	config.InitSession()
+	config.InitOAuth()
 	redis.ConnectRedis()
 	database.InitDB()
 

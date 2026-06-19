@@ -1,3 +1,4 @@
+import { getProfileImage } from "../helpers/get_profile_image";
 import Api from "../services/api";
 
 const Card = ({ product, onClick }: any) => {
@@ -39,7 +40,7 @@ const Card = ({ product, onClick }: any) => {
 
         <div className="block md:hidden flex md:gap-2 md:px-6 items-center py-1 md:py-3">
           <img
-            src={`${Api.defaults.baseURL}/images/users/${product.user.picture}`}
+            src={getProfileImage(product.user.picture)}
             alt={product.user.name}
             className="w-6 md:w-8 h-6 md:h-8 rounded-full object-cover"
           />
@@ -54,7 +55,7 @@ const Card = ({ product, onClick }: any) => {
 
       <div className="hidden md:flex gap-2 md:px-6 md:items-center py-3">
         <img
-          src={`${Api.defaults.baseURL}/images/users/${product.user.picture}`}
+          src={getProfileImage(product.user.picture)}
           alt={product.user.name}
           className="w-8 h-8 rounded-full object-cover"
         />

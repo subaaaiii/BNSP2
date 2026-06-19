@@ -4,6 +4,7 @@ import { AuthContext } from "../../../context/AuthContext";
 import { useUpdateProfile } from "../../../hooks/profile/useUpdateProfile";
 import { useNavigate } from "react-router";
 import Api from "../../../services/api";
+import { getProfileImage } from "../../../helpers/get_profile_image";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -137,7 +138,7 @@ const Profile = () => {
                 src={
                   pictureFile
                     ? URL.createObjectURL(pictureFile)
-                    : `${Api.defaults.baseURL}/images/users/${data?.picture}`
+                    : getProfileImage(data?.picture)
                 }
                 alt="Profile"
                 className="rounded-full w-32 h-32 mx-auto border-2 border-neutral  mb-4"

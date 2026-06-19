@@ -8,13 +8,16 @@ import (
 	"bnsp2/server/structs"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/markbates/goth/gothic"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type RegisterTemp struct {
@@ -464,4 +467,240 @@ func Logout(c *gin.Context) {
 		Success: true,
 		Message: "Logout success",
 	})
+}
+
+// func GoogleLogin(c *gin.Context) {
+// 	var req structs.GoogleLoginRequest
+
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{
+// 			"message": "invalid request",
+// 		})
+// 		return
+// 	}
+
+// 	payload, err := idtoken.Validate(
+// 		context.Background(),
+// 		req.Credential,
+// 		os.Getenv("GOOGLE_CLIENT_ID"),
+// 	)
+
+// 	if err != nil {
+// 		c.JSON(http.StatusUnauthorized, gin.H{
+// 			"message": "invalid google token",
+// 		})
+// 		return
+// 	}
+
+// 	var user = models.User{}
+
+// 	email, ok := payload.Claims["email"].(string)
+// 	if !ok {
+// 		c.JSON(400, gin.H{
+// 			"message": "invalid google payload",
+// 		})
+// 		return
+// 	}
+// 	name, ok := payload.Claims["name"].(string)
+// 	if !ok {
+// 		c.JSON(400, gin.H{
+// 			"message": "invalid google payload",
+// 		})
+// 		return
+// 	}
+// 	picture, ok := payload.Claims["picture"].(string)
+// 	if !ok {
+// 		c.JSON(400, gin.H{
+// 			"message": "invalid google payload",
+// 		})
+// 		return
+// 	}
+// 	googleID := payload.Subject
+
+// 	result := database.DB.Where(
+// 		"email = ?",
+// 		email,
+// 	).First(&user)
+
+// 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+// 		user = models.User{
+// 			Email:      email,
+// 			Name:       name,
+// 			Picture:    picture,
+// 			Provider:   "google",
+// 			ProviderID: googleID,
+// 		}
+
+// 		if err := database.DB.Create(&user).Error; err != nil {
+// 			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+// 				Success: false,
+// 				Message: "Failed to create user",
+// 			})
+// 			return
+// 		}
+// 	} else if result.Error != nil {
+
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"message": "database error",
+// 		})
+// 		return
+
+// 	} else {
+// 		updated := false
+// 		if user.Provider == "" {
+// 			user.Provider = "google"
+// 			user.ProviderID = googleID
+// 			updated = true
+// 		}
+
+// 		if user.Picture == "default.png" {
+// 			user.Picture = picture
+// 			updated = true
+// 		}
+// 		if updated {
+// 			database.DB.Save(&user)
+// 		}
+// 	}
+
+// 	accessToken := helpers.GenerateAccessToken(user.Id, user.Role)
+// 	refreshToken := helpers.GenerateRefreshToken(user.Id, user.Role)
+
+// 	c.SetCookie(
+// 		"access_token",
+// 		accessToken,
+// 		900,
+// 		"/",
+// 		"",
+// 		false,
+// 		true,
+// 	)
+
+// 	c.SetCookie(
+// 		"refresh_token",
+// 		refreshToken,
+// 		604800,
+// 		"/api/auth/refresh",
+// 		"",
+// 		false,
+// 		true,
+// 	)
+
+// 	c.JSON(http.StatusOK, structs.SuccessResponse{
+// 		Success: true,
+// 		Message: "Login Success",
+// 		Data: structs.UserResponse{
+// 			Id:        user.Id,
+// 			Name:      user.Name,
+// 			Username:  user.Username,
+// 			Email:     user.Email,
+// 			CreatedAt: user.CreatedAt.String(),
+// 			UpdatedAt: user.UpdatedAt.String(),
+// 			Role:      user.Role,
+// 			Picture:   user.Picture,
+// 		},
+// 	})
+// }
+
+func GoogleLogin(c *gin.Context) {
+	q := c.Request.URL.Query()
+	q.Add("provider", "google")
+	c.Request.URL.RawQuery = q.Encode()
+
+	gothic.BeginAuthHandler(c.Writer, c.Request)
+}
+
+func GoogleCallback(c *gin.Context) {
+	q := c.Request.URL.Query()
+	q.Add("provider", "google")
+	c.Request.URL.RawQuery = q.Encode()
+
+	user, err := gothic.CompleteUserAuth(
+		c.Writer,
+		c.Request,
+	)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	var dbuser = models.User{}
+
+	result := database.DB.Where(
+		"email = ?",
+		user.Email,
+	).First(&dbuser)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		dbuser = models.User{
+			Email:         user.Email,
+			Name:          user.Name,
+			Picture:       user.AvatarURL,
+			Provider:      "google",
+			ProviderID:    user.UserID,
+			Username:      helpers.GenerateUsername(user.Email),
+			EmailVerified: true,
+		}
+
+		if err := database.DB.Create(&dbuser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Failed to create user error",
+				"error":   err.Error(),
+			})
+			return
+		}
+	} else if result.Error != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "database error",
+		})
+		return
+
+	} else {
+		updated := false
+		if dbuser.Provider == "" {
+			dbuser.Provider = "google"
+			dbuser.ProviderID = user.UserID
+			updated = true
+		}
+
+		if dbuser.Picture == "default.png" {
+			dbuser.Picture = user.AvatarURL
+			updated = true
+		}
+		if updated {
+			database.DB.Save(&dbuser)
+		}
+	}
+
+	accessToken := helpers.GenerateAccessToken(dbuser.Id, dbuser.Role)
+	refreshToken := helpers.GenerateRefreshToken(dbuser.Id, dbuser.Role)
+
+	c.SetCookie(
+		"access_token",
+		accessToken,
+		900,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.SetCookie(
+		"refresh_token",
+		refreshToken,
+		604800,
+		"/api/auth/refresh",
+		"",
+		false,
+		true,
+	)
+
+	//
+	c.Redirect(
+		http.StatusTemporaryRedirect,
+		"http://localhost:5173",
+	)
 }
