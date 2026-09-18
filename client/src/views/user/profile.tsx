@@ -1,5 +1,4 @@
 import { useContext } from "react";
-import Api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
 import { Link } from "react-router";
 import { useLogout } from "../../hooks/auth/useLogout";

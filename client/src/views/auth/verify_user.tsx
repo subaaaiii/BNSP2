@@ -78,7 +78,7 @@ const VerifyUser = () => {
           <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
         )}
 
-        <button onClick={handleVerify} className="btn btn-primary w-full mt-4">
+        <button onClick={handleVerify} className="btn bg-secondary1 w-full mt-4">
           {isPending ? "Verifyng..." : "Verify"}
         </button>
 
@@ -87,7 +87,7 @@ const VerifyUser = () => {
           Not receive OTP code?{" "}
           <button
             onClick={handleResend}
-            className="text-indigo-600 font-medium hover:underline"
+            className="text-secondary1 font-medium hover:underline"
             disabled={isResendOtp}
           >
             {isResendOtp ? "Sending..." : "Resend OTP"}

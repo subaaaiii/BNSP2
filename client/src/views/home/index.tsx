@@ -61,8 +61,8 @@ const Home = () => {
   const products = productData?.data;
 
   return (
-    <div className="rounded-5 -mt-20 w-full ">
-      <div className="flex flex-col bg-gradient-to-b from-[#C5A16F] via-[#2d3330] to-[#1a1a19] px-3 md:px-0 ">
+    <div className="rounded-5 -mt-20 ">
+      <div className="flex flex-col bg-gradient-to-b from-[#C5A16F] via-[#2d3330] to-[#1a1a19] px-3 lg:px-0 ">
         <div className="pb-10">
           <div className="w-full max-w-6xl mx-auto relative pt-30 md:pt-40">
             <div className="flex w-full">
@@ -104,7 +104,7 @@ const Home = () => {
                   </div>
 
                   {open && (
-                    <div className="absolute mt-2 w-full bg-white shadow-lg rounded-xl z-50">
+                    <div className="absolute mt-2 w-full bg-[#1d232a] shadow-lg rounded-xl z-50">
                       <div className="px-4 text-gray-500 mt-6">
                         {query ? "Search result" : "Recent added Game"}
                       </div>
@@ -118,7 +118,7 @@ const Home = () => {
                             recentGames.slice(0, 3).map((item: any) => (
                               <div
                                 key={item.id}
-                                className="ml-4 mb-8 mt-2 text-xs md:text-sm px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-200 cursor-pointer"
+                                className="ml-4 mb-8 mt-2 text-xs md:text-sm px-4 py-2 bg-surface text-primary1 rounded-full hover:bg-surface-hover cursor-pointer"
                                 onClick={() => {
                                   setQuery(item.name);
                                   setOpen(false);
@@ -199,8 +199,8 @@ const Home = () => {
         </div>
       </div>
       {/* Recent product */}
-      <div className="max-w-6xl mx-auto mt-8 px-3 md:px-0 ">
-        <div className="text-2xl font-semibold mb-2 text-text">
+      <div className="max-w-6xl mx-auto mt-8 px-3 lg:px-0 ">
+        <div className="text-2xl font-semibold mb-2 text-primary1">
           Recent products
         </div>
         <div className="w-full  flex justify-center items-center ">
@@ -224,57 +224,57 @@ const Home = () => {
         </div>
       </div>
       {/* How it works */}
-      <div className="max-w-6xl mx-auto w-full mt-8 mb-20 px-3 md:px-0 ">
-        <div className="text-2xl font-semibold mb-2 text-text">
+      <div className="max-w-6xl mx-auto w-full mt-8 mb-20 px-3 lg:px-0 ">
+        <div className="text-2xl font-semibold mb-2 text-primary1">
           How it works
         </div>
         <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-5">
-          <div className="w-full col-span-1 flex py-6 px-4 shadow-md bg-surface gap-2 rounded-lg items-center">
-            <div className="w-11 h-11 p-3 rounded-full bg-primary2 flex items-center ">
-              <IoIosUnlock className="w-5 h-5 text-primary1" />
+          <div className="w-full col-span-1 flex flex-row md:flex-col lg:flex-row py-6 px-4 shadow-md  bg-gradient-to-br from-surface to-secondary1/10 gap-2 rounded-lg items-center">
+            <div className="w-11 h-11 p-3 rounded-full bg-secondary1 flex items-center ">
+              <IoIosUnlock className="w-5 h-5 text-surface" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-medium text-text">
+              <span className="text-lg font-medium text-secondary1">
                 Registration
               </span>
-              <span className="text-sm text-text">
+              <span className="text-sm text-secondary1">
                 Sign up for free to access all feature
               </span>
             </div>
           </div>
-          <div className="w-full col-span-1 flex py-6 px-4 shadow-md bg-surface gap-2 rounded-lg items-center">
-            <div className="w-11 h-11 p-3 rounded-full bg-primary2 flex items-center ">
-              <MdOutlinePayment className="w-5 h-5 text-primary1" />
+          <div className="w-full col-span-1 flex flex-row md:flex-col lg:flex-row py-6 px-4 shadow-md  bg-gradient-to-br from-surface to-secondary1/10 gap-2 rounded-lg items-center">
+            <div className="w-11 h-11 p-3 rounded-full bg-secondary1 flex items-center ">
+              <MdOutlinePayment className="w-5 h-5 text-surface" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-medium text-text">Payment</span>
-              <span className="text-sm text-text">
+              <span className="text-lg font-medium text-secondary1">Payment</span>
+              <span className="text-sm text-secondary1">
                 Pay with your favorite payment!
               </span>
             </div>
           </div>
-          <div className="w-full col-span-1 flex py-6 px-4 shadow-md bg-surface gap-2 rounded-lg items-center">
-            <div className="w-11 h-11 p-3 rounded-full bg-primary2 flex items-center ">
-              <LuSendHorizontal className="w-5 h-5 text-primary1" />
+          <div className="w-full col-span-1 flex flex-row md:flex-col lg:flex-row py-6 px-4 shadow-md  bg-gradient-to-br from-surface to-secondary1/10 gap-2 rounded-lg items-center">
+            <div className="w-11 h-11 p-3 rounded-full bg-secondary1 flex items-center ">
+              <LuSendHorizontal className="w-5 h-5 text-surface" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-medium text-xl text-text">
+              <span className="text-lg font-medium text-xl text-secondary1">
                 Delivery
               </span>
-              <span className="text-sm text-text">
+              <span className="text-sm text-secondary1">
                 Wait for the order to be sent by the seller
               </span>
             </div>
           </div>
-          <div className="w-full col-span-1 flex py-6 px-4 shadow-md bg-surface gap-2 rounded-lg items-center">
-            <div className="w-11 h-11 p-3 rounded-full bg-primary2 flex items-center ">
-              <HiOutlineBadgeCheck className="w-5 h-5 text-primary1" />
+          <div className="w-full col-span-1 flex flex-row md:flex-col lg:flex-row py-6 px-4 shadow-md  bg-gradient-to-br from-surface to-secondary1/10 gap-2 rounded-lg items-center">
+            <div className="w-11 h-11 p-3 rounded-full bg-secondary1 flex items-center ">
+              <HiOutlineBadgeCheck className="w-5 h-5 text-surface" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-medium text-xl text-text">
+              <span className="text-lg font-medium text-xl text-secondary1">
                 Confirmation
               </span>
-              <span className="text-sm text-text">
+              <span className="text-sm text-secondary1">
                 Seller will get the money after the order is confirmed by the
                 buyer.
               </span>
@@ -282,15 +282,16 @@ const Home = () => {
           </div>
         </div>
       </div>
+      {/* payments */}
       <div className="max-w-2xl mx-auto mb-20 md:mb-40 ">
-        <div className="text-2xl font-semibold mb-2 text-text text-center mb-6">
+        <div className="text-2xl font-semibold mb-2 text-primary1 text-center mb-6">
           Payments
         </div>
         <div className="w-full flex flex-wrap justify-center gap-4">
           {paymentLogos.map((item) => (
             <div
               key={item.name}
-              className="px-4 py-2 flex items-center justify-center rounded-sm shadow-sm bg-base-100"
+              className="px-4 py-2 flex items-center justify-center rounded-sm shadow-sm  bg-gradient-to-br from-surface to-secondary1/10"
             >
               <img src={item.logo} alt={item.name} className="w-12 h-10" loading="lazy" />
             </div>

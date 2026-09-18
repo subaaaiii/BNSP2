@@ -4,6 +4,8 @@ import { useLogin } from "../../hooks/auth/useLogin";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { FcGoogle } from "react-icons/fc";
+import Api from "../../services/api";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -20,7 +22,7 @@ const Login = () => {
   const [captchaToken, setCaptchaToken] = useState("");
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/auth/google";
+    window.location.href = `${Api.defaults.baseURL}/auth/google`;
   };
 
   const submitLogin = () => {
@@ -162,10 +164,11 @@ const Login = () => {
             {isPending ? "Loading..." : "LOGIN"}
           </button>
           <button
-            className="p-3 rounded-md bg-[#C5A16F] mt-4 text-bg"
+            className="p-2 rounded-md bg-transparent mt-2 flex justify-center border border-text text-text items-center gap-1"
             onClick={handleGoogleLogin}
           >
-            Login Google
+            <FcGoogle className="w-6 h-6" />
+            <span className="text-md">Sign in with Google</span>
           </button>
           {/* <GoogleLogin
             onSuccess={() => {

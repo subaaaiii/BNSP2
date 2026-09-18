@@ -57,7 +57,7 @@ const ReviewSeller = () => {
                 <label>
                   <input
                     type="checkbox"
-                    className="checkbox border border-text checked:bg-text"
+                    className="checkbox border-text checkbox-neutral"
                     checked={
                       selected.length ===
                       (sellers?.filter((s) => s.status === "pending").length ||
@@ -90,7 +90,7 @@ const ReviewSeller = () => {
                   <td>
                     <input
                       type="checkbox"
-                      className="checkbox border-text checked:bg-text"
+                      className="checkbox border-text checkbox-neutral"
                       checked={selected.includes(seller.id)}
                       onChange={() => handleCheck(seller.id)}
                     />

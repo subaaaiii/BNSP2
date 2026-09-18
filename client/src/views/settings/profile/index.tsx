@@ -3,7 +3,6 @@ import { useUser } from "../../../hooks/profile/useUser";
 import { AuthContext } from "../../../context/AuthContext";
 import { useUpdateProfile } from "../../../hooks/profile/useUpdateProfile";
 import { useNavigate } from "react-router";
-import Api from "../../../services/api";
 import { getProfileImage } from "../../../helpers/get_profile_image";
 
 interface ValidationErrors {

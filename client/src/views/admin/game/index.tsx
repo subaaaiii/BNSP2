@@ -27,7 +27,7 @@ const GameList = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)
-          : data?.map((game: any) => (
+          : data?.data?.map((game: any) => (
               <GameCard image={`${Api.defaults.baseURL}/images/games/covers/${game?.image}`} name={game.name} onClick={() => {
                  navigate(`/admin/games/edit/${game.id}`);
                }}/>

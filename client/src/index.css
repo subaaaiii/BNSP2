@@ -4,7 +4,7 @@
   /* LIGHT (default) */
   --color-bg: #ffffff;
   --color-surface: #f5f5f5;
-  --color-surface-hover: #eaeaea;
+  --color-surface-hover: #A8A8A8;
   --color-text: #111827;
 
   --color-primary1: #2d3330;
@@ -21,7 +21,7 @@
 .dark {
   --color-bg: #1a1a19;
   --color-surface: #272726;
-  --color-surface-hover: #333332;
+  --color-surface-hover: #545452;
   --color-text: #f9fafb;
 
   --color-primary1: #f9fafb;

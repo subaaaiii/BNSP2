@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiAlertCircle } from "react-icons/fi";
 import { useGames } from "../../hooks/game/useGames";
@@ -10,8 +10,13 @@ import TopNavbar from "../../components/top_navbar";
 const SelectGameBrand = () => {
   const navigate = useNavigate();
   const [selected, setSelected] = useState("");
-  const { data: games } = useGames({ page: 1, limit: 999 });
+  const { data: gamesData } = useGames({ page: 1, limit: 999 });
+  const games = gamesData?.data
   const [showInfo, setShowInfo] = useState(false);
+
+  useEffect(()=>{
+    console.log("games",games)
+  },[games])
 
   return (
     <div className="p-0 md:p-6 max-w-6xl mx-auto">

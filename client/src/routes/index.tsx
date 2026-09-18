@@ -60,7 +60,7 @@ export default function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* route "/" */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />  
 
         <Route path="/products" element={<BrandProducts />} />
         <Route path="/brands" element={<Brand />} />

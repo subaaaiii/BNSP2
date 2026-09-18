@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useRegister } from "../../hooks/auth/useRegister";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import Api from "../../services/api";
+import { FcGoogle } from "react-icons/fc";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -71,6 +73,10 @@ const Register = () => {
         },
       },
     );
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${Api.defaults.baseURL}/auth/google`;
   };
   return (
     <div className="flex w-full justify-center items-center ">
@@ -245,6 +251,13 @@ const Register = () => {
             className="hidden md:block p-3 rounded-md bg-secondary1 mt-4"
           >
             {isPending ? "Loading..." : "REGISTER"}
+          </button>
+          <button
+            className="p-2 rounded-md bg-transparent mt-2 flex justify-center border border-text text-text items-center gap-1"
+            onClick={handleGoogleLogin}
+          >
+            <FcGoogle className="w-6 h-6" />
+            <span className="text-md">Sign up with Google</span>
           </button>
         </fieldset>
         <div className="fixed bottom-0 left-0 w-full bg-bg border-t border-gray-300 p-4 md:hidden">

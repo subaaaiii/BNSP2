@@ -3,7 +3,6 @@ import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import Api from "../services/api";
 import { getProfileImage } from "../helpers/get_profile_image";
 
 const BottomNavbar = () => {

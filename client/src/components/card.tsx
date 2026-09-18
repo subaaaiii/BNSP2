@@ -8,7 +8,7 @@ const Card = ({ product, onClick }: any) => {
 
   return (
     <div
-      className="card flex flex-row md:flex-col bg-bg shadow-sm rounded-md min-w-0"
+      className="card flex flex-row md:flex-col bg-gradient-to-br from-surface to-secondary1/10 shadow-xl rounded-md min-w-0 border border-secondary1"
       onClick={onClick}
     >
       <img
@@ -21,7 +21,7 @@ const Card = ({ product, onClick }: any) => {
         loading="lazy"
         className="w-32 h-32 md:w-full md:h-auto 
              aspect-square md:aspect-[1.8/1] 
-             object-cover rounded-md md:rounded-t-md "
+             object-cover rounded-t-md md:rounded-t-md "
       />
 
       <div className="flex flex-col flex-1 gap-1 px-3 md:px-6 py-1 md:py-3 cursor-pointer min-w-0">
@@ -51,7 +51,7 @@ const Card = ({ product, onClick }: any) => {
         </div>
       </div>
 
-      <hr className="hidden md:block border-gray-300" />
+      <hr className="hidden md:block border-secondary1" />
 
       <div className="hidden md:flex gap-2 md:px-6 md:items-center py-3">
         <img
@@ -60,7 +60,7 @@ const Card = ({ product, onClick }: any) => {
           className="w-8 h-8 rounded-full object-cover"
         />
 
-        <span className="font-semibold text-lg text-primary1">
+        <span className="font-semibold text-lg text-secondary1">
           {product.user.name}
         </span>
       </div>
