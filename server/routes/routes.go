@@ -17,7 +17,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4173", "http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:4173", "http://localhost:5173", "https://cross-anthology-unfixed.ngrok-free.dev"},
 		AllowMethods:     []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -88,7 +88,8 @@ func SetupRouter() *gin.Engine {
 	router.POST("/api/chat/send", middlewares.AuthMiddleware(), middlewares.RateLimit(40, time.Minute), handlers.SendMessage)
 	router.GET("/api/chat/messages", middlewares.AuthMiddleware(), middlewares.RateLimit(120, time.Minute), handlers.GetMessages)
 	router.GET("/api/chat/list", middlewares.AuthMiddleware(), handlers.GetChatListHandler)
-	router.POST("/api/payment/callback", middlewares.AuthMiddleware(), controllers.PaymentCallback)
+	// router.POST("/api/payment/callback", middlewares.AuthMiddleware(), controllers.PaymentCallback)
+	router.POST("/api/payment/callback", controllers.PaymentCallback)
 
 	router.POST("/api/orders", middlewares.AuthMiddleware(), middlewares.RateLimit(10, time.Minute), controllers.CreateOrder)
 	router.GET("/api/orders/:id", middlewares.AuthMiddleware(), controllers.GetOrder)

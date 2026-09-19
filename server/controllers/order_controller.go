@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bnsp2/server/config"
 	"bnsp2/server/database"
 	"bnsp2/server/helpers"
 	"bnsp2/server/models"
@@ -9,6 +10,7 @@ import (
 	"bnsp2/server/structs"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"net/http"
@@ -18,6 +20,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/snap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -33,6 +37,7 @@ func CreateOrder(c *gin.Context) {
 	var req structs.OrderRequest
 	var order models.Order
 	var product models.Product
+	var user models.User
 
 	userId := c.MustGet("user_id").(uint)
 
@@ -48,6 +53,15 @@ func CreateOrder(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
 			Success: false,
 			Message: "Quantity must be greater than 0",
+		})
+		return
+	}
+
+	// Ambil customer
+	if err := database.DB.First(&user, "id = ?", userId).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "Customer not found",
 		})
 		return
 	}
@@ -95,47 +109,102 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
+	itemName := product.Title
+	if len(itemName) > 50 {
+		itemName = itemName[:47] + "..."
+	}
+
+	snapReq := &snap.Request{
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  order.Id,
+			GrossAmt: int64(order.Total),
+		},
+		CustomerDetail: &midtrans.CustomerDetails{
+			FName: user.Name,
+			Email: user.Email,
+		},
+		Items: &[]midtrans.ItemDetails{
+			{
+				ID:    fmt.Sprintf("%d", product.Id),
+				Price: int64(product.Price),
+				Qty:   int32(req.Qty),
+				Name:  itemName,
+			},
+		},
+	}
+
+	snapResp, midtransErr := config.SnapClient.CreateTransaction(snapReq)
+	if midtransErr != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to get payment token",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
 		Message: "Order successfully created",
-		Data:    order,
+		Data: map[string]interface{}{
+			"order":      order,
+			"snap_token": snapResp.Token,
+			"snap_url":   snapResp.RedirectURL,
+		},
 	})
 }
 
 func PaymentCallback(c *gin.Context) {
-	var payload structs.CallbackRequest
+
+	var notificationPayload map[string]interface{}
+	if err := c.ShouldBindJSON(&notificationPayload); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{Success: false, Message: "Validation Errors"})
+		return
+	}
+
+	orderId, exists := notificationPayload["order_id"].(string)
+	if !exists {
+		c.JSON(http.StatusBadRequest, structs.ErrorResponse{Success: false, Message: "Order ID not found in payload"})
+		return
+	}
+
+	transactionStatusResp, err := config.CoreAPIClient.CheckTransaction(orderId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{Success: false, Message: "Failed to verify transaction"})
+		return
+	}
+
+	var mappedStatus string
+	if transactionStatusResp != nil {
+		switch transactionStatusResp.TransactionStatus {
+		case "capture", "settlement":
+			mappedStatus = StatusPaid
+		case "cancel", "deny":
+			mappedStatus = StatusFailed
+		case "expire":
+			mappedStatus = StatusExpired
+		case "pending":
+			mappedStatus = StatusPending
+		default:
+			mappedStatus = StatusPending
+		}
+	}
+
+	if mappedStatus == StatusPending {
+		c.JSON(http.StatusOK, gin.H{"status": "ignored"})
+		return
+	}
+
 	var order models.Order
 	var orderLog models.OrderLog
 
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
-			Success: false,
-			Message: "Validation Errors",
-		})
-		return
-	}
-
-	validStatus := map[string]bool{
-		StatusPaid:    true,
-		StatusFailed:  true,
-		StatusExpired: true,
-	}
-
-	if !validStatus[payload.Status] {
-		c.JSON(http.StatusBadRequest, structs.ErrorResponse{
-			Success: false,
-			Message: "Status not valid",
-		})
-		return
-	}
 	var shouldSendEmail bool
 	var affectedProduct models.Product
 	var shouldInvalidateProductCache bool
 
-	err := database.DB.Transaction(func(tx *gorm.DB) error {
+	dbErr := database.DB.Transaction(func(tx *gorm.DB) error {
 		var product models.Product
 
-		if err := tx.First(&order, "id = ?", payload.OrderID).Error; err != nil {
+		if err := tx.First(&order, "id = ?", orderId).Error; err != nil {
 			return err
 		}
 
@@ -143,7 +212,7 @@ func PaymentCallback(c *gin.Context) {
 			return nil
 		}
 
-		if payload.Status == StatusPaid {
+		if mappedStatus == StatusPaid {
 			shouldSendEmail = true
 
 			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -171,14 +240,14 @@ func PaymentCallback(c *gin.Context) {
 
 		}
 
-		if err := tx.Model(&order).Update("status", payload.Status).Error; err != nil {
+		if err := tx.Model(&order).Update("status", mappedStatus).Error; err != nil {
 			return err
 		}
-		order.Status = payload.Status
+		order.Status = mappedStatus
 
-		orderLog.OrderId = payload.OrderID
-		orderLog.Status = payload.Status
-		orderLog.Title = helpers.GenerateLogTitle(payload.Status)
+		orderLog.OrderId = orderId
+		orderLog.Status = mappedStatus
+		orderLog.Title = helpers.GenerateLogTitle(mappedStatus)
 
 		if err := tx.Create(&orderLog).Error; err != nil {
 			return err
@@ -187,24 +256,18 @@ func PaymentCallback(c *gin.Context) {
 		return nil
 	})
 
-	if err != nil {
+	if dbErr != nil {
+		log.Printf("[Midtrans Webhook Error] OrderID: %s, Error: %v\n", orderId, dbErr)
+		var errorMessage string
 		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			c.JSON(http.StatusNotFound, structs.ErrorResponse{
-				Success: false,
-				Message: "Order not found",
-			})
-		case err.Error() == "stock not enough":
-			c.JSON(http.StatusConflict, structs.ErrorResponse{
-				Success: false,
-				Message: "stock not enough",
-			})
+		case errors.Is(dbErr, gorm.ErrRecordNotFound):
+			errorMessage = "order not found"
+		case dbErr.Error() == "stock not enough":
+			errorMessage = "stock not enough"
 		default:
-			c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
-				Success: false,
-				Message: "Internal server error",
-			})
+			errorMessage = "Internal server error"
 		}
+		c.JSON(http.StatusOK, structs.ErrorResponse{Success: false, Message: errorMessage})
 		return
 	}
 
@@ -245,8 +308,7 @@ func PaymentCallback(c *gin.Context) {
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,
-		Message: "Order status updated",
-		Data:    order,
+		Message: "Callback successfully processed",
 	})
 }
 

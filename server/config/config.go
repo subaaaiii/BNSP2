@@ -10,6 +10,9 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/coreapi"
+	"github.com/midtrans/midtrans-go/snap"
 )
 
 func LoadEnv() {
@@ -60,4 +63,13 @@ func InitSession() {
 	)
 
 	gothic.Store = store
+}
+
+var SnapClient snap.Client
+var CoreAPIClient coreapi.Client
+
+func InitMidtrans() {
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	SnapClient.New(serverKey, midtrans.Sandbox)
+	CoreAPIClient.New(serverKey, midtrans.Sandbox)
 }
