@@ -14,6 +14,7 @@ func main() {
 	config.LoadEnv()
 	config.InitSession()
 	config.InitOAuth()
+	config.InitMidtrans()
 	redis.ConnectRedis()
 	database.InitDB()
 

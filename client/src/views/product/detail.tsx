@@ -9,7 +9,7 @@ import { useGetProductById } from "../../hooks/product/useGetProductById";
 import { useLocation, useNavigate, useParams } from "react-router";
 import Api from "../../services/api";
 import { formattedPrice } from "../../helpers/formatted_price";
-import {  FaStore } from "react-icons/fa6";
+import { FaStore } from "react-icons/fa6";
 import TopNavbar from "../../components/top_navbar";
 import { useCreateOrder } from "../../hooks/order/useMakeOrder";
 import toast from "react-hot-toast";
@@ -26,6 +26,7 @@ import {
 import { GoHome } from "react-icons/go";
 import { useSEO } from "../../hooks/helpers/useSEO";
 import { getProfileImage } from "../../helpers/get_profile_image";
+import { useMidtrans } from "../../hooks/order/useMidtrans";
 
 const DetailProduct = () => {
   const [expanded, setExpanded] = useState(false);
@@ -126,7 +127,9 @@ const DetailProduct = () => {
     );
   };
 
-  const handleClickBuyNow = () => {
+  const { checkout, isLoading: loadingMidtrans } = useMidtrans();
+
+  const handleClickBuyNow = (id: any, quantity: any) => {
     if (!user) {
       toast.error("Silakan login terlebih dahulu");
       navigate("/login", {
@@ -134,7 +137,8 @@ const DetailProduct = () => {
       });
       return;
     }
-    dialogRef.current?.showModal();
+    // dialogRef.current?.showModal();
+    checkout(id, quantity);
   };
 
   const EXPIRED_TIME = 15 * 60 * 1000;
@@ -410,10 +414,10 @@ const DetailProduct = () => {
               )}
               <button
                 className={` ${data?.stock === 0 ? "cursor-not-allowed" : "cursor-pointer"} hidden md:block w-full p-5 rounded-xl bg-secondary1 text-bg text-2xl text-center font-bold `}
-                onClick={handleClickBuyNow}
+                onClick={() => handleClickBuyNow(data?.id, quantity)}
                 disabled={data?.stock === 0}
               >
-                Buy Now
+                {loadingMidtrans ? "Memproses...." : "Buy Now"}
               </button>
 
               <dialog
@@ -589,7 +593,12 @@ const DetailProduct = () => {
                         </span>
                       </div>
                       <div className="p-8 pt-30">
-                        <button className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium" onClick={()=>navigate("/orders/detail/"+ order!.id)}>
+                        <button
+                          className="py-3 w-full px-6 rounded-md bg-secondary1 text-bg font-medium"
+                          onClick={() =>
+                            navigate("/orders/detail/" + order!.id)
+                          }
+                        >
                           Go to order page
                         </button>
                       </div>
@@ -699,7 +708,7 @@ const DetailProduct = () => {
           </div>
           <button
             className={`${data?.stock === 0 ? "cursor-not-allowed" : "cursor-pointer"} w-full md:w-auto bg-[#C5A16F] hover:bg-gray-700 cursor-pointer text-bg font-medium p-4 md:p-3 rounded text-center`}
-            onClick={handleClickBuyNow}
+            onClick={() => handleClickBuyNow(data?.id, quantity)}
             disabled={data?.stock === 0}
           >
             Buy now

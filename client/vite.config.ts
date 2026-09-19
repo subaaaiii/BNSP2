@@ -13,4 +13,9 @@ export default defineConfig({
       filename: "dist/stats.html",
     }),
   ],
+  // server: {
+  //   allowedHosts: true, 
+  //   host: true,         
+  //   cors: true,         
+  // },
 })
