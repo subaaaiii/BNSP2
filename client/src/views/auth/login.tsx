@@ -170,21 +170,6 @@ const Login = () => {
             <FcGoogle className="w-6 h-6" />
             <span className="text-md">Sign in with Google</span>
           </button>
-          {/* <GoogleLogin
-            onSuccess={() => {
-              // if (!credentialResponse.credential) return;
-              // mutateGoogle(credentialResponse.credential,{
-              //   onSuccess: ()=>{
-              //     toast.success("Successfully logged in");
-              //     navigate("/")
-              //   }
-              // });
-              window.location.href = "http://localhost:8080/auth/google";
-            }}
-            onError={() => {
-              console.log("Login Failed");
-            }}
-          /> */}
           <div className="flex justify-center gap-2 ">
             {" "}
             <span className="text-text">Don't have account?</span>

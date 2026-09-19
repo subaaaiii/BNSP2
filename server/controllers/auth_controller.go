@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -699,8 +700,9 @@ func GoogleCallback(c *gin.Context) {
 	)
 
 	//
+	frontendUrl := os.Getenv("DOMAIN")
 	c.Redirect(
 		http.StatusTemporaryRedirect,
-		"http://localhost:5173",
+		frontendUrl,
 	)
 }

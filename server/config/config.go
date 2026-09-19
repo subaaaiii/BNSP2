@@ -43,7 +43,7 @@ func InitOAuth() {
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8080/auth/google/callback",
+			os.Getenv("GOOGLE_CALLBACK_URL"),
 			"email",
 			"profile",
 		),

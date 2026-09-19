@@ -4,6 +4,7 @@ import (
 	"bnsp2/server/controllers"
 	"bnsp2/server/handlers"
 	"bnsp2/server/middlewares"
+	"os"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4173", "http://localhost:5173", "https://cross-anthology-unfixed.ngrok-free.dev"},
+		AllowOrigins:     []string{os.Getenv("ALLOWED_ORIGIN")},
 		AllowMethods:     []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
