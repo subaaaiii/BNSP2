@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useLogin } from "../../hooks/auth/useLogin";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
@@ -23,7 +23,11 @@ const Login = () => {
 
   const handleGoogleLogin = () => {
     window.location.href = `${Api.defaults.baseURL}/auth/google`;
+    console.log("default base url: ",Api.defaults.baseURL);
   };
+  useEffect(()=>{
+    console.log("default base url: ",Api.defaults.baseURL);
+  },[])
 
   const submitLogin = () => {
     if (captchaRequired && !captchaToken) {
@@ -204,6 +208,3 @@ const Login = () => {
 };
 
 export default Login;
-// function useLoginGoogle() {
-//   throw new Error("Function not implemented.");
-// }

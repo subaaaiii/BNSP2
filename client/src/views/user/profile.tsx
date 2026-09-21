@@ -35,10 +35,10 @@ const UserProfile = ({ onClose }: Props) => {
               </div>
               <div>
                 <h2 className="font-medium text-text">{user.username}</h2>
-                <p className="text-sm text-gray-500 dark:text-white ">
+                <p className="text-sm text-text ">
                   Type user: {user.role}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-white">
+                <p className="text-sm text-text">
                   Account ID: {user.id}
                 </p>
               </div>

@@ -100,10 +100,10 @@ const BrandProducts = () => {
           </button>
         </div>
         <div className="flex mt-4 items-center gap-6 justify-between">
-          <div className="relative items-center w-xl">
+          <div className="relative items-center w-xl ">
             <input
               type="text"
-              className="input rounded-full w-full text-xl py-6 pl-14 text-gray-400"
+              className="input rounded-full bg-transparent w-full text-xl py-6 pl-14 text-gray-400 border border-gray-400"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type to filter"
@@ -119,7 +119,7 @@ const BrandProducts = () => {
                 <input
                   type="radio"
                   name="radio-3"
-                  className="radio radio-neutral"
+                  className="radio"
                   checked={sort === "most_recent"}
                   onChange={() => {
                     setSort("most_recent");
@@ -127,11 +127,11 @@ const BrandProducts = () => {
                 />
                 <span>Newest</span>
               </div>
-              <div className="flex gap-1">
+              <div className="flex ">
                 <input
                   type="radio"
-                  name="radio-3"
-                  className="radio radio-neutral "
+                  name="radio-2"
+                  className="radio "
                   checked={sort === "lowest_price"}
                   onChange={() => {
                     setSort("lowest_price");
@@ -143,7 +143,7 @@ const BrandProducts = () => {
                 <input
                   type="radio"
                   name="radio-3"
-                  className="radio radio-neutral"
+                  className="radio"
                   checked={sort === "highest_price"}
                   onChange={() => {
                     setSort("highest_price");

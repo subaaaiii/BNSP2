@@ -17,6 +17,7 @@ import { useOrderBatch } from "../../hooks/order/useOrderBatch";
 import { useOrder } from "../../hooks/order/useOrder";
 import OrderCardSimple from "../../components/order_card_simple";
 import { getProfileImage } from "../../helpers/get_profile_image";
+import { useLogout } from "../../hooks/auth/useLogout";
 
 const Chat = () => {
   const { id } = useParams();
@@ -257,6 +258,12 @@ const Chat = () => {
     ];
   }, [messages]);
 
+  const { mutate } = useLogout();
+  
+    const logout = () => {
+    mutate();
+  };
+
   const { data: products } = useProductBatch(productIds);
   const { data: orders } = useOrderBatch(orderIds);
 
@@ -307,10 +314,10 @@ const Chat = () => {
                   </div>
                   <div className="px-3 ">
                     <h2 className="font-medium text-text">{user?.username}</h2>
-                    <p className="text-sm text-gray-500 dark:text-white ">
+                    <p className="text-sm text-text ">
                       Type user: {user?.role}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-white">
+                    <p className="text-sm text-text">
                       Account ID: {user?.id}
                     </p>
                   </div>
@@ -318,16 +325,16 @@ const Chat = () => {
                 <button className="w-full px-3  text-left  py-3 hover:bg-surface-hover text-sm text-text">
                   Profile
                 </button>
-                <button className="w-full flex justify-between px-3  py-3 hover:bg-surface-hover text-sm text-text">
+                <button className="w-full flex justify-between px-3  py-3 hover:bg-surface-hover text-sm text-text ">
                   <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
                   <input
                     type="checkbox"
                     checked={theme == "dark"}
-                    className={`toggle`}
+                    className={`toggle border border-gray-500 text-text`}
                     onClick={toggleTheme}
                   />
                 </button>
-                <button className="w-full px-3 text-left py-3 hover:bg-red-100 text-red-500 text-sm">
+                <button className="w-full px-3 text-left py-3 hover:bg-red-100 text-red-500 text-sm" onClick={logout}>
                   Logout
                 </button>
               </div>
@@ -337,7 +344,7 @@ const Chat = () => {
         <div className="relative mb-4 px-3">
           <input
             type="text"
-            className="input rounded-full pl-10 w-full"
+            className="input rounded-full bg-transparent text-gray-400 border border-gray-400 pl-10 w-full"
             placeholder="Find with name"
             onChange={(e) => {
               setQuery(e.target.value);
@@ -347,40 +354,63 @@ const Chat = () => {
             <CiSearch className="w-6 h-6 text-gray-500" />
           </div>
         </div>
-        {chatList?.map((list: any) => (
-          <div
-            key={list.user_id}
-            className={`space-y-3 flex justify-between items-center hover:bg-surface-hover px-3 py-2 cursor-pointer ${list.user_id === activeChat?.user_id ? "bg-surface" : ""}`}
-            onClick={() => {
-              setTargetUserId(list.user_id);
-              SetAskOrder(false);
-              SetAskProduct(false);
-              setInput("");
-            }}
-          >
-            <div className="flex gap-2 items-center min-w-0 overflow-hidden">
-              <div className="">
-                <img
-                  src={getProfileImage(list.picture)}
-                  alt={list.picture}
-                  className="w-12 h-12 object-cover rounded-full"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-text">{list.name}</div>
-                <span className="text-sm text-gray-500 truncate block">
-                  {list.message}
-                </span>
-              </div>
-            </div>
-            <div className="text-text text-sm flex-shrink-0">
-              {formatDate(list.created_at)}
-            </div>
-          </div>
-        ))}
+        {chatList && chatList.length > 0 ? (
+  chatList.map((list: any) => (
+    <div
+      key={list.user_id}
+      className={`space-y-3 flex justify-between items-center hover:bg-surface-hover px-3 py-2 cursor-pointer ${list.user_id === activeChat?.user_id ? "bg-surface" : ""}`}
+      onClick={() => {
+        setTargetUserId(list.user_id);
+        SetAskOrder(false);
+        SetAskProduct(false);
+        setInput("");
+      }}
+    >
+      <div className="flex gap-2 items-center min-w-0 overflow-hidden">
+        <div className="">
+          <img
+            src={getProfileImage(list.picture)}
+            alt={list.picture}
+            className="w-12 h-12 object-cover rounded-full"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-text">{list.name}</div>
+          <span className="text-sm text-gray-500 truncate block">
+            {list.message}
+          </span>
+        </div>
+      </div>
+      <div className="text-text text-sm flex-shrink-0">
+        {formatDate(list.created_at)}
+      </div>
+    </div>
+  ))
+) : (
+  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+    <div className="text-gray-300 mb-3">
+      <svg 
+        className="w-12 h-12 mx-auto" 
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24" 
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          strokeWidth={1.5} 
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" 
+        />
+      </svg>
+    </div>
+    <p className="text-gray-500 font-medium text-sm">Belum ada riwayat chat</p>
+    <p className="text-gray-400 text-xs mt-1">Pesan yang masuk akan ditampilkan di sini</p>
+  </div>
+)}
       </div>
       <div
-        className={`${targetUserId ? "block" : "hidden md:block"} col-span-4 md:col-span-3 h-screen relative flex flex-col`}
+        className={`${targetUserId ? "block" : "hidden md:block"} col-span-4 md:col-span-3 h-screen relative flex flex-col overflow-hidden`}
       >
         {targetUserId ? (
           <div className="">
