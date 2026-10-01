@@ -14,11 +14,17 @@ var DB *gorm.DB
 
 func InitDB() {
 
+	env := config.GetEnv("APP_ENV", "")
+
+	dbName := config.GetEnv("DB_NAME", "")
+
+	if env == "test" {
+		dbName = config.GetEnv("DB_TEST", "db_bnsp_test")
+	}
 	dbUser := config.GetEnv("DB_USER", "root")
 	dbPass := config.GetEnv("DB_PASS", "root")
 	dbHost := config.GetEnv("DB_HOST", "localhost")
 	dbPort := config.GetEnv("DB_PORT", "3306")
-	dbName := config.GetEnv("DB_NAME", "")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbUser, dbPass, dbHost, dbPort, dbName)

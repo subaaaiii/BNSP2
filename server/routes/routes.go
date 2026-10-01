@@ -1,10 +1,10 @@
 package routes
 
 import (
+	"bnsp2/server/config"
 	"bnsp2/server/controllers"
 	"bnsp2/server/handlers"
 	"bnsp2/server/middlewares"
-	"os"
 	"strings"
 	"time"
 
@@ -18,7 +18,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{os.Getenv("ALLOWED_ORIGIN")},
+		AllowOrigins:     []string{config.GetEnv("ALLOWED_ORIGIN", "http://localhost:5173")},
 		AllowMethods:     []string{"GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
