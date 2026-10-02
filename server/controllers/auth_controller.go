@@ -29,6 +29,8 @@ type RegisterTemp struct {
 	OTP      string `json:"otp"`
 }
 
+var SendOTPEmail = helpers.SendOTPEmail
+
 func Register(c *gin.Context) {
 	var req = structs.UserCreateRequest{}
 
@@ -109,7 +111,7 @@ func Register(c *gin.Context) {
 		10*time.Minute,
 	)
 
-	helpers.SendOTPEmail(req.Email, otp)
+	SendOTPEmail(req.Email, otp)
 
 	c.JSON(http.StatusOK, structs.SuccessResponse{
 		Success: true,

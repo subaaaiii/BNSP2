@@ -15,8 +15,8 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 )
 
-func LoadEnv() {
-	err := godotenv.Load()
+func LoadEnv(filenames ...string) {
+	err := godotenv.Load(filenames...)
 	if err != nil {
 		log.Println("Warning: No .env file found, using system environment variables")
 	}
