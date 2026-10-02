@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"bnsp2/server/controllers"
 	"bnsp2/server/redis"
 	"bnsp2/server/routes"
 
@@ -31,6 +32,16 @@ func TestAuthenticationFlow(t *testing.T) {
 
 	t.Run("1. Register User Baru", func(t *testing.T) {
 
+		original := controllers.SendOTPEmail
+
+		controllers.SendOTPEmail = func(email, otp string) error {
+			return nil
+		}
+
+		defer func() {
+			controllers.SendOTPEmail = original
+		}()
+
 		body, _ := json.Marshal(testUser)
 		req, _ := http.NewRequest("POST", "/api/register", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -38,8 +49,8 @@ func TestAuthenticationFlow(t *testing.T) {
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
-		if w.Code != http.StatusCreated && w.Code != http.StatusOK {
-			t.Errorf("Register gagal. Expected 201/200, got %d. Body: %s", w.Code, w.Body.String())
+		if w.Code != http.StatusOK {
+			t.Errorf("Register gagal. Expected 200, got %d. Body: %s", w.Code, w.Body.String())
 		}
 	})
 	t.Run("2. Create user", func(t *testing.T) {
@@ -47,7 +58,6 @@ func TestAuthenticationFlow(t *testing.T) {
 		ctx := context.Background()
 		redisKey := fmt.Sprintf("register:%s", email)
 
-		// 1. AMBIL DATA DARI REDIS YANG DIBUAT OLEH LANGKAH 1
 		result, err := redis.RedisClient.Get(ctx, redisKey).Result()
 		if err != nil {
 			t.Fatalf("Data tidak ditemukan di Redis! Apakah langkah 1 (/api/register) berhasil? Error: %v", err)
@@ -90,7 +100,7 @@ func TestAuthenticationFlow(t *testing.T) {
 	})
 
 	var authCookie *http.Cookie
-	t.Run("2. Login User", func(t *testing.T) {
+	t.Run("3. Login User", func(t *testing.T) {
 
 		loginData := map[string]string{
 			"username": testUser["username"],
@@ -129,7 +139,7 @@ func TestAuthenticationFlow(t *testing.T) {
 		}
 	})
 
-	t.Run("3. Get My Profile", func(t *testing.T) {
+	t.Run("4. Get My Profile", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/api/me", nil)
 
 		req.AddCookie(authCookie)

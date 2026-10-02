@@ -153,6 +153,8 @@ func CreateOrder(c *gin.Context) {
 	})
 }
 
+var SendInvoiceEmail = helpers.SendInvoiceEmail
+
 func PaymentCallback(c *gin.Context) {
 
 	var notificationPayload map[string]interface{}
@@ -301,7 +303,7 @@ func PaymentCallback(c *gin.Context) {
 		go func(order models.Order) {
 			buf, err := services.GenerateInvoiceBuffer(order, user.Name, product.Title)
 			if err == nil {
-				helpers.SendInvoiceEmail(user.Email, buf, order.Invoice)
+				SendInvoiceEmail(user.Email, buf, order.Invoice)
 			}
 		}(order)
 	}

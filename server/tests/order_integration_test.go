@@ -87,6 +87,15 @@ func TestCreateOrder_Success(t *testing.T) {
 }
 
 func TestPaymentCallback_SettlementSuccess(t *testing.T) {
+	original := controllers.SendInvoiceEmail
+
+	controllers.SendInvoiceEmail = func(to string, pdfBuffer *bytes.Buffer, invoiceID string) error {
+		return nil
+	}
+
+	defer func() {
+		controllers.SendInvoiceEmail = original
+	}()
 
 	defer gock.Off()
 
